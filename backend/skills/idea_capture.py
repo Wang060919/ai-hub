@@ -33,8 +33,8 @@ class IdeaCaptureSkill(BaseSkill):
                 return self._save_content(content)
 
         for prefix in NATURAL_CAPTURE_PREFIXES:
-            if lowered_message.startswith(prefix.lower()):
-                content = stripped_message[len(prefix) :].strip(" ：:，,。.!")
+            content = self._extract_natural_capture_content(stripped_message, lowered_message, prefix)
+            if content is not None:
                 return self._save_content(content)
 
         if any(keyword in lowered_message for keyword in LIST_KEYWORDS):
@@ -51,6 +51,25 @@ class IdeaCaptureSkill(BaseSkill):
             skill=self.name,
             status="error",
         )
+
+    def _extract_natural_capture_content(
+        self,
+        original_message: str,
+        lowered_message: str,
+        trigger: str,
+    ) -> str | None:
+        trigger_index = lowered_message.find(trigger.lower())
+        if trigger_index < 0:
+            return None
+
+        before_text = original_message[:trigger_index].strip(" ：:，,。.!；;")
+        after_text = original_message[trigger_index + len(trigger) :].strip(" ：:，,。.!；;")
+
+        if after_text:
+            return after_text
+        if before_text:
+            return before_text
+        return None
 
     def _save_content(self, content: str) -> ChatResponse:
         if not content:

@@ -64,7 +64,6 @@ def print_error(test_name: str, message: str, exc: Exception) -> None:
 
 def main() -> None:
     summary: list[tuple[str, str]] = []
-    fallback_note_printed = False
 
     for test_name, message, expected_skill, expected_status in TEST_CASES:
         try:
@@ -79,9 +78,8 @@ def main() -> None:
             print_error(test_name, message, exc)
             summary.append((test_name, "error"))
 
-    if not fallback_note_printed:
-        print("Note: 如果本地 Ollama 不可用，AI Router 应回退到 echo，而不是让接口崩溃。")
-        print()
+    print("Note: 如果本地 Ollama 不可用，AI Router 应回退到 echo，而不是让接口崩溃。")
+    print()
 
     print("Summary:")
     for test_name, skill in summary:

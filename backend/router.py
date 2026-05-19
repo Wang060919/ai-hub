@@ -18,6 +18,13 @@ CAPTURE_INTENT_KEYWORDS_LOWER = (
     "以后做",
 )
 DIFY_KEYWORDS_LOWER = tuple(keyword.lower() for keyword in DIFY_KEYWORDS)
+DIFY_LEARNING_KEYWORDS_LOWER = (
+    "怎么背",
+    "怎么记",
+    "这个词",
+    "词怎么",
+    "背单词",
+)
 
 
 def create_chat_router() -> APIRouter:
@@ -74,5 +81,7 @@ def select_skill(
     if any(keyword in normalized_message for keyword in TIME_KEYWORDS):
         return time_skill
     if any(keyword in normalized_message for keyword in DIFY_KEYWORDS_LOWER):
+        return dify_english_skill
+    if any(keyword in normalized_message for keyword in DIFY_LEARNING_KEYWORDS_LOWER):
         return dify_english_skill
     return echo_skill
