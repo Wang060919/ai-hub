@@ -38,7 +38,7 @@ class SafeActionSkill(BaseSkill):
             reply="已生成安全操作计划，但当前不会执行任何真实操作。",
             skill=self.name,
             status="success",
-            data={"action_plan": action_plan.dict()},
+            data={"action_plan": action_plan.model_dump()},
         )
 
     def _build_action_plan(self, message: str) -> ActionPlan:
@@ -68,16 +68,24 @@ class SafeActionSkill(BaseSkill):
 
     @staticmethod
     def _get_intent(message: str) -> str:
+        if "整理下载目录" in message:
+            return "预览下载目录整理计划"
+        if "整理桌面" in message:
+            return "预览桌面文件整理计划"
         if "删除重复文件" in message:
             return "预览删除重复文件的安全操作计划"
+        if "清理文件" in message:
+            return "预览文件清理计划"
         if "批量重命名" in message:
             return "预览批量重命名的安全操作计划"
         if "处理表格" in message:
             return "预览表格处理的安全操作计划"
-        if "整理目录" in message or "整理文件" in message:
-            return "预览文件整理的安全操作计划"
+        if "整理目录" in message:
+            return "预览目录整理计划"
+        if "整理文件" in message:
+            return "预览文件整理计划"
         if "分析文件" in message:
-            return "预览文件分析的安全操作计划"
+            return "预览文件分析计划"
         if "执行计划" in message or "操作计划" in message:
             return "预览用户请求的执行计划"
         return "预览安全操作计划"

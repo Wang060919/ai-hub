@@ -94,6 +94,7 @@ V0.4 Safe Actions 实验记录：
 - 当前只生成 `ActionPlan`。
 - 不执行真实文件操作。
 - 为未来 OpenClaw / Docker 沙盒预留安全执行前置层。
+- 已完成 V0.4.1 小修补：`ActionPlan` 输出已兼容 `model_dump()`，Safe Actions intent 文案已细化，且已补充 low risk 测试用例。
 
 ## 执行规则
 
