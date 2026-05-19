@@ -80,6 +80,18 @@ python scripts/test_ai_router.py
 python scripts/test_safe_actions.py
 ```
 
+## V0.5 File Analysis Plan 实验功能
+
+- 当前只生成 `FileAnalysisPlan`
+- 不读取真实文件
+- 不做 OCR
+- 后续版本才考虑接 OCR / OpenClaw / 文档解析
+- 测试命令：
+
+```powershell
+python scripts/test_file_analysis.py
+```
+
 ## 当前未实现内容
 
 - Ollama

@@ -15,6 +15,17 @@ class ActionPlan(BaseModel):
     notes: str
 
 
+class FileAnalysisPlan(BaseModel):
+    intent: str
+    file_type_guess: str
+    analysis_goal: str
+    risk_level: str
+    steps: list[str]
+    requires_confirmation: bool = True
+    executable: bool = False
+    notes: str
+
+
 class ChatResponse(BaseModel):
     reply: str
     skill: str
