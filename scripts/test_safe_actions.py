@@ -10,6 +10,7 @@ TEST_CASES = [
     ("整理文件计划", "帮我整理文件", "safe_action", "success", "medium"),
     ("删除重复文件计划", "帮我删除重复文件", "safe_action", "success", "high"),
     ("执行计划预览", "先给我一个执行计划：整理下载目录", "safe_action", "success", "medium"),
+    ("分析文件计划", "帮我分析文件", "safe_action", "success", "low"),
     ("普通问候不命中", "hello ai hub", "not_safe_action", "success", ""),
 ]
 
