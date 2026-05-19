@@ -9,7 +9,9 @@ API_URL = "http://127.0.0.1:8000/chat"
 TEST_CASES = [
     ("分析 PDF", "帮我分析 PDF", "file_analysis", "success", "pdf", "low"),
     ("总结文档", "帮我总结这个文档", "file_analysis", "success", "word", "low"),
+    ("分析 Excel", "帮我分析 Excel", "file_analysis", "success", "excel", "low"),
     ("识别图片文字", "帮我识别图片文字", "file_analysis", "success", "image", "medium"),
+    ("分析文件夹", "帮我分析文件夹", "file_analysis", "success", "folder", "medium"),
     ("整理文件应走安全计划", "帮我整理文件", "not_file_analysis", "success", "", ""),
     ("普通问候不命中", "hello ai hub", "not_file_analysis", "success", "", ""),
 ]

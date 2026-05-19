@@ -18,6 +18,7 @@ FILE_ANALYSIS_KEYWORDS = (
     "帮我识别图片文字",
     "帮我ocr",
     "帮我 ocr",
+    "帮我分析文件夹",
     "先给我一个文件分析计划",
     "分析文件",
     "总结这个文档",
@@ -30,6 +31,7 @@ FILE_ANALYSIS_KEYWORDS = (
     "分析表格",
     "分析图片",
     "识别图片文字",
+    "分析文件夹",
     "ocr",
     "文件分析计划",
 )
@@ -57,7 +59,7 @@ class FileAnalysisSkill(BaseSkill):
         analysis_goal = self._get_analysis_goal(message)
 
         return FileAnalysisPlan(
-            intent=self._get_intent(message, file_type_guess),
+            intent=self._get_intent(file_type_guess),
             file_type_guess=file_type_guess,
             analysis_goal=analysis_goal,
             risk_level=risk_level,
@@ -78,7 +80,7 @@ class FileAnalysisSkill(BaseSkill):
             return "excel"
         if "图片" in message or "image" in normalized_message or "ocr" in normalized_message:
             return "image"
-        if "文件夹" in message or "目录" in message or "folder" in normalized_message:
+        if "folder" in normalized_message or any(keyword in message for keyword in FOLDER_ANALYSIS_KEYWORDS):
             return "folder"
         return "unknown"
 
@@ -89,7 +91,7 @@ class FileAnalysisSkill(BaseSkill):
             return "medium"
         if file_type_guess == "folder":
             return "medium"
-        if "批量" in message:
+        if any(keyword in message for keyword in FOLDER_ANALYSIS_KEYWORDS):
             return "medium"
         return "low"
 
@@ -104,12 +106,12 @@ class FileAnalysisSkill(BaseSkill):
             return "预览表格结构、数据字段与分析思路"
         if "图片" in message:
             return "预览图片内容理解与信息提取思路"
-        if "文件夹" in message or "目录" in message:
+        if any(keyword in message for keyword in FOLDER_ANALYSIS_KEYWORDS) or "folder" in normalized_message:
             return "预览文件夹内文件分析与分类思路"
         return "预览文件内容理解与后续分析思路"
 
     @staticmethod
-    def _get_intent(message: str, file_type_guess: str) -> str:
+    def _get_intent(file_type_guess: str) -> str:
         if file_type_guess == "pdf":
             return "预览 PDF 文件分析计划"
         if file_type_guess == "word":
