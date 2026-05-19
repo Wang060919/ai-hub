@@ -2,8 +2,9 @@ from fastapi import APIRouter
 
 from backend.ai_router import OllamaRouter, is_ai_router_enabled
 from backend.schemas import ChatRequest, ChatResponse
-from backend.skills.echo import EchoSkill
 from backend.skills.dify_english import DIFY_KEYWORDS, DifyEnglishSkill
+from backend.skills.echo import EchoSkill
+from backend.skills.file_analysis import FILE_ANALYSIS_KEYWORDS_LOWER, FileAnalysisSkill
 from backend.skills.idea_capture import CAPTURE_PREFIXES, LIST_KEYWORDS, IdeaCaptureSkill
 from backend.skills.safe_action import SAFE_ACTION_KEYWORDS_LOWER, SafeActionSkill
 from backend.skills.time import TimeSkill
@@ -15,6 +16,7 @@ CAPTURE_INTENT_KEYWORDS_LOWER = (
     "帮我记一下",
     "记一下",
     "帮我保存一下",
+    "帮我保存一个",
     "先记下来",
     "以后做",
 )
@@ -26,6 +28,18 @@ DIFY_LEARNING_KEYWORDS_LOWER = (
     "词怎么",
     "背单词",
 )
+SAFE_ACTION_OPERATION_HINTS = (
+    "删除",
+    "清理",
+    "重命名",
+    "批量移动",
+    "复制",
+    "移动",
+    "整理文件",
+    "整理目录",
+    "执行计划",
+    "操作计划",
+)
 
 
 def create_chat_router() -> APIRouter:
@@ -33,6 +47,7 @@ def create_chat_router() -> APIRouter:
     ai_router = OllamaRouter()
     dify_english_skill = DifyEnglishSkill()
     echo_skill = EchoSkill()
+    file_analysis_skill = FileAnalysisSkill()
     idea_capture_skill = IdeaCaptureSkill()
     safe_action_skill = SafeActionSkill()
     time_skill = TimeSkill()
@@ -42,6 +57,7 @@ def create_chat_router() -> APIRouter:
         idea_capture_skill.name: idea_capture_skill,
         dify_english_skill.name: dify_english_skill,
         safe_action_skill.name: safe_action_skill,
+        file_analysis_skill.name: file_analysis_skill,
     }
 
     @router.post("/chat", response_model=ChatResponse)
@@ -50,6 +66,7 @@ def create_chat_router() -> APIRouter:
             payload.message,
             dify_english_skill=dify_english_skill,
             echo_skill=echo_skill,
+            file_analysis_skill=file_analysis_skill,
             idea_capture_skill=idea_capture_skill,
             safe_action_skill=safe_action_skill,
             time_skill=time_skill,
@@ -72,6 +89,7 @@ def select_skill(
     message: str,
     dify_english_skill: DifyEnglishSkill,
     echo_skill: EchoSkill,
+    file_analysis_skill: FileAnalysisSkill,
     idea_capture_skill: IdeaCaptureSkill,
     safe_action_skill: SafeActionSkill,
     time_skill: TimeSkill,
@@ -89,6 +107,14 @@ def select_skill(
         return dify_english_skill
     if any(keyword in normalized_message for keyword in DIFY_LEARNING_KEYWORDS_LOWER):
         return dify_english_skill
+    if should_use_file_analysis(normalized_message):
+        return file_analysis_skill
     if any(keyword in normalized_message for keyword in SAFE_ACTION_KEYWORDS_LOWER):
         return safe_action_skill
     return echo_skill
+
+
+def should_use_file_analysis(normalized_message: str) -> bool:
+    if any(keyword.lower() in normalized_message for keyword in SAFE_ACTION_OPERATION_HINTS):
+        return False
+    return any(keyword in normalized_message for keyword in FILE_ANALYSIS_KEYWORDS_LOWER)

@@ -8,7 +8,6 @@ SAFE_ACTION_KEYWORDS = (
     "帮我清理文件",
     "帮我处理表格",
     "帮我整理目录",
-    "帮我分析文件",
     "帮我批量重命名",
     "帮我删除重复文件",
     "帮我生成一个操作计划",
@@ -17,7 +16,6 @@ SAFE_ACTION_KEYWORDS = (
     "清理文件",
     "处理表格",
     "整理目录",
-    "分析文件",
     "批量重命名",
     "删除重复文件",
     "操作计划",
@@ -84,8 +82,6 @@ class SafeActionSkill(BaseSkill):
             return "预览目录整理计划"
         if "整理文件" in message:
             return "预览文件整理计划"
-        if "分析文件" in message:
-            return "预览文件分析计划"
         if "执行计划" in message or "操作计划" in message:
             return "预览用户请求的执行计划"
         return "预览安全操作计划"
