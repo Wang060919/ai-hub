@@ -57,6 +57,18 @@ python scripts/test_api.py
 - `IdeaCaptureSkill` 查询最近想法
 - `DifyEnglishSkill`
 
+## V0.3 AI Router 实验功能
+
+- 需要本地 Ollama
+- 推荐模型：`qwen2.5:7b`
+- 启动 Ollama 后可运行：
+
+```powershell
+python scripts/test_ai_router.py
+```
+
+- RuleRouter 仍然优先，Ollama 只在规则结果为 `echo` 时做兜底增强
+
 ## 当前未实现内容
 
 - Ollama
