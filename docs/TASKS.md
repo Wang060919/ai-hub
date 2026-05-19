@@ -80,6 +80,14 @@
 - `scripts/test_api.py` 已创建。
 - P4 仍待最终交接文档整理后再标 `DONE`。
 
+V0.3 AI Router 实验记录：
+
+- 当前分支：`feature/v0.3-ai-router`。
+- RuleRouter 仍然优先。
+- OllamaRouter 只在 `echo` fallback 时介入。
+- `qwen2.5:7b` 作为当前本地候选模型。
+- 该功能仍需用户本地测试后再决定是否合并 `main`。
+
 ## 执行规则
 
 - 优先级顺序固定为：`P0 > P1 > P2 > P3 > P4`
