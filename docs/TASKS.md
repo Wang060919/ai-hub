@@ -88,6 +88,13 @@ V0.3 AI Router 实验记录：
 - `qwen2.5:7b` 作为当前本地候选模型。
 - 该功能仍需用户本地测试后再决定是否合并 `main`。
 
+V0.4 Safe Actions 实验记录：
+
+- 当前分支：`feature/v0.4-safe-actions`。
+- 当前只生成 `ActionPlan`。
+- 不执行真实文件操作。
+- 为未来 OpenClaw / Docker 沙盒预留安全执行前置层。
+
 ## 执行规则
 
 - 优先级顺序固定为：`P0 > P1 > P2 > P3 > P4`

@@ -69,6 +69,17 @@ python scripts/test_ai_router.py
 
 - RuleRouter 仍然优先，Ollama 只在规则结果为 `echo` 时做兜底增强
 
+## V0.4 Safe Actions 实验功能
+
+- 当前只生成 `ActionPlan`
+- 不执行任何真实操作
+- 后续版本才考虑 OpenClaw / Docker
+- 测试命令：
+
+```powershell
+python scripts/test_safe_actions.py
+```
+
 ## 当前未实现内容
 
 - Ollama

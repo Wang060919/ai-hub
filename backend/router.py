@@ -5,6 +5,7 @@ from backend.schemas import ChatRequest, ChatResponse
 from backend.skills.echo import EchoSkill
 from backend.skills.dify_english import DIFY_KEYWORDS, DifyEnglishSkill
 from backend.skills.idea_capture import CAPTURE_PREFIXES, LIST_KEYWORDS, IdeaCaptureSkill
+from backend.skills.safe_action import SAFE_ACTION_KEYWORDS_LOWER, SafeActionSkill
 from backend.skills.time import TimeSkill
 
 TIME_KEYWORDS = ("时间", "几点", "time")
@@ -33,12 +34,14 @@ def create_chat_router() -> APIRouter:
     dify_english_skill = DifyEnglishSkill()
     echo_skill = EchoSkill()
     idea_capture_skill = IdeaCaptureSkill()
+    safe_action_skill = SafeActionSkill()
     time_skill = TimeSkill()
     skills_by_name = {
         echo_skill.name: echo_skill,
         time_skill.name: time_skill,
         idea_capture_skill.name: idea_capture_skill,
         dify_english_skill.name: dify_english_skill,
+        safe_action_skill.name: safe_action_skill,
     }
 
     @router.post("/chat", response_model=ChatResponse)
@@ -48,6 +51,7 @@ def create_chat_router() -> APIRouter:
             dify_english_skill=dify_english_skill,
             echo_skill=echo_skill,
             idea_capture_skill=idea_capture_skill,
+            safe_action_skill=safe_action_skill,
             time_skill=time_skill,
         )
         if rule_skill.name != echo_skill.name:
@@ -69,6 +73,7 @@ def select_skill(
     dify_english_skill: DifyEnglishSkill,
     echo_skill: EchoSkill,
     idea_capture_skill: IdeaCaptureSkill,
+    safe_action_skill: SafeActionSkill,
     time_skill: TimeSkill,
 ):
     normalized_message = message.strip().lower()
@@ -84,4 +89,6 @@ def select_skill(
         return dify_english_skill
     if any(keyword in normalized_message for keyword in DIFY_LEARNING_KEYWORDS_LOWER):
         return dify_english_skill
+    if any(keyword in normalized_message for keyword in SAFE_ACTION_KEYWORDS_LOWER):
+        return safe_action_skill
     return echo_skill

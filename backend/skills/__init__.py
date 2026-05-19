@@ -2,5 +2,6 @@
 
 from backend.skills.dify_english import DifyEnglishSkill
 from backend.skills.idea_capture import IdeaCaptureSkill
+from backend.skills.safe_action import SafeActionSkill
 
-__all__ = ["DifyEnglishSkill", "IdeaCaptureSkill"]
+__all__ = ["DifyEnglishSkill", "IdeaCaptureSkill", "SafeActionSkill"]
