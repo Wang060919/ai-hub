@@ -11,7 +11,6 @@ DB_PATH = DATA_DIR / "ai_hub.db"
 
 
 def get_connection() -> sqlite3.Connection:
-    initialize_database()
     connection = sqlite3.connect(DB_PATH)
     connection.row_factory = sqlite3.Row
     return connection

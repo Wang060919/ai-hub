@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+from functools import lru_cache
 from pathlib import Path
 from urllib import error, request
 
@@ -34,6 +35,7 @@ def load_dotenv() -> dict[str, str]:
     return env_values
 
 
+@lru_cache(maxsize=1)
 def get_dify_config() -> tuple[str | None, str | None]:
     api_url = os.getenv("DIFY_API_URL", "").strip()
     api_key = os.getenv("DIFY_API_KEY", "").strip()

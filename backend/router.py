@@ -7,6 +7,9 @@ from backend.skills.idea_capture import CAPTURE_PREFIXES, LIST_KEYWORDS, IdeaCap
 from backend.skills.time import TimeSkill
 
 TIME_KEYWORDS = ("时间", "几点", "time")
+CAPTURE_PREFIXES_LOWER = tuple(prefix.lower() for prefix in CAPTURE_PREFIXES)
+LIST_KEYWORDS_LOWER = tuple(keyword.lower() for keyword in LIST_KEYWORDS)
+DIFY_KEYWORDS_LOWER = tuple(keyword.lower() for keyword in DIFY_KEYWORDS)
 
 
 def create_chat_router() -> APIRouter:
@@ -38,12 +41,12 @@ def select_skill(
     time_skill: TimeSkill,
 ):
     normalized_message = message.strip().lower()
-    if normalized_message.startswith(tuple(prefix.lower() for prefix in CAPTURE_PREFIXES)):
+    if normalized_message.startswith(CAPTURE_PREFIXES_LOWER):
         return idea_capture_skill
-    if any(keyword in normalized_message for keyword in LIST_KEYWORDS):
+    if any(keyword in normalized_message for keyword in LIST_KEYWORDS_LOWER):
         return idea_capture_skill
     if any(keyword in normalized_message for keyword in TIME_KEYWORDS):
         return time_skill
-    if any(keyword in normalized_message for keyword in DIFY_KEYWORDS):
+    if any(keyword in normalized_message for keyword in DIFY_KEYWORDS_LOWER):
         return dify_english_skill
     return echo_skill

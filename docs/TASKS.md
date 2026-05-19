@@ -65,6 +65,7 @@
 - 已验证 Dify 请求必须携带浏览器 `User-Agent`，否则 Dify 云端可能返回 Cloudflare `403`，错误码 `1010`。
 - 已确认本阶段没有新增依赖。
 - 已确认未触碰 Ollama、ChromaDB、OpenClaw、Docker、OCR、Tauri、Live2D、前端等禁止范围。
+- 已完成 v0.2 稳定性加固：SQLite 初始化已优化为应用启动时执行一次，Dify 配置读取已缓存，router 关键词已做模块级预计算，`requirements.txt` 已显式加入 `pydantic`。
 
 ## P4：README、测试与交接
 
