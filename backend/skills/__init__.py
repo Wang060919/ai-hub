@@ -5,6 +5,7 @@ from backend.skills.file_analysis import FileAnalysisSkill
 from backend.skills.file_inventory import FileInventorySkill
 from backend.skills.idea_capture import IdeaCaptureSkill
 from backend.skills.readonly_file_scanner import ReadOnlyFileScannerSkill
+from backend.skills.readonly_text_preview import ReadOnlyTextPreviewSkill
 from backend.skills.safe_action import SafeActionSkill
 
 __all__ = [
@@ -13,5 +14,6 @@ __all__ = [
     "FileInventorySkill",
     "IdeaCaptureSkill",
     "ReadOnlyFileScannerSkill",
+    "ReadOnlyTextPreviewSkill",
     "SafeActionSkill",
 ]

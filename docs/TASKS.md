@@ -117,6 +117,14 @@ V0.7.1 ReadOnlyFileScanner 小修补：
 - 文件与目录结果固定排序
 - 不扩大文件系统权限
 
+V0.8 ReadOnlyTextPreview 实验记录：
+
+- 当前分支：`feature/v0.8-readonly-text-preview`
+- 只读预览白名单目录内 txt / md 小文件
+- 不解析 PDF / Word / Excel / 图片
+- 不执行真实文件操作
+- 为未来文件理解能力做安全前置
+
 ## 执行规则
 
 - 优先级顺序固定为：`P0 > P1 > P2 > P3 > P4`

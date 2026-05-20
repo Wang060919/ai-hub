@@ -80,6 +80,25 @@ class ReadOnlyFileScanPlan(BaseModel):
     notes: str
 
 
+class ReadOnlyTextPreviewPlan(BaseModel):
+    intent: str
+    scan_root: str
+    requested_path: str
+    resolved_path: str
+    file_name: str
+    suffix: str
+    size_bytes: int
+    size_human: str
+    preview_chars: int
+    preview_text: str
+    truncated: bool
+    risk_level: str
+    recommended_next_step: str
+    requires_confirmation: bool = True
+    executable: bool = False
+    notes: str
+
+
 class ChatResponse(BaseModel):
     reply: str
     skill: str

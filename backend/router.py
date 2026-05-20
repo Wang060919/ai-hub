@@ -8,6 +8,7 @@ from backend.skills.file_analysis import FILE_ANALYSIS_KEYWORDS_LOWER, FileAnaly
 from backend.skills.file_inventory import FILE_INVENTORY_KEYWORDS_LOWER, FileInventorySkill
 from backend.skills.idea_capture import CAPTURE_PREFIXES, LIST_KEYWORDS, IdeaCaptureSkill
 from backend.skills.readonly_file_scanner import READONLY_FILE_SCANNER_KEYWORDS_LOWER, ReadOnlyFileScannerSkill
+from backend.skills.readonly_text_preview import READONLY_TEXT_PREVIEW_KEYWORDS_LOWER, ReadOnlyTextPreviewSkill
 from backend.skills.safe_action import SAFE_ACTION_KEYWORDS_LOWER, SafeActionSkill
 from backend.skills.time import TimeSkill
 
@@ -57,6 +58,7 @@ def create_chat_router() -> APIRouter:
     file_inventory_skill = FileInventorySkill()
     idea_capture_skill = IdeaCaptureSkill()
     readonly_file_scanner_skill = ReadOnlyFileScannerSkill()
+    readonly_text_preview_skill = ReadOnlyTextPreviewSkill()
     safe_action_skill = SafeActionSkill()
     time_skill = TimeSkill()
     skills_by_name = {
@@ -65,6 +67,7 @@ def create_chat_router() -> APIRouter:
         idea_capture_skill.name: idea_capture_skill,
         dify_english_skill.name: dify_english_skill,
         safe_action_skill.name: safe_action_skill,
+        readonly_text_preview_skill.name: readonly_text_preview_skill,
         readonly_file_scanner_skill.name: readonly_file_scanner_skill,
         file_inventory_skill.name: file_inventory_skill,
         file_analysis_skill.name: file_analysis_skill,
@@ -80,6 +83,7 @@ def create_chat_router() -> APIRouter:
             file_inventory_skill=file_inventory_skill,
             idea_capture_skill=idea_capture_skill,
             readonly_file_scanner_skill=readonly_file_scanner_skill,
+            readonly_text_preview_skill=readonly_text_preview_skill,
             safe_action_skill=safe_action_skill,
             time_skill=time_skill,
         )
@@ -105,6 +109,7 @@ def select_skill(
     file_inventory_skill: FileInventorySkill,
     idea_capture_skill: IdeaCaptureSkill,
     readonly_file_scanner_skill: ReadOnlyFileScannerSkill,
+    readonly_text_preview_skill: ReadOnlyTextPreviewSkill,
     safe_action_skill: SafeActionSkill,
     time_skill: TimeSkill,
 ):
@@ -120,6 +125,7 @@ def select_skill(
     if (
         any(keyword in normalized_message for keyword in DIFY_KEYWORDS_LOWER)
         and not has_safe_action_intent(normalized_message)
+        and not should_use_readonly_text_preview(normalized_message)
         and not should_use_readonly_file_scanner(normalized_message)
         and not should_use_file_inventory(normalized_message)
     ):
@@ -127,12 +133,15 @@ def select_skill(
     if (
         any(keyword in normalized_message for keyword in DIFY_LEARNING_KEYWORDS_LOWER)
         and not has_safe_action_intent(normalized_message)
+        and not should_use_readonly_text_preview(normalized_message)
         and not should_use_readonly_file_scanner(normalized_message)
         and not should_use_file_inventory(normalized_message)
     ):
         return dify_english_skill
     if has_safe_action_intent(normalized_message):
         return safe_action_skill
+    if should_use_readonly_text_preview(normalized_message):
+        return readonly_text_preview_skill
     if should_use_readonly_file_scanner(normalized_message):
         return readonly_file_scanner_skill
     if should_use_file_inventory(normalized_message):
@@ -151,13 +160,39 @@ def has_safe_action_intent(normalized_message: str) -> bool:
 def should_use_file_inventory(normalized_message: str) -> bool:
     if has_safe_action_intent(normalized_message):
         return False
+    if should_use_readonly_text_preview(normalized_message):
+        return False
     if should_use_readonly_file_scanner(normalized_message):
         return False
     return any(keyword in normalized_message for keyword in FILE_INVENTORY_KEYWORDS_LOWER)
 
 
+def should_use_readonly_text_preview(normalized_message: str) -> bool:
+    if has_safe_action_intent(normalized_message):
+        return False
+    if any(keyword in normalized_message for keyword in READONLY_FILE_SCANNER_KEYWORDS_LOWER):
+        return False
+    if any(keyword in normalized_message for keyword in FILE_INVENTORY_KEYWORDS_LOWER):
+        return False
+    if any(keyword in normalized_message for keyword in FILE_ANALYSIS_KEYWORDS_LOWER):
+        return False
+
+    has_preview_keyword = any(keyword in normalized_message for keyword in READONLY_TEXT_PREVIEW_KEYWORDS_LOWER)
+    has_allowed_suffix = ".txt" in normalized_message or ".md" in normalized_message
+    has_preview_hint = any(keyword in normalized_message for keyword in ("预览", "查看", "读取"))
+    has_markdown_hint = "markdown" in normalized_message
+
+    if has_preview_keyword:
+        return True
+    if has_allowed_suffix and (has_preview_hint or has_markdown_hint):
+        return True
+    return False
+
+
 def should_use_readonly_file_scanner(normalized_message: str) -> bool:
     if has_safe_action_intent(normalized_message):
+        return False
+    if should_use_readonly_text_preview(normalized_message):
         return False
     if any(keyword in normalized_message for keyword in FILE_INVENTORY_KEYWORDS_LOWER):
         return False
@@ -166,6 +201,8 @@ def should_use_readonly_file_scanner(normalized_message: str) -> bool:
 
 def should_use_file_analysis(normalized_message: str) -> bool:
     if has_safe_action_intent(normalized_message):
+        return False
+    if should_use_readonly_text_preview(normalized_message):
         return False
     if should_use_readonly_file_scanner(normalized_message):
         return False

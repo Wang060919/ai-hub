@@ -124,6 +124,20 @@ python scripts/test_file_inventory.py
 python scripts/test_readonly_file_scanner.py
 ```
 
+## V0.8 ReadOnlyTextPreview 实验功能
+
+- 只读取白名单目录内的 txt / md 小文件
+- 默认最大 64KB
+- 默认最多返回前 2000 字符
+- 不读取复杂文档
+- 不 OCR
+- 不修改文件
+- 测试命令：
+
+```powershell
+python scripts/test_readonly_text_preview.py
+```
+
 ## 当前未实现内容
 
 - Ollama
