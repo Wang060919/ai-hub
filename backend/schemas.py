@@ -26,6 +26,27 @@ class FileAnalysisPlan(BaseModel):
     notes: str
 
 
+class FileInventoryItem(BaseModel):
+    name: str
+    file_type: str
+    size_hint: str
+    location_hint: str
+    user_goal: str
+
+
+class FileInventoryPlan(BaseModel):
+    intent: str
+    files: list[FileInventoryItem]
+    inferred_file_types: list[str]
+    analysis_goal: str
+    risk_level: str
+    recommended_next_step: str
+    steps: list[str]
+    requires_confirmation: bool = True
+    executable: bool = False
+    notes: str
+
+
 class ChatResponse(BaseModel):
     reply: str
     skill: str

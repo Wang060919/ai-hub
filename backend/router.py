@@ -5,6 +5,7 @@ from backend.schemas import ChatRequest, ChatResponse
 from backend.skills.dify_english import DIFY_KEYWORDS, DifyEnglishSkill
 from backend.skills.echo import EchoSkill
 from backend.skills.file_analysis import FILE_ANALYSIS_KEYWORDS_LOWER, FileAnalysisSkill
+from backend.skills.file_inventory import FILE_INVENTORY_KEYWORDS_LOWER, FileInventorySkill
 from backend.skills.idea_capture import CAPTURE_PREFIXES, LIST_KEYWORDS, IdeaCaptureSkill
 from backend.skills.safe_action import SAFE_ACTION_KEYWORDS_LOWER, SafeActionSkill
 from backend.skills.time import TimeSkill
@@ -33,8 +34,12 @@ SAFE_ACTION_OPERATION_HINTS = (
     "清理",
     "重命名",
     "批量移动",
+    "批量重命名",
     "复制",
     "移动",
+    "覆盖",
+    "删除重复文件",
+    "删除重复的",
     "整理文件",
     "整理目录",
     "执行计划",
@@ -48,6 +53,7 @@ def create_chat_router() -> APIRouter:
     dify_english_skill = DifyEnglishSkill()
     echo_skill = EchoSkill()
     file_analysis_skill = FileAnalysisSkill()
+    file_inventory_skill = FileInventorySkill()
     idea_capture_skill = IdeaCaptureSkill()
     safe_action_skill = SafeActionSkill()
     time_skill = TimeSkill()
@@ -57,6 +63,7 @@ def create_chat_router() -> APIRouter:
         idea_capture_skill.name: idea_capture_skill,
         dify_english_skill.name: dify_english_skill,
         safe_action_skill.name: safe_action_skill,
+        file_inventory_skill.name: file_inventory_skill,
         file_analysis_skill.name: file_analysis_skill,
     }
 
@@ -67,6 +74,7 @@ def create_chat_router() -> APIRouter:
             dify_english_skill=dify_english_skill,
             echo_skill=echo_skill,
             file_analysis_skill=file_analysis_skill,
+            file_inventory_skill=file_inventory_skill,
             idea_capture_skill=idea_capture_skill,
             safe_action_skill=safe_action_skill,
             time_skill=time_skill,
@@ -90,6 +98,7 @@ def select_skill(
     dify_english_skill: DifyEnglishSkill,
     echo_skill: EchoSkill,
     file_analysis_skill: FileAnalysisSkill,
+    file_inventory_skill: FileInventorySkill,
     idea_capture_skill: IdeaCaptureSkill,
     safe_action_skill: SafeActionSkill,
     time_skill: TimeSkill,
@@ -103,18 +112,34 @@ def select_skill(
         return idea_capture_skill
     if any(keyword in normalized_message for keyword in TIME_KEYWORDS):
         return time_skill
+    if has_safe_action_intent(normalized_message):
+        return safe_action_skill
+    if should_use_file_inventory(normalized_message):
+        return file_inventory_skill
     if any(keyword in normalized_message for keyword in DIFY_KEYWORDS_LOWER):
         return dify_english_skill
     if any(keyword in normalized_message for keyword in DIFY_LEARNING_KEYWORDS_LOWER):
         return dify_english_skill
     if should_use_file_analysis(normalized_message):
         return file_analysis_skill
-    if any(keyword in normalized_message for keyword in SAFE_ACTION_KEYWORDS_LOWER):
-        return safe_action_skill
     return echo_skill
 
 
+def has_safe_action_intent(normalized_message: str) -> bool:
+    if any(keyword in normalized_message for keyword in SAFE_ACTION_KEYWORDS_LOWER):
+        return True
+    return any(keyword in normalized_message for keyword in SAFE_ACTION_OPERATION_HINTS)
+
+
+def should_use_file_inventory(normalized_message: str) -> bool:
+    if has_safe_action_intent(normalized_message):
+        return False
+    return any(keyword in normalized_message for keyword in FILE_INVENTORY_KEYWORDS_LOWER)
+
+
 def should_use_file_analysis(normalized_message: str) -> bool:
-    if any(keyword.lower() in normalized_message for keyword in SAFE_ACTION_OPERATION_HINTS):
+    if has_safe_action_intent(normalized_message):
+        return False
+    if should_use_file_inventory(normalized_message):
         return False
     return any(keyword in normalized_message for keyword in FILE_ANALYSIS_KEYWORDS_LOWER)

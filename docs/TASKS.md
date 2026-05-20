@@ -91,6 +91,14 @@ V0.5 File Analysis Plan 实验记录：
 - 不执行 OCR / PDF / Word / Excel 解析
 - 为未来文件理解能力预留
 
+V0.6 File Inventory 实验记录：
+
+- 当前分支：`feature/v0.6-file-inventory`
+- 当前只解析用户提供的文件清单文本
+- 不读取真实文件
+- 不检查真实路径
+- 为未来文件理解和批量处理能力预留
+
 ## 执行规则
 
 - 优先级顺序固定为：`P0 > P1 > P2 > P3 > P4`
