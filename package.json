@@ -1,0 +1,10 @@
+{
+  "name": "ai-hub-desktop-shell",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "node frontend/server.mjs",
+    "start": "node frontend/server.mjs",
+    "build": "node frontend/build.mjs"
+  }
+}

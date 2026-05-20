@@ -1,0 +1,149 @@
+import { createReadStream, existsSync, statSync } from "node:fs";
+import { extname, join, normalize, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import http from "node:http";
+
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
+const projectRoot = resolve(__dirname, "..");
+const publicDir = join(projectRoot, "frontend", "public");
+const distDir = join(projectRoot, "frontend", "dist");
+const preferredRoot = existsSync(distDir) ? distDir : publicDir;
+const host = process.env.AI_HUB_FRONTEND_HOST || "127.0.0.1";
+const port = Number(process.env.AI_HUB_FRONTEND_PORT || 4173);
+
+const mimeTypes = {
+  ".css": "text/css; charset=utf-8",
+  ".html": "text/html; charset=utf-8",
+  ".js": "application/javascript; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+  ".svg": "image/svg+xml",
+};
+const backendUnavailableMessage =
+  "\u65e0\u6cd5\u8fde\u63a5\u540e\u7aef\uff0c\u8bf7\u5148\u542f\u52a8 FastAPI \u670d\u52a1";
+
+function sendJson(response, statusCode, payload) {
+  const body = JSON.stringify(payload);
+  response.writeHead(statusCode, {
+    "Content-Type": "application/json; charset=utf-8",
+    "Content-Length": Buffer.byteLength(body),
+    "Cache-Control": "no-store",
+  });
+  response.end(body);
+}
+
+function readRequestBody(request) {
+  return new Promise((resolveBody, rejectBody) => {
+    const chunks = [];
+    request.on("data", (chunk) => chunks.push(chunk));
+    request.on("end", () => resolveBody(Buffer.concat(chunks).toString("utf-8")));
+    request.on("error", rejectBody);
+  });
+}
+
+function normalizeBackendUrl(rawValue) {
+  const trimmedValue = String(rawValue || "").trim();
+  if (!trimmedValue) {
+    throw new Error("Backend URL cannot be empty");
+  }
+
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(trimmedValue);
+  } catch {
+    throw new Error("Backend URL is invalid. Use a value like http://127.0.0.1:8000");
+  }
+
+  if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+    throw new Error("Backend URL must start with http:// or https://");
+  }
+
+  parsedUrl.pathname = "";
+  parsedUrl.search = "";
+  parsedUrl.hash = "";
+  return parsedUrl.toString().replace(/\/$/, "");
+}
+
+async function fetchJson(baseUrl, path) {
+  const response = await fetch(`${baseUrl}${path}`, {
+    method: "GET",
+    headers: { Accept: "application/json" },
+  });
+
+  if (!response.ok) {
+    throw new Error(`${path} returned ${response.status}`);
+  }
+
+  return response.json();
+}
+
+async function handleMetadataProxy(request, response) {
+  try {
+    const rawBody = await readRequestBody(request);
+    const payload = rawBody ? JSON.parse(rawBody) : {};
+    const baseUrl = normalizeBackendUrl(payload.backendUrl);
+
+    const [health, version, skills] = await Promise.all([
+      fetchJson(baseUrl, "/health"),
+      fetchJson(baseUrl, "/version"),
+      fetchJson(baseUrl, "/skills"),
+    ]);
+
+    sendJson(response, 200, {
+      ok: true,
+      backendUrl: baseUrl,
+      health,
+      version,
+      skills,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : backendUnavailableMessage;
+
+    sendJson(response, 502, {
+      ok: false,
+      error: message.includes("Backend URL") ? message : backendUnavailableMessage,
+      details: message,
+    });
+  }
+}
+
+function serveStaticFile(requestPath, response) {
+  const safePath = requestPath === "/" ? "/index.html" : requestPath;
+  const resolvedPath = resolve(preferredRoot, `.${normalize(safePath)}`);
+
+  if (!resolvedPath.startsWith(preferredRoot) || !existsSync(resolvedPath) || statSync(resolvedPath).isDirectory()) {
+    response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+    response.end("Not Found");
+    return;
+  }
+
+  const extension = extname(resolvedPath);
+  response.writeHead(200, {
+    "Content-Type": mimeTypes[extension] || "application/octet-stream",
+    "Cache-Control": "no-store",
+  });
+  createReadStream(resolvedPath).pipe(response);
+}
+
+const server = http.createServer(async (request, response) => {
+  const requestUrl = new URL(request.url || "/", `http://${host}:${port}`);
+
+  if (request.method === "POST" && requestUrl.pathname === "/api/metadata") {
+    await handleMetadataProxy(request, response);
+    return;
+  }
+
+  if (request.method === "GET") {
+    serveStaticFile(requestUrl.pathname, response);
+    return;
+  }
+
+  response.writeHead(405, { "Content-Type": "text/plain; charset=utf-8" });
+  response.end("Method Not Allowed");
+});
+
+server.listen(port, host, () => {
+  console.log(`AI Hub Desktop Shell is available at http://${host}:${port}`);
+});
