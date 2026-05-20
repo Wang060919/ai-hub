@@ -22,6 +22,10 @@ AI Hub 是一个面向学习与个人工作流的桌面 AI 智能中枢。
 - `V0.4 SafeActionSkill`
 - `V0.5 FileAnalysisSkill`
 - `V0.6 FileInventorySkill`
+- `V1.0 Phase 1 Desktop MVP`
+- `V1.0 Phase 2 Desktop Chat Page`
+- `V1.0 Phase 3 Files / Tools Page`
+- `V1.0 Phase 4 Tauri Desktop Wrapper`
 
 当前阶段原则：
 
@@ -65,10 +69,24 @@ AI Hub 是一个面向学习与个人工作流的桌面 AI 智能中枢。
 - `FileInventorySkill`
 - SQLite 灵感盲存
 
+从 `V1.0 Phase 1` 起，允许开发 `frontend` 页面，但只限当前桌面实验范围内的页面与交互：
+
+- `Backend Status`
+- `Chat`
+- `Files / Tools`
+
+从 `V1.0 Phase 4` 起，允许引入最小 `Tauri Desktop Wrapper`，但仅限作为桌面容器包装现有前端：
+
+- 允许创建和维护 `src-tauri/`
+- 允许最小窗口配置与桌面启动脚本
+- 允许通过 Tauri 加载现有前端页面
+- 不允许借机扩展新的桌面能力边界
+
 当前默认目标：
 
 - 保持现有 Skill / Router / JSON 协议稳定可交接
-- 在不突破安全边界的前提下完成版本实验修补
+- 保持现有 frontend 页面稳定可运行
+- 在不突破安全边界的前提下完成 Tauri 桌面容器修补
 
 如果某项工作不能直接支持当前版本实验或稳定性修补，则默认不属于当前阶段。
 
@@ -80,12 +98,22 @@ AI Hub 是一个面向学习与个人工作流的桌面 AI 智能中枢。
 - OpenClaw
 - Docker 沙盒
 - OCR
-- Tauri
 - Live2D
-- 前端页面
 - IoT
 - GraphRAG
 - Always-On
+
+当前阶段对 Tauri 和前端的限制如下：
+
+- Tauri 只允许作为桌面容器包装现有前端
+- 不允许新增 `fs` 权限
+- 不允许新增 `shell` 权限
+- 不允许接系统托盘
+- 不允许自动启动后端
+- 不允许借 Tauri 新增文件选择、文件上传、真实文件读取或真实文件操作
+- 不允许自动调用 `/chat`
+- 不允许自动触发 Dify
+- 不允许为了桌面包装引入不必要的新基础设施
 
 补充禁止项：
 
@@ -104,6 +132,8 @@ AI Hub 是一个面向学习与个人工作流的桌面 AI 智能中枢。
 - Python
 - FastAPI
 - SQLite
+- Node.js
+- 最小 Tauri Desktop Wrapper
 
 当前阶段推荐风格：
 
@@ -112,18 +142,19 @@ AI Hub 是一个面向学习与个人工作流的桌面 AI 智能中枢。
 - JSON 协议清晰稳定
 - 依赖尽量少
 - 错误处理保持基础可用
+- 桌面端优先复用现有前端，不重复实现业务逻辑
 
 当前阶段不应擅自引入：
 
 - 本地大模型运行时
 - 向量数据库
 - 容器编排
-- 桌面端框架
+- 超出最小包装范围的桌面端能力
 - 多模态或设备联动相关组件
 
 ## 7. 代码目录约定
 
-当前阶段仍以现有后端闭环为主组织目录。
+当前阶段仍以现有后端闭环和桌面包装为主组织目录。
 
 推荐目录如下：
 
@@ -137,6 +168,14 @@ backend/
     echo.py
     time.py
     idea_capture.py
+frontend/
+  public/
+  server.mjs
+  build.mjs
+src-tauri/
+  tauri.conf.json
+  capabilities/
+  src/
 ```
 
 目录约定规则：
@@ -146,10 +185,11 @@ backend/
 - `backend/router.py` 负责规则路由
 - `backend/skills/base.py` 负责 `BaseSkill`
 - `backend/skills/` 下按单个 Skill 拆分文件
+- `frontend/` 负责当前桌面实验前端页面
+- `src-tauri/` 只负责最小桌面容器包装
 
 当前阶段不要创建：
 
-- `frontend/`
 - `desktop/`
 - `docker/`
 - `ocr/`
@@ -185,7 +225,7 @@ backend/
 - 不为了未来能力提前抽象多层架构
 - 不为了“可扩展性”提前引入复杂插件系统实现
 - 不为了“AI 感”提前接入本地模型
-- 不为了“产品完整度”提前开发前端或桌面端
+- 不为了“产品完整度”提前开发超出当前阶段的前端或桌面能力
 - 不为了“长期记忆”提前接入 ChromaDB、GraphRAG
 - 不为了“自动化愿景”提前实现 OpenClaw、Docker 沙盒
 
@@ -225,4 +265,4 @@ Claude Code、Codex、Gemini 等工具在本项目中应遵守以下协作方式
 
 ## 12. 一句话执行准则
 
-当前执行准则：在现有多版本实验基线上继续做小步修补，优先保证 RuleRouter、安全边界、测试通过和可交接性，禁止擅自接入高风险能力。
+当前执行准则：在现有多版本实验基线上继续做小步修补，优先保证 RuleRouter、安全边界、测试通过和可交接性；`frontend` 与最小 `Tauri Desktop Wrapper` 仅在 V1.0 已明确允许的范围内推进，禁止擅自接入高风险能力。

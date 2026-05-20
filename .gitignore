@@ -10,3 +10,4 @@ __pycache__/
 frontend/dist/
 node_modules/
 src-tauri/target/
+src-tauri/gen/
