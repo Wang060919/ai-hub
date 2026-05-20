@@ -114,6 +114,10 @@ python scripts/test_file_inventory.py
 - 不建议把 `AI_HUB_SCAN_ROOT` 设置为 `C:\`、`D:\`、用户主目录等大范围目录，推荐使用专门沙盒目录，如 `data/scan_sandbox` 或 `D:\AI-Workspace\ai-hub-sandbox`
 - 不递归扫描
 - 不执行任何文件操作
+- V0.7.1 会返回 `file_type_summary`
+- V0.7.1 会返回 `total_size_human`
+- V0.7.1 会按规则排序目录和文件结果
+- V0.7.1 仍然只读，不读取文件内容
 - 测试命令：
 
 ```powershell
