@@ -99,6 +99,40 @@ class ReadOnlyTextPreviewPlan(BaseModel):
     notes: str
 
 
+class HealthResponse(BaseModel):
+    status: str
+    app: str
+    version: str
+
+
+class VersionApiInfo(BaseModel):
+    chat: str
+    health: str
+    version: str
+    skills: str
+
+
+class VersionResponse(BaseModel):
+    app: str
+    version: str
+    stable_base: str
+    api: VersionApiInfo
+
+
+class SkillInfo(BaseModel):
+    name: str
+    description: str
+    stage: str
+    safety_level: str
+    executable: bool
+
+
+class SkillsResponse(BaseModel):
+    app: str
+    version: str
+    skills: list[SkillInfo]
+
+
 class ChatResponse(BaseModel):
     reply: str
     skill: str

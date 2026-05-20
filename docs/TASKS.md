@@ -125,6 +125,14 @@ V0.8 ReadOnlyTextPreview 实验记录：
 - 不执行真实文件操作
 - 为未来文件理解能力做安全前置
 
+V0.9 API Stabilization 实验记录：
+
+- 当前分支：`feature/v0.9-api-stabilization`
+- 新增后端元信息接口：`/health`、`/version`、`/skills`
+- 为 `V1.0 Tauri` 桌面端 MVP 做准备
+- 不新增 Skill
+- 不扩大文件权限
+
 ## 执行规则
 
 - 优先级顺序固定为：`P0 > P1 > P2 > P3 > P4`
