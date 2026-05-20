@@ -138,6 +138,19 @@ python scripts/test_readonly_file_scanner.py
 python scripts/test_readonly_text_preview.py
 ```
 
+## V0.9 API Stabilization 实验功能
+
+- 新增 `/health`
+- 新增 `/version`
+- 新增 `/skills`
+- 这些接口用于桌面端读取后端状态和能力
+- 不调用 Dify，不消耗模型额度
+- 测试命令：
+
+```powershell
+python scripts/test_api_metadata.py
+```
+
 ## 当前未实现内容
 
 - Ollama
