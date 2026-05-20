@@ -133,6 +133,14 @@ V0.9 API Stabilization 实验记录：
 - 不新增 Skill
 - 不扩大文件权限
 
+V1.0 Phase 1 Desktop MVP 实验记录：
+
+- 当前分支：`feature/v1.0-desktop-mvp`
+- 桌面端外壳 + 后端状态页
+- 只连接 `/health`、`/version`、`/skills`
+- 不接聊天
+- 不接文件操作
+
 ## 执行规则
 
 - 优先级顺序固定为：`P0 > P1 > P2 > P3 > P4`

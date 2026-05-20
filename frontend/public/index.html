@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI Hub Desktop MVP</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero-card">
+        <p class="eyebrow">AI Hub</p>
+        <h1>Desktop MVP</h1>
+        <p class="subtitle">Minimal desktop shell that reads backend metadata only.</p>
+      </section>
+
+      <section class="panel">
+        <label class="field-label" for="backend-url">Backend URL</label>
+        <div class="control-row">
+          <input id="backend-url" class="backend-input" type="url" value="http://127.0.0.1:8000" />
+          <button id="check-backend" class="check-button" type="button">Check Backend</button>
+        </div>
+        <p id="request-status" class="request-status idle">Waiting to check backend</p>
+      </section>
+
+      <section class="panel summary-panel">
+        <div class="summary-item">
+          <span class="summary-label">health.status</span>
+          <strong id="health-status">-</strong>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">version.version</span>
+          <strong id="app-version">-</strong>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">skills count</span>
+          <strong id="skills-count">0</strong>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-heading">
+          <h2>Skills</h2>
+          <p>Current capability list returned by the backend</p>
+        </div>
+        <div class="table-wrap">
+          <table class="skills-table">
+            <thead>
+              <tr>
+                <th>name</th>
+                <th>description</th>
+                <th>stage</th>
+                <th>safety_level</th>
+                <th>executable</th>
+              </tr>
+            </thead>
+            <tbody id="skills-body">
+              <tr>
+                <td colspan="5" class="empty-state">Click "Check Backend" to load the skills list</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>

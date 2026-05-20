@@ -151,6 +151,30 @@ python scripts/test_readonly_text_preview.py
 python scripts/test_api_metadata.py
 ```
 
+## V1.0 Desktop MVP 第一阶段
+
+- 当前阶段提供最小桌面端前端外壳和后端状态页
+- 页面只连接 `/health`、`/version`、`/skills`
+- 不调用 `/chat`
+- 不消耗 Dify 额度
+- 不接文件操作
+
+### 启动后端
+
+```powershell
+python -m uvicorn backend.main:app --reload --reload-dir backend
+```
+
+### 启动前端壳
+
+```powershell
+npm run dev
+```
+
+- 默认访问地址：`http://127.0.0.1:4173`
+- 页面默认后端地址：`http://127.0.0.1:8000`
+- 当前仓库未初始化完整 Tauri 工程，因此本阶段先提供可运行的前端壳用于验证桌面端状态页
+
 ## 当前未实现内容
 
 - Ollama
