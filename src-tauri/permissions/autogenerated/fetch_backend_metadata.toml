@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-fetch-backend-metadata"
+description = "Enables the fetch_backend_metadata command without any pre-configured scope."
+commands.allow = ["fetch_backend_metadata"]
+
+[[permission]]
+identifier = "deny-fetch-backend-metadata"
+description = "Denies the fetch_backend_metadata command without any pre-configured scope."
+commands.deny = ["fetch_backend_metadata"]

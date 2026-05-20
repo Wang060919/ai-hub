@@ -24,6 +24,7 @@ const chatData = document.querySelector("#chat-data");
 
 const filesToolsStatus = document.querySelector("#files-tools-status");
 const filesToolsGrid = document.querySelector("#files-tools-grid");
+const tauriInvoke = window.__TAURI__?.core?.invoke;
 
 const backendUnavailableMessage = "无法连接后端，请先启动 FastAPI 服务";
 const loadSkillsHint = "请先在 Backend Status 页面点击 Check Backend 读取能力列表。";
@@ -296,22 +297,83 @@ async function readJsonResponse(response) {
   }
 }
 
+function isTauriRuntime() {
+  return typeof tauriInvoke === "function";
+}
+
+function normalizeErrorMessage(error, fallbackMessage) {
+  if (typeof error === "string" && error.trim()) {
+    return error;
+  }
+
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+
+  return fallbackMessage;
+}
+
+async function requestMetadata(backendUrl) {
+  if (isTauriRuntime()) {
+    try {
+      return await tauriInvoke("fetch_backend_metadata", { backendUrl });
+    } catch (error) {
+      const details = normalizeErrorMessage(error, backendUnavailableMessage);
+      return {
+        ok: false,
+        error: details.includes("Backend URL") ? details : backendUnavailableMessage,
+        details,
+      };
+    }
+  }
+
+  const response = await fetch("/api/metadata", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ backendUrl }),
+  });
+
+  return readJsonResponse(response);
+}
+
+async function requestChat(backendUrl, message) {
+  if (isTauriRuntime()) {
+    try {
+      return await tauriInvoke("send_chat_message", { backendUrl, message });
+    } catch (error) {
+      const details = normalizeErrorMessage(error, "Chat request failed");
+      const isInputError =
+        details.includes("Backend URL") || details.includes("Message cannot be empty");
+
+      return {
+        ok: false,
+        error: isInputError ? details : "Chat request failed",
+        details,
+      };
+    }
+  }
+
+  const response = await fetch("/api/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ backendUrl, message }),
+  });
+
+  return readJsonResponse(response);
+}
+
 async function checkBackend() {
   const backendUrl = backendUrlInput.value.trim();
   checkButton.disabled = true;
   setRequestState("idle", "Checking /health, /version, and /skills ...");
 
   try {
-    const response = await fetch("/api/metadata", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ backendUrl }),
-    });
-
-    const payload = await readJsonResponse(response);
-    if (!response.ok || !payload.ok) {
+    const payload = await requestMetadata(backendUrl);
+    if (!payload.ok) {
       throw new Error(payload.error || payload.details || backendUnavailableMessage);
     }
 
@@ -369,16 +431,8 @@ async function sendChat() {
   setChatState("idle", "Sending /chat request ...");
 
   try {
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ backendUrl, message }),
-    });
-
-    const payload = await readJsonResponse(response);
-    if (!response.ok || !payload.ok) {
+    const payload = await requestChat(backendUrl, message);
+    if (!payload.ok) {
       throw new Error(payload.details || payload.error || "Chat request failed");
     }
 

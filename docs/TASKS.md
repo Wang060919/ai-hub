@@ -165,6 +165,17 @@ V1.0 Phase 3 Files / Tools Page 实验记录：
 
 ## 执行规则
 
+V1.0 Phase 4 Tauri Desktop Wrapper 实验记录：
+
+- 当前分支：`feature/v1.0-tauri-desktop-wrapper`
+- 把现有 frontend 页面包装进真正的 Tauri 桌面窗口
+- 保留 `Backend Status`、`Chat`、`Files / Tools` 三个页面
+- 只做桌面包装，不新增后端能力
+- 不新增文件权限
+- 不新增 shell 权限
+- 不自动启动 FastAPI 后端
+- 不自动调用 `/chat`
+
 - 优先级顺序固定为：`P0 > P1 > P2 > P3 > P4`
 - 每次只执行一个小任务
 - 不得跨级并行扩展多个任务块

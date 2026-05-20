@@ -5,6 +5,11 @@
   "scripts": {
     "dev": "node frontend/server.mjs",
     "start": "node frontend/server.mjs",
-    "build": "node frontend/build.mjs"
+    "build": "node frontend/build.mjs",
+    "desktop:dev": "tauri dev",
+    "desktop:build": "tauri build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.11.1"
   }
 }
