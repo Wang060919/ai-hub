@@ -175,6 +175,25 @@ npm run dev
 - 页面默认后端地址：`http://127.0.0.1:8000`
 - 当前仓库未初始化完整 Tauri 工程，因此本阶段先提供可运行的前端壳用于验证桌面端状态页
 
+## V1.0 Phase 2 Desktop Chat Page
+
+- 在现有前端状态壳基础上新增 `Backend Status` 和 `Chat` 两个分区
+- `Backend Status` 保留 `/health`、`/version`、`/skills` 检查能力
+- `Chat` 页只会在手动点击 `Send` 后调用 `POST /chat`
+- 当前阶段只支持文本聊天
+- 不做文件上传
+- 不执行真实文件操作
+
+### Chat 页测试提醒
+
+- `Chat` 页可能命中不同 Skill
+- 如果输入触发 `DifyEnglishSkill`，可能消耗 Dify 额度
+- 测试时优先使用不会触发 Dify 的输入：
+  - `hello ai hub`
+  - `现在几点了`
+  - `随便说句话`
+- 不要把 Dify 测试作为默认构建验证
+
 ## 当前未实现内容
 
 - Ollama

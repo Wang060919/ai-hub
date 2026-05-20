@@ -76,6 +76,38 @@ async function fetchJson(baseUrl, path) {
   return response.json();
 }
 
+async function postJson(baseUrl, path, payload) {
+  const response = await fetch(`${baseUrl}${path}`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const rawText = await response.text();
+  let jsonPayload = null;
+
+  if (rawText) {
+    try {
+      jsonPayload = JSON.parse(rawText);
+    } catch {
+      throw new Error(`${path} returned a non-JSON response`);
+    }
+  }
+
+  if (!response.ok) {
+    const message =
+      jsonPayload?.detail ||
+      jsonPayload?.reply ||
+      `${path} returned ${response.status}`;
+    throw new Error(String(message));
+  }
+
+  return jsonPayload ?? {};
+}
+
 async function handleMetadataProxy(request, response) {
   try {
     const rawBody = await readRequestBody(request);
@@ -109,6 +141,43 @@ async function handleMetadataProxy(request, response) {
   }
 }
 
+async function handleChatProxy(request, response) {
+  try {
+    const rawBody = await readRequestBody(request);
+    const payload = rawBody ? JSON.parse(rawBody) : {};
+    const baseUrl = normalizeBackendUrl(payload.backendUrl);
+    const message = String(payload.message || "").trim();
+
+    if (!message) {
+      sendJson(response, 400, {
+        ok: false,
+        error: "Message cannot be empty",
+      });
+      return;
+    }
+
+    const chat = await postJson(baseUrl, "/chat", { message });
+
+    sendJson(response, 200, {
+      ok: true,
+      backendUrl: baseUrl,
+      chat,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : backendUnavailableMessage;
+
+    const isInputError =
+      message.includes("Backend URL") || message.includes("Message cannot be empty");
+
+    sendJson(response, isInputError ? 400 : 502, {
+      ok: false,
+      error: isInputError ? message : "Chat request failed",
+      details: message,
+    });
+  }
+}
+
 function serveStaticFile(requestPath, response) {
   const safePath = requestPath === "/" ? "/index.html" : requestPath;
   const resolvedPath = resolve(preferredRoot, `.${normalize(safePath)}`);
@@ -132,6 +201,11 @@ const server = http.createServer(async (request, response) => {
 
   if (request.method === "POST" && requestUrl.pathname === "/api/metadata") {
     await handleMetadataProxy(request, response);
+    return;
+  }
+
+  if (request.method === "POST" && requestUrl.pathname === "/api/chat") {
+    await handleChatProxy(request, response);
     return;
   }
 

@@ -3,64 +3,122 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AI Hub Desktop MVP</title>
+    <title>AI Hub Desktop Chat Page</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <main class="app-shell">
       <section class="hero-card">
         <p class="eyebrow">AI Hub</p>
-        <h1>Desktop MVP</h1>
-        <p class="subtitle">Minimal desktop shell that reads backend metadata only.</p>
+        <h1>Desktop Chat Page</h1>
+        <p class="subtitle">Desktop MVP Phase 2: keep backend status checks and add a minimal text chat page for /chat.</p>
       </section>
 
-      <section class="panel">
-        <label class="field-label" for="backend-url">Backend URL</label>
-        <div class="control-row">
-          <input id="backend-url" class="backend-input" type="url" value="http://127.0.0.1:8000" />
-          <button id="check-backend" class="check-button" type="button">Check Backend</button>
-        </div>
-        <p id="request-status" class="request-status idle">Waiting to check backend</p>
-      </section>
-
-      <section class="panel summary-panel">
-        <div class="summary-item">
-          <span class="summary-label">health.status</span>
-          <strong id="health-status">-</strong>
-        </div>
-        <div class="summary-item">
-          <span class="summary-label">version.version</span>
-          <strong id="app-version">-</strong>
-        </div>
-        <div class="summary-item">
-          <span class="summary-label">skills count</span>
-          <strong id="skills-count">0</strong>
+      <section class="panel tab-panel">
+        <div class="tab-list" role="tablist" aria-label="Desktop sections">
+          <button id="tab-status" class="tab-button active" type="button" role="tab" aria-selected="true" aria-controls="panel-status">
+            Backend Status
+          </button>
+          <button id="tab-chat" class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="panel-chat">
+            Chat
+          </button>
         </div>
       </section>
 
-      <section class="panel">
-        <div class="section-heading">
-          <h2>Skills</h2>
-          <p>Current capability list returned by the backend</p>
-        </div>
-        <div class="table-wrap">
-          <table class="skills-table">
-            <thead>
-              <tr>
-                <th>name</th>
-                <th>description</th>
-                <th>stage</th>
-                <th>safety_level</th>
-                <th>executable</th>
-              </tr>
-            </thead>
-            <tbody id="skills-body">
-              <tr>
-                <td colspan="5" class="empty-state">Click "Check Backend" to load the skills list</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <section id="panel-status" class="tab-section" role="tabpanel" aria-labelledby="tab-status">
+        <section class="panel">
+          <label class="field-label" for="backend-url">Backend URL</label>
+          <div class="control-row">
+            <input id="backend-url" class="backend-input" type="url" value="http://127.0.0.1:8000" />
+            <button id="check-backend" class="check-button" type="button">Check Backend</button>
+          </div>
+          <p id="request-status" class="request-status idle">Waiting to check backend</p>
+        </section>
+
+        <section class="panel summary-panel">
+          <div class="summary-item">
+            <span class="summary-label">health.status</span>
+            <strong id="health-status">-</strong>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">version.version</span>
+            <strong id="app-version">-</strong>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">skills count</span>
+            <strong id="skills-count">0</strong>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-heading">
+            <h2>Skills</h2>
+            <p>Current capability list returned by the backend</p>
+          </div>
+          <div class="table-wrap">
+            <table class="skills-table">
+              <thead>
+                <tr>
+                  <th>name</th>
+                  <th>description</th>
+                  <th>stage</th>
+                  <th>safety_level</th>
+                  <th>executable</th>
+                </tr>
+              </thead>
+              <tbody id="skills-body">
+                <tr>
+                  <td colspan="5" class="empty-state">Click "Check Backend" to load the skills list</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section id="panel-chat" class="tab-section hidden" role="tabpanel" aria-labelledby="tab-chat">
+        <section class="panel">
+          <div class="section-heading">
+            <h2>Chat</h2>
+            <p>Text only. No file upload and no real file operation.</p>
+          </div>
+          <label class="field-label" for="chat-message">Message</label>
+          <textarea
+            id="chat-message"
+            class="chat-input"
+            rows="5"
+            placeholder="Try: hello ai hub"
+          ></textarea>
+          <div class="chat-actions">
+            <button id="send-chat" class="check-button" type="button">Send</button>
+          </div>
+          <p id="chat-status" class="request-status idle">Waiting to send chat request</p>
+        </section>
+
+        <section class="panel">
+          <div class="section-heading">
+            <h2>Chat Result</h2>
+            <p>Shows the current /chat response only after you click Send.</p>
+          </div>
+          <div class="chat-result-grid">
+            <div class="summary-item">
+              <span class="summary-label">skill</span>
+              <strong id="chat-skill">-</strong>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">status</span>
+              <strong id="chat-result-status">-</strong>
+            </div>
+          </div>
+          <div class="result-block">
+            <span class="summary-label">reply</span>
+            <pre id="chat-reply" class="result-pre">-</pre>
+          </div>
+          <details id="chat-data-section" class="result-details" hidden>
+            <summary>data</summary>
+            <pre id="chat-data" class="result-pre"></pre>
+          </details>
+        </section>
       </section>
     </main>
 
