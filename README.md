@@ -92,6 +92,19 @@ python scripts/test_safe_actions.py
 python scripts/test_file_analysis.py
 ```
 
+## V0.6 File Inventory 实验功能
+
+- 当前只解析用户手动输入的文件清单文本
+- 不读取真实文件
+- 不检查路径是否存在
+- 不做 OCR / 文档解析
+- 后续版本才考虑接 OpenClaw / OCR / 文档解析
+- 测试命令：
+
+```powershell
+python scripts/test_file_inventory.py
+```
+
 ## 当前未实现内容
 
 - Ollama
