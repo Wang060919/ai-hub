@@ -176,6 +176,17 @@ V1.0 Phase 4 Tauri Desktop Wrapper 实验记录：
 - 不自动启动 FastAPI 后端
 - 不自动调用 `/chat`
 
+V1.0.1 Desktop Startup Polish 记录：
+
+- 当前分支：`fix/v1.0.1-desktop-startup-polish`
+- 目标：优化桌面端启动体验与后端连接提示
+- 范围：只改前端提示和文档说明
+- 不新增业务能力
+- 不新增任何权限
+- 不自动启动后端
+- 不自动调用 `/chat`
+- 不触发 Dify 作为默认测试
+
 - 优先级顺序固定为：`P0 > P1 > P2 > P3 > P4`
 - 每次只执行一个小任务
 - 不得跨级并行扩展多个任务块
