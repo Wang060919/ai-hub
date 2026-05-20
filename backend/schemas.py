@@ -70,6 +70,8 @@ class ReadOnlyFileScanPlan(BaseModel):
     total_files: int
     total_directories: int
     total_size_bytes: int
+    total_size_human: str
+    file_type_summary: dict[str, int]
     risk_level: str
     recommended_next_step: str
     steps: list[str]

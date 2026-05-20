@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
@@ -142,7 +143,11 @@ class ReadOnlyFileScannerSkill(BaseSkill):
             elif item.is_dir():
                 directories.append(ReadOnlyScannedDirectory(name=item.name))
 
+        files.sort(key=lambda item: (item.suffix, item.name.casefold()))
+        directories.sort(key=lambda item: item.name.casefold())
+        file_type_summary = self._build_file_type_summary(files)
         risk_level = self._get_risk_level(scanned_path, scan_root, len(files), len(directories))
+
         return ReadOnlyFileScanPlan(
             intent="生成白名单目录内的只读文件清单计划",
             scan_root=str(scan_root),
@@ -153,8 +158,10 @@ class ReadOnlyFileScannerSkill(BaseSkill):
             total_files=len(files),
             total_directories=len(directories),
             total_size_bytes=total_size_bytes,
+            total_size_human=self._format_size(total_size_bytes),
+            file_type_summary=file_type_summary,
             risk_level=risk_level,
-            recommended_next_step=self._get_recommended_next_step(risk_level),
+            recommended_next_step=self._get_recommended_next_step(files, directories),
             steps=self._build_steps(scanned_path, risk_level),
             requires_confirmation=True,
             executable=False,
@@ -172,6 +179,8 @@ class ReadOnlyFileScannerSkill(BaseSkill):
             total_files=0,
             total_directories=0,
             total_size_bytes=0,
+            total_size_human="0 B",
+            file_type_summary={},
             risk_level="medium",
             recommended_next_step="请改为白名单目录内的根目录或直接子目录，再重新发起只读扫描。",
             steps=[
@@ -193,10 +202,60 @@ class ReadOnlyFileScannerSkill(BaseSkill):
         return "low"
 
     @staticmethod
-    def _get_recommended_next_step(risk_level: str) -> str:
-        if risk_level == "medium":
-            return "请先确认扫描范围和目录边界，再基于该清单选择后续分析或手动整理步骤。"
-        return "请确认清单信息无误，后续可将扫描结果交给 FileInventorySkill 或 FileAnalysisSkill 继续规划。"
+    def _build_file_type_summary(files: list[ReadOnlyScannedFile]) -> dict[str, int]:
+        summary: defaultdict[str, int] = defaultdict(int)
+        for item in files:
+            summary[item.suffix or "no_suffix"] += 1
+        return dict(sorted(summary.items(), key=lambda item: item[0]))
+
+    @staticmethod
+    def _format_size(total_size_bytes: int) -> str:
+        if total_size_bytes < 1024:
+            return f"{total_size_bytes} B"
+
+        size = float(total_size_bytes)
+        units = ["KB", "MB", "GB", "TB"]
+        for unit in units:
+            size /= 1024
+            if size < 1024 or unit == units[-1]:
+                return f"{size:.1f} {unit}"
+        return f"{total_size_bytes} B"
+
+    @staticmethod
+    def _get_recommended_next_step(
+        files: list[ReadOnlyScannedFile], directories: list[ReadOnlyScannedDirectory]
+    ) -> str:
+        total_items = len(files) + len(directories)
+        analysis_suffixes = {
+            ".pdf",
+            ".doc",
+            ".docx",
+            ".xls",
+            ".xlsx",
+            ".png",
+            ".jpg",
+            ".jpeg",
+            ".gif",
+            ".bmp",
+            ".webp",
+        }
+
+        if not files:
+            return "当前目录下还没有可扫描文件，建议先确认目录是否正确，或先放入待分析文件后再重新发起只读扫描。"
+
+        file_suffixes = {item.suffix for item in files}
+        has_analysis_candidates = bool(file_suffixes & analysis_suffixes)
+
+        if total_items > 10 and has_analysis_candidates:
+            return (
+                "当前条目较多，建议先按 file_type_summary 筛选 PDF、Word、Excel 或图片，再把候选文件清单交给 "
+                "FileInventorySkill 或 FileAnalysisSkill 生成后续分析计划。"
+            )
+        if total_items > 10:
+            return "当前条目较多，建议先按 file_type_summary 筛选同类型文件，避免一次性处理过多。"
+        if has_analysis_candidates:
+            return "目录中已包含 PDF、Word、Excel 或图片文件，建议下一步使用 FileInventorySkill 或 FileAnalysisSkill 生成分析计划。"
+        return "请先根据 file_type_summary 确认文件类型分布，再决定是否把目标文件清单交给 FileInventorySkill 或 FileAnalysisSkill 继续规划。"
 
     @staticmethod
     def _build_steps(scanned_path: Path, risk_level: str) -> list[str]:

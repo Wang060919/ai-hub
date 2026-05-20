@@ -108,6 +108,15 @@ V0.7 ReadOnlyFileScanner 实验记录：
 - 不执行真实文件操作
 - 为未来真实文件理解能力做安全前置
 
+V0.7.1 ReadOnlyFileScanner 小修补：
+
+- 当前分支：`fix/v0.7.1-readonly-scan-polish`
+- 只优化扫描结果展示
+- 增加 `file_type_summary`
+- 增加 `total_size_human`
+- 文件与目录结果固定排序
+- 不扩大文件系统权限
+
 ## 执行规则
 
 - 优先级顺序固定为：`P0 > P1 > P2 > P3 > P4`
