@@ -34,8 +34,12 @@ SAFE_ACTION_OPERATION_HINTS = (
     "清理",
     "重命名",
     "批量移动",
+    "批量重命名",
     "复制",
     "移动",
+    "覆盖",
+    "删除重复文件",
+    "删除重复的",
     "整理文件",
     "整理目录",
     "执行计划",
@@ -108,25 +112,33 @@ def select_skill(
         return idea_capture_skill
     if any(keyword in normalized_message for keyword in TIME_KEYWORDS):
         return time_skill
+    if has_safe_action_intent(normalized_message):
+        return safe_action_skill
     if should_use_file_inventory(normalized_message):
         return file_inventory_skill
     if any(keyword in normalized_message for keyword in DIFY_KEYWORDS_LOWER):
         return dify_english_skill
     if any(keyword in normalized_message for keyword in DIFY_LEARNING_KEYWORDS_LOWER):
         return dify_english_skill
-    if any(keyword in normalized_message for keyword in SAFE_ACTION_KEYWORDS_LOWER):
-        return safe_action_skill
     if should_use_file_analysis(normalized_message):
         return file_analysis_skill
     return echo_skill
 
 
+def has_safe_action_intent(normalized_message: str) -> bool:
+    if any(keyword in normalized_message for keyword in SAFE_ACTION_KEYWORDS_LOWER):
+        return True
+    return any(keyword in normalized_message for keyword in SAFE_ACTION_OPERATION_HINTS)
+
+
 def should_use_file_inventory(normalized_message: str) -> bool:
+    if has_safe_action_intent(normalized_message):
+        return False
     return any(keyword in normalized_message for keyword in FILE_INVENTORY_KEYWORDS_LOWER)
 
 
 def should_use_file_analysis(normalized_message: str) -> bool:
-    if any(keyword.lower() in normalized_message for keyword in SAFE_ACTION_OPERATION_HINTS):
+    if has_safe_action_intent(normalized_message):
         return False
     if should_use_file_inventory(normalized_message):
         return False

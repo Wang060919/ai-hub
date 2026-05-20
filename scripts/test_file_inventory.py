@@ -31,6 +31,14 @@ TEST_CASES = [
         ["image"],
         "medium",
     ),
+    (
+        "高风险删除重复文件",
+        "文件清单：old.pdf，目标：删除重复文件",
+        "not_file_inventory",
+        "success",
+        [],
+        "",
+    ),
     ("通用 PDF 分析", "帮我分析 PDF", "not_file_inventory", "success", [], ""),
     ("文件整理计划", "帮我整理文件", "not_file_inventory", "success", [], ""),
     ("普通问候", "hello ai hub", "not_file_inventory", "success", [], ""),
@@ -60,12 +68,15 @@ def evaluate_result(
     actual_status = str(result.get("status", ""))
     data = result.get("data") or {}
     plan = data.get("file_inventory_plan", {})
+    action_plan = data.get("action_plan", {})
     actual_types = list(plan.get("inferred_file_types", []))
     actual_risk = str(plan.get("risk_level", ""))
     actual_executable = plan.get("executable", None)
     actual_confirmation = plan.get("requires_confirmation", None)
 
     if expected_skill == "not_file_inventory":
+        if actual_skill == "safe_action":
+            return "PASS" if action_plan.get("executable") is False and action_plan.get("requires_confirmation") is True else "CHECK"
         if actual_skill != "file_inventory" and actual_status == expected_status:
             return "PASS"
         return "CHECK"
