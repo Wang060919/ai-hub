@@ -201,7 +201,6 @@ npm run dev
 - OpenClaw
 - Docker
 - OCR
-- Tauri
 - Live2D
 
 ## 后续路线
@@ -219,6 +218,60 @@ npm run dev
 - API Key 不要输出到日志或审查报告
 
 ## V1.0 Phase 3 Desktop Files / Tools Page
+
+## V1.0 Phase 4 Tauri Desktop Wrapper
+
+- 当前分支目标是把现有 frontend 页面包装进真正的 Tauri 桌面窗口
+- 保留 `Backend Status`、`Chat`、`Files / Tools` 三个页面
+- 桌面端只做容器包装，不新增业务功能
+- 不自动启动 FastAPI 后端
+- 不自动调用 `/chat`
+- 不自动触发 Dify
+- 不新增文件权限
+- 不新增 shell 执行能力
+- 不接系统托盘
+
+### 启动后端
+
+```powershell
+python -m uvicorn backend.main:app --reload --reload-dir backend
+```
+
+### 浏览器模式
+
+```powershell
+npm run dev
+```
+
+### Tauri 桌面开发模式
+
+前提：
+
+- 已安装 Rust
+- 已安装 cargo
+
+运行：
+
+```powershell
+npm run desktop:dev
+```
+
+说明：
+
+- 桌面窗口标题为 `AI Hub`
+- Tauri 只加载现有前端页面
+- 用户仍需手动启动 FastAPI 后端
+
+### Tauri 桌面构建
+
+```powershell
+npm run desktop:build
+```
+
+说明：
+
+- `npm run build` 仍然保留，用于构建现有前端静态页面
+- `npm run desktop:build` 会先执行前端构建，再交给 Tauri 打包桌面壳
 
 - 当前分支目标是在现有前端桌面壳中新增第三个分区 `Files / Tools`
 - 页面只展示当前文件相关能力与安全边界
