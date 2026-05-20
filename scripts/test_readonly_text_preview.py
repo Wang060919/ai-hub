@@ -15,6 +15,7 @@ PDF_PLACEHOLDER_FILE = SCAN_SANDBOX / "b_words.pdf"
 
 TEST_CASES = [
     ("预览 txt 文件", "预览文件：data\\scan_sandbox\\a_note.txt", "readonly_text_preview", "success"),
+    ("预览点路径 txt 文件", "预览文件：./data/scan_sandbox/a_note.txt", "readonly_text_preview", "success"),
     ("预览 markdown 文件", "预览 markdown：data\\scan_sandbox\\README.md", "readonly_text_preview", "success"),
     ("拒绝白名单外文件", "预览文件：C:\\Windows\\win.ini", "readonly_text_preview", "error"),
     ("拒绝非 txt/md 文件", "预览文件：data\\scan_sandbox\\b_words.pdf", "readonly_text_preview", "error"),
@@ -79,7 +80,7 @@ def evaluate_result(test_name: str, result: dict[str, Any], expected_skill: str,
     if plan.get("executable") is not False or plan.get("requires_confirmation") is not True:
         return "CHECK"
 
-    if test_name == "预览 txt 文件":
+    if test_name in {"预览 txt 文件", "预览点路径 txt 文件"}:
         assert_success_plan(plan, "a_note.txt", ".txt")
     elif test_name == "预览 markdown 文件":
         assert_success_plan(plan, "README.md", ".md")

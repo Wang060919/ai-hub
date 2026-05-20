@@ -125,6 +125,7 @@ def select_skill(
     if (
         any(keyword in normalized_message for keyword in DIFY_KEYWORDS_LOWER)
         and not has_safe_action_intent(normalized_message)
+        and not should_use_readonly_text_preview(normalized_message)
         and not should_use_readonly_file_scanner(normalized_message)
         and not should_use_file_inventory(normalized_message)
     ):
@@ -132,6 +133,7 @@ def select_skill(
     if (
         any(keyword in normalized_message for keyword in DIFY_LEARNING_KEYWORDS_LOWER)
         and not has_safe_action_intent(normalized_message)
+        and not should_use_readonly_text_preview(normalized_message)
         and not should_use_readonly_file_scanner(normalized_message)
         and not should_use_file_inventory(normalized_message)
     ):

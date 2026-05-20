@@ -45,8 +45,8 @@ class ReadOnlyTextPreviewSkill(BaseSkill):
         scan_root = self._get_scan_root()
 
         try:
-            resolved_path = self._resolve_requested_file(requested_path, scan_root)
-            plan = self._build_success_plan(requested_path, scan_root, resolved_path)
+            resolved_path, item_stat = self._resolve_requested_file(requested_path, scan_root)
+            plan = self._build_success_plan(requested_path, scan_root, resolved_path, item_stat)
             return ChatResponse(
                 reply="已生成只读文本预览，只读取了白名单目录内的小型文本文件，没有执行任何文件操作。",
                 skill=self.name,
@@ -88,7 +88,7 @@ class ReadOnlyTextPreviewSkill(BaseSkill):
                 return trailing
         raise ValueError("请提供白名单目录内的 txt 或 md 文件路径。")
 
-    def _resolve_requested_file(self, requested_path: str, scan_root: Path) -> Path:
+    def _resolve_requested_file(self, requested_path: str, scan_root: Path) -> tuple[Path, os.stat_result]:
         candidate = self._build_candidate_path(requested_path, scan_root)
         self._ensure_within_scan_root(candidate, scan_root)
 
@@ -109,7 +109,7 @@ class ReadOnlyTextPreviewSkill(BaseSkill):
         if int(candidate_stat.st_size) > MAX_FILE_SIZE_BYTES:
             raise ValueError("请求的文本文件超过只读预览大小限制。")
 
-        return candidate
+        return candidate, candidate_stat
 
     def _build_candidate_path(self, requested_path: str, scan_root: Path) -> Path:
         normalized = requested_path.strip().strip('"').strip("'")
@@ -120,6 +120,10 @@ class ReadOnlyTextPreviewSkill(BaseSkill):
             return Path(normalized).resolve()
 
         if normalized.startswith(("data\\", "data/", ".\\data\\", "./data/")):
+            if scan_root != DEFAULT_SCAN_ROOT.resolve():
+                raise ValueError(
+                    f"当前生效的白名单根目录是 `{scan_root}`，请提供该目录内的文件路径，而不是项目默认 data 目录路径。"
+                )
             return (PROJECT_ROOT / normalized).resolve()
 
         if normalized.startswith((".\\", "./")):
@@ -135,9 +139,8 @@ class ReadOnlyTextPreviewSkill(BaseSkill):
             raise ValueError("请求的预览文件不在白名单目录内。") from exc
 
     def _build_success_plan(
-        self, requested_path: str, scan_root: Path, resolved_path: Path
+        self, requested_path: str, scan_root: Path, resolved_path: Path, item_stat: os.stat_result
     ) -> ReadOnlyTextPreviewPlan:
-        item_stat = resolved_path.stat()
         content = resolved_path.read_text(encoding="utf-8", errors="replace")
         preview_text = content[:MAX_PREVIEW_CHARS]
         truncated = len(content) > MAX_PREVIEW_CHARS
