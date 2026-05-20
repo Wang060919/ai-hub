@@ -78,6 +78,38 @@ h1 {
   margin-bottom: 20px;
 }
 
+.hidden {
+  display: none;
+}
+
+.tab-panel {
+  padding: 12px;
+}
+
+.tab-list {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tab-button {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(214, 199, 179, 0.9);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--muted);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tab-button.active {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+  color: #fff;
+}
+
 .field-label,
 .summary-label,
 .section-heading p {
@@ -98,11 +130,16 @@ h1 {
 }
 
 .backend-input,
+.chat-input,
 .check-button {
-  min-height: 48px;
   border-radius: 16px;
   border: 1px solid var(--line);
   font: inherit;
+}
+
+.backend-input,
+.check-button {
+  min-height: 48px;
 }
 
 .backend-input {
@@ -113,9 +150,21 @@ h1 {
 }
 
 .backend-input:focus,
+.chat-input:focus,
+.tab-button:focus,
 .check-button:focus {
   outline: 2px solid rgba(24, 109, 103, 0.2);
   outline-offset: 2px;
+}
+
+.chat-input {
+  width: 100%;
+  padding: 14px 16px;
+  resize: vertical;
+  min-height: 132px;
+  background: #fffdf8;
+  color: var(--ink);
+  line-height: 1.6;
 }
 
 .check-button {
@@ -154,6 +203,18 @@ h1 {
   gap: 16px;
 }
 
+.chat-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.chat-result-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
 .summary-item {
   padding: 18px;
   border-radius: 18px;
@@ -165,6 +226,7 @@ h1 {
   display: block;
   margin-top: 10px;
   font-size: 1.45rem;
+  overflow-wrap: anywhere;
 }
 
 .section-heading {
@@ -225,6 +287,34 @@ h1 {
   color: var(--muted);
 }
 
+.result-block {
+  margin-top: 18px;
+}
+
+.result-pre {
+  margin: 10px 0 0;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(214, 199, 179, 0.75);
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: "Consolas", "SFMono-Regular", monospace;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.result-details {
+  margin-top: 18px;
+}
+
+.result-details summary {
+  cursor: pointer;
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
 @media (max-width: 760px) {
   .app-shell {
     width: min(100% - 20px, 1120px);
@@ -238,7 +328,8 @@ h1 {
   }
 
   .control-row,
-  .summary-panel {
+  .summary-panel,
+  .chat-result-grid {
     grid-template-columns: 1fr;
   }
 
@@ -248,5 +339,13 @@ h1 {
 
   .section-heading p {
     margin-top: 6px;
+  }
+
+  .chat-actions {
+    justify-content: stretch;
+  }
+
+  .chat-actions .check-button {
+    width: 100%;
   }
 }

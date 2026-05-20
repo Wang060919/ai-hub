@@ -141,6 +141,17 @@ V1.0 Phase 1 Desktop MVP 实验记录：
 - 不接聊天
 - 不接文件操作
 
+V1.0 Phase 2 Desktop Chat Page 实验记录：
+
+- 当前分支：`feature/v1.0-desktop-chat-page`
+- 在状态壳基础上新增 `Backend Status` 和 `Chat` 两个分区
+- `Chat` 页手动调用 `POST /chat`
+- 只做文本聊天
+- 不做文件上传
+- 不执行真实文件操作
+- 测试时优先使用不会触发 Dify 的输入，例如：`hello ai hub`、`现在几点了`、`随便说句话`
+- 不把 Dify 测试作为默认构建验证
+
 ## 执行规则
 
 - 优先级顺序固定为：`P0 > P1 > P2 > P3 > P4`
