@@ -74,19 +74,18 @@ class ReadOnlyFileScannerSkill(BaseSkill):
 
     def _resolve_scanned_path(self, requested_path: str, scan_root: Path) -> Path:
         candidate = self._build_candidate_path(requested_path, scan_root)
-        resolved_candidate = candidate.resolve()
 
-        self._ensure_within_scan_root(resolved_candidate, scan_root)
-        self._ensure_allowed_depth(resolved_candidate, scan_root)
+        self._ensure_within_scan_root(candidate, scan_root)
+        self._ensure_allowed_depth(candidate, scan_root)
         try:
-            resolved_candidate.stat()
+            candidate.stat()
         except FileNotFoundError as exc:
             raise ValueError("请求的扫描目录不存在。")
         except OSError as exc:
             raise ValueError("请求的扫描目录无法访问。") from exc
-        if not resolved_candidate.is_dir():
+        if not candidate.is_dir():
             raise ValueError("请求的扫描路径不是目录。")
-        return resolved_candidate
+        return candidate
 
     def _build_candidate_path(self, requested_path: str, scan_root: Path) -> Path:
         normalized = requested_path.strip().strip('"').strip("'")
@@ -94,7 +93,10 @@ class ReadOnlyFileScannerSkill(BaseSkill):
             return scan_root
 
         if WINDOWS_ABSOLUTE_PATH_PATTERN.match(normalized):
-            return Path(normalized)
+            resolved_absolute = Path(normalized).resolve()
+            self._ensure_within_scan_root(resolved_absolute, scan_root)
+            self._ensure_allowed_depth(resolved_absolute, scan_root)
+            return resolved_absolute
 
         if normalized.startswith(("data\\", "data/", ".\\data\\", "./data/")):
             return (PROJECT_ROOT / normalized).resolve()

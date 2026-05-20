@@ -9,11 +9,17 @@ API_URL = "http://127.0.0.1:8000/chat"
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 SCAN_SANDBOX = PROJECT_ROOT / "data" / "scan_sandbox"
 CHILD_DIRECTORY = SCAN_SANDBOX / "lesson_pack"
+NESTED_DIRECTORY = CHILD_DIRECTORY / "nested"
+ROOT_TEST_FILE = SCAN_SANDBOX / "single_file.txt"
 
 TEST_CASES = [
     ("默认扫描目录", "扫描目录", "readonly_file_scanner", "success"),
     ("相对路径扫描", "列出目录文件：data\\scan_sandbox", "readonly_file_scanner", "success"),
     ("拒绝扫描 C 盘", "扫描目录：C:\\", "readonly_file_scanner_error", "error"),
+    ("拒绝路径穿越", "扫描目录：data\\scan_sandbox\\..\\..\\", "readonly_file_scanner_error", "error"),
+    ("拒绝扫描文件路径", "扫描目录：data\\scan_sandbox\\single_file.txt", "readonly_file_scanner_error", "error"),
+    ("拒绝不存在路径", "扫描目录：data\\scan_sandbox\\not_exists", "readonly_file_scanner_error", "error"),
+    ("拒绝超过一层子目录", "扫描目录：data\\scan_sandbox\\lesson_pack\\nested", "readonly_file_scanner_error", "error"),
     ("整理文件应走安全计划", "帮我整理文件", "not_readonly_file_scanner", "success"),
     ("手动文件清单应走 inventory", "文件清单：cet4.pdf，目标：总结重点", "not_readonly_file_scanner", "success"),
     ("通用文件分析应走 analysis", "帮我分析 PDF", "not_readonly_file_scanner", "success"),
@@ -24,8 +30,10 @@ TEST_CASES = [
 def ensure_test_sandbox() -> None:
     SCAN_SANDBOX.mkdir(parents=True, exist_ok=True)
     CHILD_DIRECTORY.mkdir(parents=True, exist_ok=True)
+    NESTED_DIRECTORY.mkdir(parents=True, exist_ok=True)
     (SCAN_SANDBOX / "cet4_words.pdf").write_text("metadata test file", encoding="utf-8")
     (SCAN_SANDBOX / "wrong_words.xlsx").write_text("spreadsheet placeholder", encoding="utf-8")
+    ROOT_TEST_FILE.write_text("single file placeholder", encoding="utf-8")
     (CHILD_DIRECTORY / "notes.txt").write_text("child directory placeholder", encoding="utf-8")
 
 

@@ -111,6 +111,7 @@ python scripts/test_file_inventory.py
 - 不读取文件内容
 - 默认白名单目录：`data/scan_sandbox`
 - 可通过 `AI_HUB_SCAN_ROOT` 配置白名单根目录
+- 不建议把 `AI_HUB_SCAN_ROOT` 设置为 `C:\`、`D:\`、用户主目录等大范围目录，推荐使用专门沙盒目录，如 `data/scan_sandbox` 或 `D:\AI-Workspace\ai-hub-sandbox`
 - 不递归扫描
 - 不执行任何文件操作
 - 测试命令：
