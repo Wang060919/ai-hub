@@ -283,3 +283,36 @@ npm run desktop:build
 - 不自动调用 `/chat`
 - 不消耗 Dify 额度
 - 示例提示词只做展示或复制，不会自动发送
+
+## V1.0.1 Desktop Startup Polish
+
+当前分支：`fix/v1.0.1-desktop-startup-polish`
+
+### 桌面端启动顺序
+
+1. 先启动后端
+
+```powershell
+conda activate ai_hub
+python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+```
+
+2. 再启动桌面端
+
+```powershell
+npm run desktop:dev
+```
+
+3. 打开桌面窗口后按这个顺序检查
+
+- 在 `Backend Status` 页面点击 `Check Backend`
+- 在 `Chat` 页面优先用 `hello ai hub` 做低风险测试
+- 不要把四级单词等 Dify 输入作为默认测试
+
+### 启动体验说明
+
+- 桌面端不会自动启动 FastAPI 后端
+- 后端未启动时报错是正常情况，不代表桌面端损坏
+- 当前安全测试建议优先使用 `hello ai hub`
+- 命中 `DifyEnglishSkill` 的输入可能消耗 Dify 额度
+- 当前没有文件上传、文件选择器、真实文件读取或真实文件操作
