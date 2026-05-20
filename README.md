@@ -217,3 +217,16 @@ npm run dev
 - `.env` 不要提交
 - `data/` 不要提交
 - API Key 不要输出到日志或审查报告
+
+## V1.0 Phase 3 Desktop Files / Tools Page
+
+- 当前分支目标是在现有前端桌面壳中新增第三个分区 `Files / Tools`
+- 页面只展示当前文件相关能力与安全边界
+- 优先复用 `Backend Status` 已读取的 `/skills` 数据
+- 不新增后端接口
+- 不执行文件操作
+- 不上传文件
+- 不读取真实文件
+- 不自动调用 `/chat`
+- 不消耗 Dify 额度
+- 示例提示词只做展示或复制，不会自动发送

@@ -7,6 +7,8 @@
   --muted: #756757;
   --accent: #186d67;
   --accent-strong: #0d4a46;
+  --warning-bg: rgba(176, 122, 62, 0.12);
+  --warning-ink: #8a5a1c;
   --danger: #9f3f2d;
   --shadow: 0 24px 60px rgba(62, 47, 31, 0.12);
 }
@@ -203,6 +205,10 @@ h1 {
   gap: 16px;
 }
 
+.tab-section:not(.hidden) {
+  display: block;
+}
+
 .chat-actions {
   display: flex;
   justify-content: flex-end;
@@ -283,6 +289,12 @@ h1 {
   color: var(--danger);
 }
 
+.tag.warning {
+  border-color: rgba(176, 122, 62, 0.22);
+  background: var(--warning-bg);
+  color: var(--warning-ink);
+}
+
 .empty-state {
   color: var(--muted);
 }
@@ -315,6 +327,139 @@ h1 {
   font-weight: 700;
 }
 
+.files-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.tool-card {
+  border: 1px solid rgba(214, 199, 179, 0.8);
+  background: var(--panel);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 24px;
+}
+
+.tool-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: start;
+}
+
+.tool-card-header h3,
+.tool-copy-block p,
+.tool-section p,
+.tool-meta-value,
+.tool-example {
+  margin: 0;
+}
+
+.tool-card-header h3 {
+  font-size: 1.28rem;
+}
+
+.tool-skill-name {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.92rem;
+  word-break: break-word;
+}
+
+.tool-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.tool-meta-item {
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(214, 199, 179, 0.75);
+}
+
+.tool-meta-label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.tool-meta-value {
+  margin-top: 8px;
+  font-weight: 700;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.tool-section {
+  margin-top: 18px;
+}
+
+.tool-section h4 {
+  margin: 0 0 8px;
+  font-size: 0.98rem;
+}
+
+.tool-section p,
+.tool-section li,
+.tool-copy-block p {
+  color: var(--ink);
+  line-height: 1.65;
+}
+
+.tool-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.tool-card.missing {
+  border-style: dashed;
+}
+
+.tool-card.missing .tool-card-header h3,
+.tool-card.missing .tool-skill-name,
+.tool-card.missing .tool-section p {
+  color: var(--muted);
+}
+
+.tool-copy-block {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(214, 199, 179, 0.75);
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.tool-example {
+  font-family: "Consolas", "SFMono-Regular", monospace;
+  font-size: 0.92rem;
+  word-break: break-word;
+}
+
+.copy-button {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(24, 109, 103, 0.22);
+  background: rgba(24, 109, 103, 0.08);
+  color: var(--accent-strong);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.copy-button:focus {
+  outline: 2px solid rgba(24, 109, 103, 0.2);
+  outline-offset: 2px;
+}
+
 @media (max-width: 760px) {
   .app-shell {
     width: min(100% - 20px, 1120px);
@@ -329,7 +474,10 @@ h1 {
 
   .control-row,
   .summary-panel,
-  .chat-result-grid {
+  .chat-result-grid,
+  .tool-meta-grid,
+  .files-tools-grid,
+  .tool-copy-block {
     grid-template-columns: 1fr;
   }
 
@@ -346,6 +494,14 @@ h1 {
   }
 
   .chat-actions .check-button {
+    width: 100%;
+  }
+
+  .tool-card-header {
+    flex-direction: column;
+  }
+
+  .copy-button {
     width: 100%;
   }
 }

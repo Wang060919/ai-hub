@@ -3,15 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AI Hub Desktop Chat Page</title>
+    <title>AI Hub Desktop Files / Tools Page</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <main class="app-shell">
       <section class="hero-card">
         <p class="eyebrow">AI Hub</p>
-        <h1>Desktop Chat Page</h1>
-        <p class="subtitle">Desktop MVP Phase 2: keep backend status checks and add a minimal text chat page for /chat.</p>
+        <h1>Desktop Files / Tools Page</h1>
+        <p class="subtitle">Desktop MVP Phase 3: keep backend status and manual chat, then add a read-only Files / Tools page to explain current file capabilities and safety boundaries.</p>
       </section>
 
       <section class="panel tab-panel">
@@ -21,6 +21,9 @@
           </button>
           <button id="tab-chat" class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="panel-chat">
             Chat
+          </button>
+          <button id="tab-files-tools" class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="panel-files-tools">
+            Files / Tools
           </button>
         </div>
       </section>
@@ -119,6 +122,20 @@
             <pre id="chat-data" class="result-pre"></pre>
           </details>
         </section>
+      </section>
+
+      <section id="panel-files-tools" class="tab-section hidden" role="tabpanel" aria-labelledby="tab-files-tools">
+        <section class="panel">
+          <div class="section-heading">
+            <h2>Files / Tools</h2>
+            <p>Capability display only. No file upload, no real file read, no file operation, and no automatic /chat request.</p>
+          </div>
+          <p id="files-tools-status" class="request-status idle">
+            请先在 Backend Status 页面点击 Check Backend 读取能力列表。
+          </p>
+        </section>
+
+        <section class="files-tools-grid" id="files-tools-grid" aria-live="polite"></section>
       </section>
     </main>
 
