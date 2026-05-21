@@ -13,29 +13,46 @@
 
 ---
 
-## V1.2-M5 DeepSeek 接入状态
+## V1.2 当前状态
 
-- DeepSeek adapter 已新增：`backend/adapters/deepseek.py`。
-- DeepSeekChatSkill 已新增：`backend/skills/deepseek_chat.py`。
-- `/chat` 路由已最小接入 DeepSeek，且仅在 echo fallback 分支尝试，不改变 `/chat` 路径或 `{"message":"..."}` 请求格式。
+V1.2-M1 到 M7 已完成，当前进入 V1.2-M8：轻量验证与文档同步。本阶段只做收尾验证建议与文档状态同步，不新增功能，不修改业务逻辑。
+
+已完成能力：
+
+- 基础聊天窗口 UI。
+- 消息列表区分用户消息和 AI 消息。
+- 输入框支持 Enter 发送、Shift + Enter 换行。
+- 空输入禁用发送，发送中展示 loading / 禁用状态。
+- 错误提示覆盖模型失败、网络失败、后端失败等基础场景。
+- DeepSeek adapter：`backend/adapters/deepseek.py`。
+- DeepSeekChatSkill：`backend/skills/deepseek_chat.py`。
+- `/chat` 已最小接入 DeepSeek，且保留 Echo fallback。
 - 默认 `ENABLE_DEEPSEEK_CHAT=false`，不会自动消耗 DeepSeek API 额度。
-- 未启用或无 API Key 时 fallback Echo。
-- DeepSeek 调用失败、超时或网络错误时 fallback Echo，不应导致 `/chat` 返回 500。
-- 已验证默认 Echo 链路。
-- 已验证真实 DeepSeek 链路，成功返回 `skill: deepseek_chat`。
+- 未启用、无 API Key、调用失败或超时时 fallback Echo。
+- 真实 DeepSeek 单轮链路此前已完成验证，成功返回 `skill: deepseek_chat`。
+- 短上下文管理已接入，保留最近 4 轮内存对话。
+- 前端已新增内存 `chatHistory`，页面刷新后丢失。
+- 基础 Markdown 渲染已接入。
+- 模型输出采用安全渲染路径，不使用 `innerHTML` 直接渲染模型输出。
 - API Key 只通过环境变量读取，不写入前端、日志或 Git。
 
-## V1.2-M6 短上下文管理状态
+V1.2-M8 建议验证：
 
-- V1.2-M6 短上下文管理已完成。
-- 后端 `ChatRequest` 已兼容可选 `messages`，旧 `{"message":"..."}` 请求继续兼容。
-- DeepSeek adapter / skill / router 已支持 `messages`。
-- 前端已新增内存 `chatHistory`。
-- 浏览器代理已透传 `messages`。
-- 当前只做内存短上下文，页面刷新后丢失。
-- 不做持久化、不做历史会话列表、不做多会话管理。
-- 已验证 DeepSeek 连续追问能记住前文。
-- 下一步是 V1.2-M7：基础 Markdown 渲染。
+- 建议运行 `git status`。
+- 建议运行 `npm run build`。
+- 建议运行相关后端文件的 `python -m py_compile`。
+- 建议手动验证后端 `/health`、`/version`、`/skills`、`/chat`。
+- 建议手动验证网页端 Chat。
+- DeepSeek 短上下文验证可选，避免重复消耗额度。
+
+V1.2 当前边界：
+
+- 不做历史会话列表。
+- 不做多会话切换。
+- 不做持久化保存。
+- 不做文件上传、文件问答或知识库。
+- 不做截图搜索、语音、桌宠形态或本地模型管理。
+- 不做 SSE 流式输出。
 
 ## 通用化原则
 
@@ -111,21 +128,31 @@ AI Hub 当前阶段优先做个人可用版，但代码不能写死为只能在�
 
 ### V1.2：基础 AI 对话功能
 
+**状态**：M1-M7 已完成，M8 收尾验证与文档同步中。
+
 **目标**：实现基础聊天能力，跑通 AI 对话主流程。
 
-**内容**：
+**已完成内容**：
 
-- 基础聊天页面
+- 基础聊天窗口 UI
 - 消息列表
-- 输入框
-- 发送按钮
-- loading 状态
-- 错误提示
-- 统一 AI 调用接口
-- 模型路由初版
-- Mock 对话链路
-- 真实模型接入
-- SSE 流式输出（可作为后半段任务）
+- 输入框与发送按钮
+- Enter 发送 / Shift + Enter 换行
+- loading / error / 空输入禁用
+- DeepSeek adapter
+- DeepSeekChatSkill
+- `/chat` 最小接入 DeepSeek
+- 默认关闭 DeepSeek，fallback Echo
+- 真实 DeepSeek 单轮验证
+- 短上下文管理
+- 内存 `chatHistory`
+- 基础 Markdown 渲染
+- 安全渲染，不用 `innerHTML` 渲染模型输出
+
+**M8 当前内容**：
+
+- 轻量验证建议
+- README / TASKS / VERSION_PLAN 文档同步
 
 **不包含**：
 
@@ -133,6 +160,10 @@ AI Hub 当前阶段优先做个人可用版，但代码不能写死为只能在�
 - 不做知识库问答
 - 不做语音
 - 不做多模态
+- 不做历史会话列表
+- 不做多会话切换
+- 不做持久化保存
+- 不做 SSE 流式输出
 
 ---
 

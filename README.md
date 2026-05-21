@@ -24,7 +24,7 @@ V1.0 / V1.0.1 已基本完成：
 |------|------|------|
 | V1.0 / V1.0.1 | 桌面端基础骨架与启动体验优化 | 基本完成 |
 | V1.1 | 高适配性底层框架 | 待开始 |
-| V1.2 | 基础 AI 对话功能 | 待开始 |
+| V1.2 | 基础 AI 对话功能 | M8 收尾验证与文档同步中 |
 | V1.3 | 文件处理功能 | 待开始 |
 | V1.4 | 知识库与记忆系统 | 待开始 |
 | V1.5 | 屏幕感知工具组与学习辅助模式 | 待开始 |
@@ -112,27 +112,12 @@ python scripts/test_api.py
 - [任务清单](docs/TASKS.md) — 当前任务状态与执行记录
 - [历史决策](docs/DECISIONS.md) — 技术决策记录
 
-# V1.1-M6 当前状态
-
-V1.1 高适配性底层框架正在推进，当前已完成：
-
-- V1.1-M2 后端分层目录骨架已完成。
-- V1.1-M3 core 基础模块已完成。
-- V1.1-M4 API 路由拆分已完成。
-- V1.1-M5 前端预留结构已完成。
-
-V1.1 下一步是 M7 轻量验证。本阶段只同步底层框架和文档状态，不新增业务功能，不进入 V1.2 AI 对话功能。
-
----
-
 ## 通用化原则补充
 
 AI Hub 当前优先服务个人使用，但所有新增功能都应避免写死本机路径、API Key、单一模型、端口、数据目录和外部服务配置；外部 API 或付费调用默认关闭，并提供安全 fallback。
 
-## V1.2-M5 DeepSeek 接入状态
+## V1.2 当前状态
 
-DeepSeek adapter 与 `DeepSeekChatSkill` 已新增，`/chat` 已做最小接入；默认 `ENABLE_DEEPSEEK_CHAT=false`，未启用、无 API Key 或调用失败时都会 fallback Echo。真实 DeepSeek 链路已验证可返回 `skill: deepseek_chat`，API Key 只通过环境变量读取，不写入前端、日志或 Git。下一步是 V1.2-M6 短上下文管理。
+V1.2-M1 到 M7 已完成，当前进入 M8 轻量验证与文档同步。当前能力包括：基础聊天窗口 UI、Enter 发送 / Shift + Enter 换行、loading / error / 空输入禁用、DeepSeek adapter、`DeepSeekChatSkill`、`/chat` 最小接入 DeepSeek、默认关闭 DeepSeek 并 fallback Echo、短上下文管理、内存 `chatHistory`、基础 Markdown 渲染，以及不使用 `innerHTML` 直接渲染模型输出的安全渲染路径。
 
-## V1.2-M6 短上下文管理状态
-
-V1.2-M6 已完成：后端 `ChatRequest` 已兼容可选 `messages`，DeepSeek adapter / skill / router 已支持 `messages`，前端已新增内存 `chatHistory`，浏览器代理已透传 `messages`。当前只做内存短上下文，页面刷新后丢失；不做持久化、历史会话列表或多会话管理。已验证 DeepSeek 连续追问能记住前文。下一步是 V1.2-M7：基础 Markdown 渲染。
+V1.2 仍不包含历史会话列表、多会话切换、持久化保存、文件上传、知识库、截图搜索、语音、桌宠形态、本地模型管理或 SSE 流式输出。DeepSeek 短上下文复测属于可选验证，建议避免重复消耗额度。
