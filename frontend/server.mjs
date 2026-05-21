@@ -147,6 +147,19 @@ async function handleChatProxy(request, response) {
     const payload = rawBody ? JSON.parse(rawBody) : {};
     const baseUrl = normalizeBackendUrl(payload.backendUrl);
     const message = String(payload.message || "").trim();
+    const messages = Array.isArray(payload.messages)
+      ? payload.messages
+          .filter(
+            (item) =>
+              item &&
+              ["user", "assistant"].includes(item.role) &&
+              typeof item.content === "string"
+          )
+          .map((item) => ({
+            role: item.role,
+            content: item.content,
+          }))
+      : undefined;
 
     if (!message) {
       sendJson(response, 400, {
@@ -156,7 +169,8 @@ async function handleChatProxy(request, response) {
       return;
     }
 
-    const chat = await postJson(baseUrl, "/chat", { message });
+    const chatPayload = messages ? { message, messages } : { message };
+    const chat = await postJson(baseUrl, "/chat", chatPayload);
 
     sendJson(response, 200, {
       ok: true,

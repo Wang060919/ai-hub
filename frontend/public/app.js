@@ -21,6 +21,11 @@ const chatMessages = document.querySelector("#chat-messages");
 const filesToolsStatus = document.querySelector("#files-tools-status");
 const filesToolsGrid = document.querySelector("#files-tools-grid");
 const tauriInvoke = window.__TAURI__?.core?.invoke;
+const MAX_CHAT_HISTORY_TURNS = 4;
+const MAX_CHAT_HISTORY_MESSAGES = MAX_CHAT_HISTORY_TURNS * 2;
+const MAX_CHAT_CONTEXT_MESSAGES = MAX_CHAT_HISTORY_MESSAGES + 1;
+const MAX_CHAT_MESSAGE_CHARS = 1500;
+const MAX_CHAT_CONTEXT_CHARS = 8000;
 
 const startupCommand =
   "python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000";
@@ -114,6 +119,7 @@ const fileToolsCatalog = [
 const state = {
   hasCheckedBackend: false,
   chatSending: false,
+  chatHistory: [],
   skills: [],
 };
 
@@ -150,6 +156,71 @@ function resetSummary() {
 function resetChatResult() {
   chatMessages.innerHTML =
     '<div class="chat-empty-state">Send a message to start the Echo chat loop.</div>';
+  state.chatHistory = [];
+}
+
+function normalizeChatContent(content) {
+  return String(content || "").trim().slice(0, MAX_CHAT_MESSAGE_CHARS);
+}
+
+function trimChatMessages(messages, maxMessages) {
+  const normalizedMessages = messages
+    .map((message) => ({
+      role: message.role,
+      content: normalizeChatContent(message.content),
+    }))
+    .filter(
+      (message) =>
+        (message.role === "user" || message.role === "assistant") &&
+        message.content
+    )
+    .slice(-maxMessages);
+
+  const trimmedMessages = [];
+  let totalChars = 0;
+
+  for (let index = normalizedMessages.length - 1; index >= 0; index -= 1) {
+    const message = normalizedMessages[index];
+    const nextTotal = totalChars + message.content.length;
+    if (nextTotal > MAX_CHAT_CONTEXT_CHARS && trimmedMessages.length > 0) {
+      break;
+    }
+
+    trimmedMessages.unshift(message);
+    totalChars = nextTotal;
+  }
+
+  return trimmedMessages;
+}
+
+function buildChatContextMessages(currentMessage) {
+  return trimChatMessages(
+    [
+      ...state.chatHistory,
+      {
+        role: "user",
+        content: currentMessage,
+      },
+    ],
+    MAX_CHAT_CONTEXT_MESSAGES
+  );
+}
+
+function recordSuccessfulChatTurn(userMessage, assistantMessage) {
+  state.chatHistory = trimChatMessages(
+    [
+      ...state.chatHistory,
+      {
+        role: "user",
+        content: userMessage,
+      },
+      {
+        role: "assistant",
+        content: assistantMessage,
+      },
+    ],
+    MAX_CHAT_HISTORY_MESSAGES
+  );
 }
 
 function renderEmptyRow(message) {
@@ -347,7 +418,7 @@ async function requestMetadata(backendUrl) {
   return readJsonResponse(response);
 }
 
-async function requestChat(backendUrl, message) {
+async function requestChat(backendUrl, message, messages = []) {
   if (isTauriRuntime()) {
     try {
       return await tauriInvoke("send_chat_message", { backendUrl, message });
@@ -370,7 +441,7 @@ async function requestChat(backendUrl, message) {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ backendUrl, message }),
+    body: JSON.stringify({ backendUrl, message, messages }),
   });
 
   return readJsonResponse(response);
@@ -517,6 +588,7 @@ async function sendChat() {
   }
 
   appendChatMessage("user", message);
+  const contextMessages = buildChatContextMessages(message);
   chatMessageInput.value = "";
   updateSendChatButtonState();
   setChatSending(true);
@@ -524,13 +596,16 @@ async function sendChat() {
   const loadingMessage = renderChatLoading();
 
   try {
-    const payload = await requestChat(backendUrl, message);
+    const payload = await requestChat(backendUrl, message, contextMessages);
     if (!payload.ok) {
       throw new Error(payload.details || payload.error || "Chat request failed");
     }
 
     removeChatLoading(loadingMessage);
     renderChatResult(payload.chat);
+    if (payload.chat?.status === "success") {
+      recordSuccessfulChatTurn(message, payload.chat.reply || "");
+    }
     setChatState("success", `Chat response received from ${payload.backendUrl}`);
   } catch (error) {
     removeChatLoading(loadingMessage);

@@ -52,9 +52,14 @@ export function getSkills(options = {}) {
 }
 
 export function sendChat(message, options = {}) {
+  const body = { message };
+  if (Array.isArray(options.messages)) {
+    body.messages = options.messages;
+  }
+
   return requestJson("/chat", {
     ...options,
     method: "POST",
-    body: { message },
+    body,
   });
 }
