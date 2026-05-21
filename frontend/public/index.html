@@ -191,7 +191,7 @@
           <div class="section-heading">
             <h2>Files / Tools</h2>
             <p>
-              Capability display only. No file upload, no real file read, no
+              Read-only preview for whitelisted text files. No file upload, no
               file operation, and no automatic /chat request.
             </p>
           </div>
@@ -203,6 +203,36 @@
           <p id="files-tools-status" class="request-status idle">
             请先在 Backend Status 页面点击 Check Backend 读取能力列表。
           </p>
+        </section>
+
+        <section class="panel file-preview-panel">
+          <div class="section-heading">
+            <h2>文件预览</h2>
+            <p>Calls <code>POST /files/preview</code> only after clicking the button.</p>
+          </div>
+
+          <label class="field-label" for="file-preview-path">File path</label>
+          <div class="control-row">
+            <input
+              id="file-preview-path"
+              class="backend-input"
+              type="text"
+              placeholder="v13-test.txt"
+              autocomplete="off"
+            />
+            <button id="read-file-preview" class="check-button" type="button">
+              读取预览
+            </button>
+          </div>
+          <p id="file-preview-status" class="request-status idle">
+            Enter a path inside the backend whitelist scope.
+          </p>
+
+          <div
+            id="file-preview-result"
+            class="file-preview-result hidden"
+            aria-live="polite"
+          ></div>
         </section>
 
         <section

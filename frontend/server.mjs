@@ -108,6 +108,33 @@ async function postJson(baseUrl, path, payload) {
   return jsonPayload ?? {};
 }
 
+async function postJsonWithStatus(baseUrl, path, payload) {
+  const response = await fetch(`${baseUrl}${path}`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const rawText = await response.text();
+  let jsonPayload = null;
+
+  if (rawText) {
+    try {
+      jsonPayload = JSON.parse(rawText);
+    } catch {
+      throw new Error(`${path} returned a non-JSON response`);
+    }
+  }
+
+  return {
+    statusCode: response.status,
+    payload: jsonPayload ?? {},
+  };
+}
+
 async function handleMetadataProxy(request, response) {
   try {
     const rawBody = await readRequestBody(request);
@@ -192,6 +219,50 @@ async function handleChatProxy(request, response) {
   }
 }
 
+async function handleFilePreviewProxy(request, response) {
+  try {
+    const rawBody = await readRequestBody(request);
+    const payload = rawBody ? JSON.parse(rawBody) : {};
+    const baseUrl = normalizeBackendUrl(payload.backendUrl);
+    const path = String(payload.path || "").trim();
+    const previewChars = Number(payload.preview_chars);
+
+    if (!path) {
+      sendJson(response, 400, {
+        ok: false,
+        error: {
+          code: "PATH_NOT_ALLOWED",
+          message: "File path cannot be empty",
+        },
+      });
+      return;
+    }
+
+    const previewPayload = { path };
+    if (Number.isFinite(previewChars)) {
+      previewPayload.preview_chars = previewChars;
+    }
+
+    const result = await postJsonWithStatus(baseUrl, "/files/preview", previewPayload);
+    sendJson(response, result.statusCode, {
+      ok: result.statusCode >= 200 && result.statusCode < 300,
+      backendUrl: baseUrl,
+      preview: result.payload,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : backendUnavailableMessage;
+
+    sendJson(response, 502, {
+      ok: false,
+      error: {
+        code: "REQUEST_FAILED",
+        message,
+      },
+    });
+  }
+}
+
 function serveStaticFile(requestPath, response) {
   const safePath = requestPath === "/" ? "/index.html" : requestPath;
   const resolvedPath = resolve(preferredRoot, `.${normalize(safePath)}`);
@@ -220,6 +291,11 @@ const server = http.createServer(async (request, response) => {
 
   if (request.method === "POST" && requestUrl.pathname === "/api/chat") {
     await handleChatProxy(request, response);
+    return;
+  }
+
+  if (request.method === "POST" && requestUrl.pathname === "/api/files/preview") {
+    await handleFilePreviewProxy(request, response);
     return;
   }
 
