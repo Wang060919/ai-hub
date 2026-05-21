@@ -1,7 +1,9 @@
 from fastapi import APIRouter
 
 from backend.ai_router import OllamaRouter, is_ai_router_enabled
-from backend.schemas import ChatRequest, ChatResponse
+from backend.adapters.deepseek import is_deepseek_chat_enabled
+from backend.schemas import ChatMessage, ChatRequest, ChatResponse
+from backend.skills.deepseek_chat import DeepSeekChatSkill
 from backend.skills.dify_english import DIFY_KEYWORDS, DifyEnglishSkill
 from backend.skills.echo import EchoSkill
 from backend.skills.file_analysis import FILE_ANALYSIS_KEYWORDS_LOWER, FileAnalysisSkill
@@ -13,6 +15,10 @@ from backend.skills.safe_action import SAFE_ACTION_KEYWORDS_LOWER, SafeActionSki
 from backend.skills.time import TimeSkill
 
 TIME_KEYWORDS = ("时间", "几点", "time")
+MAX_CONTEXT_TURNS = 4
+MAX_CONTEXT_MESSAGES = MAX_CONTEXT_TURNS * 2 + 1
+MAX_MESSAGE_CONTENT_CHARS = 1500
+MAX_CONTEXT_TOTAL_CHARS = 8000
 CAPTURE_PREFIXES_LOWER = tuple(prefix.lower() for prefix in CAPTURE_PREFIXES)
 LIST_KEYWORDS_LOWER = tuple(keyword.lower() for keyword in LIST_KEYWORDS)
 CAPTURE_INTENT_KEYWORDS_LOWER = (
@@ -52,6 +58,7 @@ SAFE_ACTION_OPERATION_HINTS = (
 def create_chat_router() -> APIRouter:
     router = APIRouter()
     ai_router = OllamaRouter()
+    deepseek_chat_skill = DeepSeekChatSkill()
     dify_english_skill = DifyEnglishSkill()
     echo_skill = EchoSkill()
     file_analysis_skill = FileAnalysisSkill()
@@ -90,6 +97,15 @@ def create_chat_router() -> APIRouter:
         if rule_skill.name != echo_skill.name:
             return rule_skill.execute(payload.message)
 
+        if is_deepseek_chat_enabled():
+            deepseek_response = execute_deepseek_with_echo_fallback(
+                payload.message,
+                messages=payload.messages,
+                deepseek_chat_skill=deepseek_chat_skill,
+                echo_skill=echo_skill,
+            )
+            return deepseek_response
+
         if not is_ai_router_enabled():
             return echo_skill.execute(payload.message)
 
@@ -99,6 +115,73 @@ def create_chat_router() -> APIRouter:
         return routed_skill.execute(payload.message)
 
     return router
+
+
+def execute_deepseek_with_echo_fallback(
+    message: str,
+    messages: list[ChatMessage] | None,
+    deepseek_chat_skill: DeepSeekChatSkill,
+    echo_skill: EchoSkill,
+) -> ChatResponse:
+    try:
+        deepseek_messages = build_deepseek_messages(message, messages)
+        deepseek_response = deepseek_chat_skill.execute_messages(deepseek_messages)
+    except Exception:
+        return echo_skill.execute(message)
+
+    if deepseek_response.status != "success":
+        return echo_skill.execute(message)
+    return deepseek_response
+
+
+def build_deepseek_messages(
+    message: str,
+    messages: list[ChatMessage] | None,
+) -> list[ChatMessage]:
+    current_message = message.strip()
+    context_messages = list(messages or [])
+    normalized_messages = [
+        ChatMessage(
+            role=context_message.role,
+            content=context_message.content.strip()[:MAX_MESSAGE_CONTENT_CHARS],
+        )
+        for context_message in context_messages
+        if context_message.content.strip()
+    ]
+
+    has_current_message = (
+        bool(normalized_messages)
+        and normalized_messages[-1].role == "user"
+        and normalized_messages[-1].content == current_message
+    )
+    if not has_current_message:
+        normalized_messages.append(
+            ChatMessage(
+                role="user",
+                content=current_message[:MAX_MESSAGE_CONTENT_CHARS],
+            )
+        )
+
+    return trim_deepseek_messages(normalized_messages[-MAX_CONTEXT_MESSAGES:])
+
+
+def trim_deepseek_messages(messages: list[ChatMessage]) -> list[ChatMessage]:
+    trimmed_messages: list[ChatMessage] = []
+    total_chars = 0
+
+    for message in reversed(messages):
+        content = message.content[:MAX_MESSAGE_CONTENT_CHARS]
+        next_total = total_chars + len(content)
+        if next_total > MAX_CONTEXT_TOTAL_CHARS and trimmed_messages:
+            break
+        if next_total > MAX_CONTEXT_TOTAL_CHARS:
+            content = content[:MAX_CONTEXT_TOTAL_CHARS]
+            next_total = len(content)
+
+        trimmed_messages.append(ChatMessage(role=message.role, content=content))
+        total_chars = next_total
+
+    return list(reversed(trimmed_messages))
 
 
 def select_skill(

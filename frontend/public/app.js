@@ -16,15 +16,16 @@ const filesToolsPanel = document.querySelector("#panel-files-tools");
 const chatMessageInput = document.querySelector("#chat-message");
 const sendChatButton = document.querySelector("#send-chat");
 const chatStatus = document.querySelector("#chat-status");
-const chatSkill = document.querySelector("#chat-skill");
-const chatResultStatus = document.querySelector("#chat-result-status");
-const chatReply = document.querySelector("#chat-reply");
-const chatDataSection = document.querySelector("#chat-data-section");
-const chatData = document.querySelector("#chat-data");
+const chatMessages = document.querySelector("#chat-messages");
 
 const filesToolsStatus = document.querySelector("#files-tools-status");
 const filesToolsGrid = document.querySelector("#files-tools-grid");
 const tauriInvoke = window.__TAURI__?.core?.invoke;
+const MAX_CHAT_HISTORY_TURNS = 4;
+const MAX_CHAT_HISTORY_MESSAGES = MAX_CHAT_HISTORY_TURNS * 2;
+const MAX_CHAT_CONTEXT_MESSAGES = MAX_CHAT_HISTORY_MESSAGES + 1;
+const MAX_CHAT_MESSAGE_CHARS = 1500;
+const MAX_CHAT_CONTEXT_CHARS = 8000;
 
 const startupCommand =
   "python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000";
@@ -117,6 +118,8 @@ const fileToolsCatalog = [
 
 const state = {
   hasCheckedBackend: false,
+  chatSending: false,
+  chatHistory: [],
   skills: [],
 };
 
@@ -151,12 +154,242 @@ function resetSummary() {
 }
 
 function resetChatResult() {
-  chatSkill.textContent = "-";
-  chatResultStatus.textContent = "-";
-  chatReply.textContent = "-";
-  chatData.textContent = "";
-  chatDataSection.hidden = true;
-  chatDataSection.open = false;
+  chatMessages.innerHTML =
+    '<div class="chat-empty-state">Send a message to start the Echo chat loop.</div>';
+  state.chatHistory = [];
+}
+
+function normalizeChatContent(content) {
+  return String(content || "").trim().slice(0, MAX_CHAT_MESSAGE_CHARS);
+}
+
+function trimChatMessages(messages, maxMessages) {
+  const normalizedMessages = messages
+    .map((message) => ({
+      role: message.role,
+      content: normalizeChatContent(message.content),
+    }))
+    .filter(
+      (message) =>
+        (message.role === "user" || message.role === "assistant") &&
+        message.content
+    )
+    .slice(-maxMessages);
+
+  const trimmedMessages = [];
+  let totalChars = 0;
+
+  for (let index = normalizedMessages.length - 1; index >= 0; index -= 1) {
+    const message = normalizedMessages[index];
+    const nextTotal = totalChars + message.content.length;
+    if (nextTotal > MAX_CHAT_CONTEXT_CHARS && trimmedMessages.length > 0) {
+      break;
+    }
+
+    trimmedMessages.unshift(message);
+    totalChars = nextTotal;
+  }
+
+  return trimmedMessages;
+}
+
+function isMarkdownFence(line) {
+  return line.trim().startsWith("```");
+}
+
+function matchUnorderedListItem(line) {
+  return line.match(/^\s*[-*]\s+(.+)$/);
+}
+
+function matchOrderedListItem(line) {
+  return line.match(/^\s*\d+\.\s+(.+)$/);
+}
+
+function appendPlainText(parent, text) {
+  if (text) {
+    parent.append(document.createTextNode(text));
+  }
+}
+
+function appendInlineMarkdown(parent, text, options = {}) {
+  const allowBold = options.allowBold !== false;
+  let index = 0;
+
+  while (index < text.length) {
+    const nextCode = text.indexOf("`", index);
+    const nextBold = allowBold ? text.indexOf("**", index) : -1;
+    const hasCode = nextCode !== -1;
+    const hasBold = nextBold !== -1;
+
+    if (!hasCode && !hasBold) {
+      appendPlainText(parent, text.slice(index));
+      return;
+    }
+
+    const useCode = hasCode && (!hasBold || nextCode < nextBold);
+    const tokenIndex = useCode ? nextCode : nextBold;
+    appendPlainText(parent, text.slice(index, tokenIndex));
+
+    if (useCode) {
+      const endCode = text.indexOf("`", tokenIndex + 1);
+      if (endCode === -1) {
+        appendPlainText(parent, text.slice(tokenIndex));
+        return;
+      }
+
+      const code = document.createElement("code");
+      code.className = "markdown-inline-code";
+      code.textContent = text.slice(tokenIndex + 1, endCode);
+      parent.append(code);
+      index = endCode + 1;
+      continue;
+    }
+
+    const endBold = text.indexOf("**", tokenIndex + 2);
+    if (endBold === -1) {
+      appendPlainText(parent, text.slice(tokenIndex));
+      return;
+    }
+
+    const strong = document.createElement("strong");
+    appendInlineMarkdown(strong, text.slice(tokenIndex + 2, endBold), {
+      allowBold: false,
+    });
+    parent.append(strong);
+    index = endBold + 2;
+  }
+}
+
+function appendParagraph(container, lines) {
+  const paragraph = document.createElement("p");
+  lines.forEach((line, index) => {
+    if (index > 0) {
+      paragraph.append(document.createElement("br"));
+    }
+    appendInlineMarkdown(paragraph, line);
+  });
+  container.append(paragraph);
+}
+
+function appendList(container, lines, startIndex, ordered) {
+  const list = document.createElement(ordered ? "ol" : "ul");
+  let index = startIndex;
+
+  while (index < lines.length) {
+    const match = ordered
+      ? matchOrderedListItem(lines[index])
+      : matchUnorderedListItem(lines[index]);
+
+    if (!match) {
+      break;
+    }
+
+    const item = document.createElement("li");
+    appendInlineMarkdown(item, match[1]);
+    list.append(item);
+    index += 1;
+  }
+
+  container.append(list);
+  return index;
+}
+
+function appendCodeBlock(container, codeLines) {
+  const pre = document.createElement("pre");
+  pre.className = "markdown-code-block";
+
+  const code = document.createElement("code");
+  code.textContent = codeLines.join("\n");
+
+  pre.append(code);
+  container.append(pre);
+}
+
+function renderAssistantMessageContent(container, content) {
+  const rawContent = String(content || "");
+  const normalizedContent = rawContent.trim() ? rawContent : "-";
+  const lines = normalizedContent.replaceAll("\r\n", "\n").split("\n");
+  let index = 0;
+
+  while (index < lines.length) {
+    const line = lines[index];
+
+    if (!line.trim()) {
+      index += 1;
+      continue;
+    }
+
+    if (isMarkdownFence(line)) {
+      const codeLines = [];
+      index += 1;
+
+      while (index < lines.length && !isMarkdownFence(lines[index])) {
+        codeLines.push(lines[index]);
+        index += 1;
+      }
+
+      if (index < lines.length && isMarkdownFence(lines[index])) {
+        index += 1;
+      }
+
+      appendCodeBlock(container, codeLines);
+      continue;
+    }
+
+    if (matchUnorderedListItem(line)) {
+      index = appendList(container, lines, index, false);
+      continue;
+    }
+
+    if (matchOrderedListItem(line)) {
+      index = appendList(container, lines, index, true);
+      continue;
+    }
+
+    const paragraphLines = [];
+    while (
+      index < lines.length &&
+      lines[index].trim() &&
+      !isMarkdownFence(lines[index]) &&
+      !matchUnorderedListItem(lines[index]) &&
+      !matchOrderedListItem(lines[index])
+    ) {
+      paragraphLines.push(lines[index]);
+      index += 1;
+    }
+
+    appendParagraph(container, paragraphLines);
+  }
+}
+
+function buildChatContextMessages(currentMessage) {
+  return trimChatMessages(
+    [
+      ...state.chatHistory,
+      {
+        role: "user",
+        content: currentMessage,
+      },
+    ],
+    MAX_CHAT_CONTEXT_MESSAGES
+  );
+}
+
+function recordSuccessfulChatTurn(userMessage, assistantMessage) {
+  state.chatHistory = trimChatMessages(
+    [
+      ...state.chatHistory,
+      {
+        role: "user",
+        content: userMessage,
+      },
+      {
+        role: "assistant",
+        content: assistantMessage,
+      },
+    ],
+    MAX_CHAT_HISTORY_MESSAGES
+  );
 }
 
 function renderEmptyRow(message) {
@@ -354,7 +587,7 @@ async function requestMetadata(backendUrl) {
   return readJsonResponse(response);
 }
 
-async function requestChat(backendUrl, message) {
+async function requestChat(backendUrl, message, messages = []) {
   if (isTauriRuntime()) {
     try {
       return await tauriInvoke("send_chat_message", { backendUrl, message });
@@ -377,7 +610,7 @@ async function requestChat(backendUrl, message) {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ backendUrl, message }),
+    body: JSON.stringify({ backendUrl, message, messages }),
   });
 
   return readJsonResponse(response);
@@ -419,50 +652,146 @@ async function checkBackend() {
   }
 }
 
-function renderChatResult(payload) {
-  chatSkill.textContent = payload.skill || "-";
-  chatResultStatus.textContent = payload.status || "-";
-  chatReply.textContent = payload.reply || "-";
+function clearChatEmptyState() {
+  const emptyState = chatMessages.querySelector(".chat-empty-state");
+  if (emptyState) {
+    emptyState.remove();
+  }
+}
 
-  if (payload.data !== null && payload.data !== undefined) {
-    chatData.textContent = JSON.stringify(payload.data, null, 2);
-    chatDataSection.hidden = false;
+function appendChatMessage(role, content, metadata = "", options = {}) {
+  clearChatEmptyState();
+
+  const messageItem = document.createElement("article");
+  messageItem.className = `chat-message ${role}`;
+  if (options.loading) {
+    messageItem.classList.add("loading");
+  }
+
+  const label = document.createElement("div");
+  label.className = "chat-message-label";
+  label.textContent = role === "user" ? "You" : "AI Hub";
+
+  const bubble = document.createElement("div");
+  bubble.className = "chat-message-bubble";
+  if (role === "assistant") {
+    bubble.classList.add("markdown-content");
+    renderAssistantMessageContent(bubble, content || "-");
   } else {
-    chatData.textContent = "";
-    chatDataSection.hidden = true;
-    chatDataSection.open = false;
+    bubble.textContent = content || "-";
+  }
+
+  messageItem.append(label, bubble);
+
+  if (metadata) {
+    const meta = document.createElement("div");
+    meta.className = "chat-message-meta";
+    meta.textContent = metadata;
+    messageItem.append(meta);
+  }
+
+  chatMessages.append(messageItem);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  return messageItem;
+}
+
+function renderChatResult(payload) {
+  const skill = payload.skill || "-";
+  const status = payload.status || "-";
+  appendChatMessage(
+    "assistant",
+    payload.reply || "-",
+    `skill: ${skill} | status: ${status}`
+  );
+}
+
+function renderChatError(message) {
+  appendChatMessage("assistant", message, "status: error");
+}
+
+function renderChatLoading() {
+  return appendChatMessage("assistant", "Waiting for /chat response ...", "status: sending", {
+    loading: true,
+  });
+}
+
+function removeChatLoading(loadingMessage) {
+  if (loadingMessage) {
+    loadingMessage.remove();
+  }
+}
+
+function updateSendChatButtonState() {
+  const hasMessage = Boolean(chatMessageInput.value.trim());
+  sendChatButton.disabled = state.chatSending || !hasMessage;
+}
+
+function setChatSending(isSending) {
+  state.chatSending = isSending;
+  sendChatButton.classList.toggle("sending", isSending);
+  updateSendChatButtonState();
+}
+
+function handleChatInputKeydown(event) {
+  if (event.isComposing) {
+    return;
+  }
+
+  if (event.key !== "Enter" || event.shiftKey) {
+    return;
+  }
+
+  event.preventDefault();
+  if (!sendChatButton.disabled) {
+    void sendChat();
   }
 }
 
 async function sendChat() {
+  if (state.chatSending) {
+    return;
+  }
+
   const backendUrl = backendUrlInput.value.trim();
   const message = chatMessageInput.value.trim();
 
   if (!message) {
     setChatState("error", "Message cannot be empty");
-    resetChatResult();
+    updateSendChatButtonState();
     return;
   }
 
-  sendChatButton.disabled = true;
+  appendChatMessage("user", message);
+  const contextMessages = buildChatContextMessages(message);
+  chatMessageInput.value = "";
+  updateSendChatButtonState();
+  setChatSending(true);
   setChatState("idle", "Sending /chat request ...");
+  const loadingMessage = renderChatLoading();
 
   try {
-    const payload = await requestChat(backendUrl, message);
+    const payload = await requestChat(backendUrl, message, contextMessages);
     if (!payload.ok) {
       throw new Error(payload.details || payload.error || "Chat request failed");
     }
 
+    removeChatLoading(loadingMessage);
     renderChatResult(payload.chat);
+    if (payload.chat?.status === "success") {
+      recordSuccessfulChatTurn(message, payload.chat.reply || "");
+    }
     setChatState("success", `Chat response received from ${payload.backendUrl}`);
   } catch (error) {
-    resetChatResult();
+    removeChatLoading(loadingMessage);
+    renderChatError(
+      error instanceof Error ? error.message : "Chat request failed"
+    );
     setChatState(
       "error",
       error instanceof Error ? error.message : "Chat request failed"
     );
   } finally {
-    sendChatButton.disabled = false;
+    setChatSending(false);
   }
 }
 
@@ -488,6 +817,8 @@ chatTabButton.addEventListener("click", () => showTab("chat"));
 filesToolsTabButton.addEventListener("click", () => showTab("files-tools"));
 checkButton.addEventListener("click", checkBackend);
 sendChatButton.addEventListener("click", sendChat);
+chatMessageInput.addEventListener("input", updateSendChatButtonState);
+chatMessageInput.addEventListener("keydown", handleChatInputKeydown);
 filesToolsGrid.addEventListener("click", (event) => {
   const target = event.target;
   if (!(target instanceof HTMLElement)) {
@@ -501,3 +832,4 @@ filesToolsGrid.addEventListener("click", (event) => {
 });
 
 renderFilesTools();
+updateSendChatButtonState();
