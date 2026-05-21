@@ -25,3 +25,22 @@ class FilePreviewResponse(BaseModel):
     status: str
     file: FilePreviewFileInfo
     preview: FilePreviewBody
+
+
+class FileSummarizeRequest(BaseModel):
+    path: str = Field(..., min_length=1)
+    max_input_chars: int | None = Field(default=None, ge=1)
+
+
+class FileSummaryBody(BaseModel):
+    text: str
+    model: str
+    input_chars: int
+    source_chars: int
+    truncated: bool
+
+
+class FileSummarizeResponse(BaseModel):
+    status: str
+    file: FilePreviewFileInfo
+    summary: FileSummaryBody

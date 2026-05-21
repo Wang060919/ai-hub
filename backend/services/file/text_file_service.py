@@ -45,6 +45,13 @@ class FilePreview:
     truncated: bool
 
 
+@dataclass(frozen=True)
+class SafeTextFileContent:
+    file: SafeFileInfo
+    text: str
+    chars: int
+
+
 class FileServiceError(Exception):
     def __init__(self, code: FileServiceErrorCode, message: str) -> None:
         super().__init__(message)
@@ -71,6 +78,17 @@ class TextFileService:
         )
 
     def preview_text_file(self, requested_path: str, preview_chars: int | None = None) -> FilePreview:
+        text_file = self.read_text_file(requested_path)
+        safe_preview_chars = self._normalize_preview_chars(preview_chars)
+        preview_text = text_file.text[:safe_preview_chars]
+        return FilePreview(
+            file=text_file.file,
+            text=preview_text,
+            chars=len(preview_text),
+            truncated=text_file.chars > safe_preview_chars,
+        )
+
+    def read_text_file(self, requested_path: str) -> SafeTextFileContent:
         resolved_path = self._resolve_requested_path(requested_path)
         item_stat = self._stat_file(resolved_path)
         self._ensure_file(resolved_path)
@@ -80,14 +98,10 @@ class TextFileService:
         raw_content = self._read_bytes(resolved_path)
         self._ensure_text_content(raw_content)
         text = raw_content.decode("utf-8", errors="replace")
-
-        safe_preview_chars = self._normalize_preview_chars(preview_chars)
-        preview_text = text[:safe_preview_chars]
-        return FilePreview(
+        return SafeTextFileContent(
             file=self._build_file_info(resolved_path, item_stat),
-            text=preview_text,
-            chars=len(preview_text),
-            truncated=len(text) > safe_preview_chars,
+            text=text,
+            chars=len(text),
         )
 
     def _resolve_requested_path(self, requested_path: str) -> Path:

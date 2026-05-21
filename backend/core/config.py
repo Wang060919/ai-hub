@@ -16,6 +16,8 @@ class Settings:
     backend_host: str = "127.0.0.1"
     backend_port: int = 8000
     enable_deepseek_chat: bool = False
+    enable_file_summary: bool = False
+    file_summary_max_input_chars: int = 8000
     deepseek_api_key: str = field(default="", repr=False)
     deepseek_api_url: str = "https://api.deepseek.com/chat/completions"
     deepseek_model: str = "deepseek-v4-flash"
@@ -33,6 +35,14 @@ class Settings:
             enable_deepseek_chat=_parse_bool(
                 os.getenv("ENABLE_DEEPSEEK_CHAT"),
                 cls.enable_deepseek_chat,
+            ),
+            enable_file_summary=_parse_bool(
+                os.getenv("ENABLE_FILE_SUMMARY"),
+                cls.enable_file_summary,
+            ),
+            file_summary_max_input_chars=_parse_positive_int(
+                os.getenv("FILE_SUMMARY_MAX_INPUT_CHARS"),
+                cls.file_summary_max_input_chars,
             ),
             deepseek_api_key=_parse_str(
                 os.getenv("DEEPSEEK_API_KEY"),
@@ -78,3 +88,8 @@ def _parse_str(raw_value: str | None, default: str) -> str:
         return default
     clean_value = raw_value.strip()
     return clean_value or default
+
+
+def _parse_positive_int(raw_value: str | None, default: int) -> int:
+    parsed_value = _parse_int(raw_value, default)
+    return parsed_value if parsed_value > 0 else default
