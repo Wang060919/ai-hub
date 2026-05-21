@@ -330,6 +330,66 @@ code {
   color: var(--ink);
 }
 
+.chat-message.assistant .chat-message-bubble.markdown-content {
+  white-space: normal;
+}
+
+.markdown-content p,
+.markdown-content ul,
+.markdown-content ol,
+.markdown-code-block {
+  margin: 0;
+}
+
+.markdown-content p + p,
+.markdown-content p + ul,
+.markdown-content p + ol,
+.markdown-content ul + p,
+.markdown-content ol + p,
+.markdown-content ul + ul,
+.markdown-content ol + ol,
+.markdown-code-block + p,
+.markdown-content p + .markdown-code-block,
+.markdown-content ul + .markdown-code-block,
+.markdown-content ol + .markdown-code-block,
+.markdown-code-block + ul,
+.markdown-code-block + ol {
+  margin-top: 10px;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  padding-left: 22px;
+}
+
+.markdown-content li + li {
+  margin-top: 4px;
+}
+
+.markdown-inline-code {
+  border-radius: 6px;
+  background: rgba(24, 109, 103, 0.09);
+  color: var(--accent-strong);
+}
+
+.markdown-code-block {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(24, 109, 103, 0.14);
+  background: rgba(24, 109, 103, 0.07);
+}
+
+.markdown-code-block code {
+  display: block;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  white-space: pre;
+}
+
 .chat-message.loading .chat-message-bubble {
   color: var(--muted);
   font-style: italic;
