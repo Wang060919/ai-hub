@@ -13,6 +13,19 @@
 
 ---
 
+## V1.2-M5 DeepSeek 接入状态
+
+- DeepSeek adapter 已新增：`backend/adapters/deepseek.py`。
+- DeepSeekChatSkill 已新增：`backend/skills/deepseek_chat.py`。
+- `/chat` 路由已最小接入 DeepSeek，且仅在 echo fallback 分支尝试，不改变 `/chat` 路径或 `{"message":"..."}` 请求格式。
+- 默认 `ENABLE_DEEPSEEK_CHAT=false`，不会自动消耗 DeepSeek API 额度。
+- 未启用或无 API Key 时 fallback Echo。
+- DeepSeek 调用失败、超时或网络错误时 fallback Echo，不应导致 `/chat` 返回 500。
+- 已验证默认 Echo 链路。
+- 已验证真实 DeepSeek 链路，成功返回 `skill: deepseek_chat`。
+- API Key 只通过环境变量读取，不写入前端、日志或 Git。
+- 下一步是 V1.2-M6：短上下文管理。
+
 ## 通用化原则
 
 AI Hub 当前阶段优先做个人可用版，但代码不能写死为只能在当前电脑、当前路径、当前 API Key、当前模型或当前账号下运行。

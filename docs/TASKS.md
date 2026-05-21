@@ -92,11 +92,27 @@ AI Hub 当前阶段优先做个人可用版，但代码不能写死为只能在�
 - [ ] 错误提示组件：模型失败、网络失败、后端失败
 - [ ] Markdown 渲染：标题、列表、代码块、表格、加粗
 - [ ] 统一 AI 调用接口：`POST /api/chat`
-- [ ] DeepSeek 模型适配层
+- [x] DeepSeek 模型适配层
 - [ ] 短上下文管理：保留最近 5–10 轮对话
-- [ ] 普通完整回复链路验证
+- [x] 普通完整回复链路验证
 - [ ] 手动对话测试：普通问题、连续追问、错误场景
-- [ ] 更新 README / TASKS 进度说明
+- [x] 更新 README / TASKS 进度说明
+
+V1.2-M5 DeepSeek 接入同步：
+
+- [x] M5a：DeepSeek 接入方案确认
+- [x] M5b：新增 `backend/adapters/deepseek.py`
+- [x] M5c：新增 `DeepSeekChatSkill`
+- [x] M5d：`/chat` 路由已最小接入 DeepSeek，仅在 echo fallback 分支尝试
+- [x] M5e：fallback 机制已验证，默认关闭、未启用、无 Key 或调用失败时回退 Echo
+- [x] M5f：真实 DeepSeek 链路已验证，成功返回 `skill: deepseek_chat`
+
+M5 安全边界：
+
+- `ENABLE_DEEPSEEK_CHAT=false` 为默认值，不会自动消耗 DeepSeek API 额度。
+- API Key 只通过环境变量读取，不写入前端、日志或 Git。
+- 已验证默认 Echo 链路仍可用。
+- 下一步进入 V1.2-M6：短上下文管理。
 
 **暂不纳入本版本**：
 

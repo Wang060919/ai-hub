@@ -127,3 +127,7 @@ V1.1 下一步是 M7 轻量验证。本阶段只同步底层框架和文档状�
 ## 通用化原则补充
 
 AI Hub 当前优先服务个人使用，但所有新增功能都应避免写死本机路径、API Key、单一模型、端口、数据目录和外部服务配置；外部 API 或付费调用默认关闭，并提供安全 fallback。
+
+## V1.2-M5 DeepSeek 接入状态
+
+DeepSeek adapter 与 `DeepSeekChatSkill` 已新增，`/chat` 已做最小接入；默认 `ENABLE_DEEPSEEK_CHAT=false`，未启用、无 API Key 或调用失败时都会 fallback Echo。真实 DeepSeek 链路已验证可返回 `skill: deepseek_chat`，API Key 只通过环境变量读取，不写入前端、日志或 Git。下一步是 V1.2-M6 短上下文管理。
