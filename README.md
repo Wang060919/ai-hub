@@ -1,20 +1,40 @@
 # AI Hub
 
-AI Hub 是一个面向学习与个人工作流的 AI 项目，当前阶段聚焦于 `FastAPI 微核心 + Skill 插件化网关`，优先验证一个可运行、可路由、可返回、可沉淀数据的后端闭环。
+AI Hub 是一个长期演进的个人 AI 桌面工作站 / 本地 AI Hub / 可扩展 AI Agent 平台。
 
-## 当前已完成能力
+## 当前状态
 
-- `EchoSkill`
-- `TimeSkill`
-- `IdeaCaptureSkill`
-- `DifyEnglishSkill`
+V1.0 / V1.0.1 已基本完成：
+
+- Tauri 桌面端基础结构
+- Backend Status / Chat / Files & Tools 基础页面
+- 桌面端启动体验优化
+- Git 管理和基础文档
 
 ## 技术栈
 
-- Python 3.11
-- FastAPI
+- Python 3.11 + FastAPI
 - SQLite
+- Node.js + Tauri (桌面壳)
 - Dify API
+
+## 版本路线
+
+| 版本 | 主题 | 状态 |
+|------|------|------|
+| V1.0 / V1.0.1 | 桌面端基础骨架与启动体验优化 | 基本完成 |
+| V1.1 | 高适配性底层框架 | 待开始 |
+| V1.2 | 基础 AI 对话功能 | 待开始 |
+| V1.3 | 文件处理功能 | 待开始 |
+| V1.4 | 知识库与记忆系统 | 待开始 |
+| V1.5 | 屏幕感知工具组与学习辅助模式 | 待开始 |
+| V1.6 | 技能网关 / 插件系统 | 待开始 |
+| V1.7 | 语音交互 | 待开始 |
+| V1.8 | 手机端 / 局域网 / 室友测试 | 待开始 |
+| V1.9 | Docker 安全沙盒与自动化执行 | 待开始 |
+| V2.0 | 个人 AI Agent 工作站完全体 | 远期 |
+
+详见 [docs/VERSION_PLAN.md](docs/VERSION_PLAN.md)。
 
 ## 环境准备
 
@@ -26,190 +46,57 @@ pip install -r requirements.txt
 
 ## .env 配置
 
-在项目根目录创建 `.env` 文件，并写入以下变量名与示例值：
+在项目根目录创建 `.env` 文件，写入：
 
 ```env
 DIFY_API_URL=https://api.dify.ai/v1/chat-messages
 DIFY_API_KEY=your_dify_api_key_here
 ```
 
-注意：不要写入或提交真实 Key 到仓库、日志、截图或审查报告。
+不要提交真实 Key 到仓库、日志或审查报告。
 
 ## 启动服务
 
 ```powershell
+# 启动后端
 python -m uvicorn backend.main:app --reload --reload-dir backend
+
+# 浏览器模式
+npm run dev
+
+# Tauri 桌面开发模式（需安装 Rust）
+npm run desktop:dev
 ```
 
-## 测试方式
+桌面端不会自动启动后端，用户需手动先启动 FastAPI 后端。
 
-项目提供了一个基础测试脚本：
+## 测试
 
 ```powershell
 python scripts/test_api.py
 ```
 
-脚本会依次验证：
+## 开发原则
 
-- `EchoSkill`
-- `TimeSkill`
-- `IdeaCaptureSkill` 保存想法
-- `IdeaCaptureSkill` 查询最近想法
-- `DifyEnglishSkill`
+- V1.1 只做高适配性底层框架，不强行塞具体业务功能
+- V1.2 及后续版本每次只主攻一个功能模块
+- 后续功能必须按 modules / services / adapters / api / frontend 的分层规则接入
+- 不允许把大量逻辑堆进单个 app.js 或单个页面文件
+- 不允许未讨论清楚就直接实现功能
+- 不允许为了速度破坏整体架构
+- 功能不删减，但按版本逐步落地
+- 开发工程线和产品功能线分开记录
 
-## V0.3 AI Router 实验功能
+## 每个功能开发前的要求
 
-- 需要本地 Ollama
-- 推荐模型：`qwen2.5:7b`
-- 启动 Ollama 后可运行：
+每个功能正式开发前，必须完成以下检查：
 
-```powershell
-python scripts/test_ai_router.py
-```
-
-- RuleRouter 仍然优先，Ollama 只在规则结果为 `echo` 时做兜底增强
-
-## V0.4 Safe Actions 实验功能
-
-- 当前只生成 `ActionPlan`
-- 不执行任何真实操作
-- 后续版本才考虑 OpenClaw / Docker
-- 测试命令：
-
-```powershell
-python scripts/test_safe_actions.py
-```
-
-## V0.5 File Analysis Plan 实验功能
-
-- 当前只生成 `FileAnalysisPlan`
-- 不读取真实文件
-- 不做 OCR
-- 后续版本才考虑接 OCR / OpenClaw / 文档解析
-- 测试命令：
-
-```powershell
-python scripts/test_file_analysis.py
-```
-
-## V0.6 File Inventory 实验功能
-
-- 当前只解析用户手动输入的文件清单文本
-- 不读取真实文件
-- 不检查路径是否存在
-- 不做 OCR / 文档解析
-- 后续版本才考虑接 OpenClaw / OCR / 文档解析
-- 测试命令：
-
-```powershell
-python scripts/test_file_inventory.py
-```
-
-## V0.7 ReadOnlyFileScanner 实验功能
-
-- 只读取文件元信息
-- 不读取文件内容
-- 默认白名单目录：`data/scan_sandbox`
-- 可通过 `AI_HUB_SCAN_ROOT` 配置白名单根目录
-- 不建议把 `AI_HUB_SCAN_ROOT` 设置为 `C:\`、`D:\`、用户主目录等大范围目录，推荐使用专门沙盒目录，如 `data/scan_sandbox` 或 `D:\AI-Workspace\ai-hub-sandbox`
-- 不递归扫描
-- 不执行任何文件操作
-- V0.7.1 会返回 `file_type_summary`
-- V0.7.1 会返回 `total_size_human`
-- V0.7.1 会按规则排序目录和文件结果
-- V0.7.1 仍然只读，不读取文件内容
-- 测试命令：
-
-```powershell
-python scripts/test_readonly_file_scanner.py
-```
-
-## V0.8 ReadOnlyTextPreview 实验功能
-
-- 只读取白名单目录内的 txt / md 小文件
-- 默认最大 64KB
-- 默认最多返回前 2000 字符
-- 不读取复杂文档
-- 不 OCR
-- 不修改文件
-- 测试命令：
-
-```powershell
-python scripts/test_readonly_text_preview.py
-```
-
-## V0.9 API Stabilization 实验功能
-
-- 新增 `/health`
-- 新增 `/version`
-- 新增 `/skills`
-- 这些接口用于桌面端读取后端状态和能力
-- 不调用 Dify，不消耗模型额度
-- 测试命令：
-
-```powershell
-python scripts/test_api_metadata.py
-```
-
-## V1.0 Desktop MVP 第一阶段
-
-- 当前阶段提供最小桌面端前端外壳和后端状态页
-- 页面只连接 `/health`、`/version`、`/skills`
-- 不调用 `/chat`
-- 不消耗 Dify 额度
-- 不接文件操作
-
-### 启动后端
-
-```powershell
-python -m uvicorn backend.main:app --reload --reload-dir backend
-```
-
-### 启动前端壳
-
-```powershell
-npm run dev
-```
-
-- 默认访问地址：`http://127.0.0.1:4173`
-- 页面默认后端地址：`http://127.0.0.1:8000`
-- 当前仓库未初始化完整 Tauri 工程，因此本阶段先提供可运行的前端壳用于验证桌面端状态页
-
-## V1.0 Phase 2 Desktop Chat Page
-
-- 在现有前端状态壳基础上新增 `Backend Status` 和 `Chat` 两个分区
-- `Backend Status` 保留 `/health`、`/version`、`/skills` 检查能力
-- `Chat` 页只会在手动点击 `Send` 后调用 `POST /chat`
-- 当前阶段只支持文本聊天
-- 不做文件上传
-- 不执行真实文件操作
-
-### Chat 页测试提醒
-
-- `Chat` 页可能命中不同 Skill
-- 如果输入触发 `DifyEnglishSkill`，可能消耗 Dify 额度
-- 测试时优先使用不会触发 Dify 的输入：
-  - `hello ai hub`
-  - `现在几点了`
-  - `随便说句话`
-- 不要把 Dify 测试作为默认构建验证
-
-## 当前未实现内容
-
-- Ollama
-- ChromaDB
-- OpenClaw
-- Docker
-- OCR
-- Live2D
-
-## 后续路线
-
-- V0.3 本地模型路由
-- V0.4 OpenClaw + Docker
-- V0.5 OCR
-- V1.0 Tauri
-- V1.1 Live2D
+1. **功能设想确认**：解决什么问题？什么场景使用？完整流程是什么？符合 AI Hub 长期定位吗？
+2. **功能边界确认**：当前版本做什么、不做什么？哪些放后续版本？是否存在过度设计？
+3. **架构接入确认**：属于哪个 module？需要哪些 service/adapter？是否需要新增 API？前端入口、配置项、日志和错误处理怎么做？
+4. **最小可用版本确认**：第一版只做最小闭环，先跑通主流程再逐步增强
+5. **实现前任务清单**：列出新增/修改的文件，说明每一步目的、可能影响的现有功能、验证方式和回滚方式
+6. **实现后轻量验证**：检查 git status、核心功能能否打开、主流程能否跑通、是否有明显报错、文档是否同步更新
 
 ## 安全说明
 
@@ -217,102 +104,9 @@ npm run dev
 - `data/` 不要提交
 - API Key 不要输出到日志或审查报告
 
-## V1.0 Phase 3 Desktop Files / Tools Page
+## 文档索引
 
-## V1.0 Phase 4 Tauri Desktop Wrapper
-
-- 当前分支目标是把现有 frontend 页面包装进真正的 Tauri 桌面窗口
-- 保留 `Backend Status`、`Chat`、`Files / Tools` 三个页面
-- 桌面端只做容器包装，不新增业务功能
-- 不自动启动 FastAPI 后端
-- 不自动调用 `/chat`
-- 不自动触发 Dify
-- 不新增文件权限
-- 不新增 shell 执行能力
-- 不接系统托盘
-
-### 启动后端
-
-```powershell
-python -m uvicorn backend.main:app --reload --reload-dir backend
-```
-
-### 浏览器模式
-
-```powershell
-npm run dev
-```
-
-### Tauri 桌面开发模式
-
-前提：
-
-- 已安装 Rust
-- 已安装 cargo
-
-运行：
-
-```powershell
-npm run desktop:dev
-```
-
-说明：
-
-- 桌面窗口标题为 `AI Hub`
-- Tauri 只加载现有前端页面
-- 用户仍需手动启动 FastAPI 后端
-
-### Tauri 桌面构建
-
-```powershell
-npm run desktop:build
-```
-
-说明：
-
-- `npm run build` 仍然保留，用于构建现有前端静态页面
-- `npm run desktop:build` 会先执行前端构建，再交给 Tauri 打包桌面壳
-
-- 当前分支目标是在现有前端桌面壳中新增第三个分区 `Files / Tools`
-- 页面只展示当前文件相关能力与安全边界
-- 优先复用 `Backend Status` 已读取的 `/skills` 数据
-- 不新增后端接口
-- 不执行文件操作
-- 不上传文件
-- 不读取真实文件
-- 不自动调用 `/chat`
-- 不消耗 Dify 额度
-- 示例提示词只做展示或复制，不会自动发送
-
-## V1.0.1 Desktop Startup Polish
-
-当前分支：`fix/v1.0.1-desktop-startup-polish`
-
-### 桌面端启动顺序
-
-1. 先启动后端
-
-```powershell
-conda activate ai_hub
-python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
-```
-
-2. 再启动桌面端
-
-```powershell
-npm run desktop:dev
-```
-
-3. 打开桌面窗口后按这个顺序检查
-
-- 在 `Backend Status` 页面点击 `Check Backend`
-- 在 `Chat` 页面优先用 `hello ai hub` 做低风险测试
-- 不要把四级单词等 Dify 输入作为默认测试
-
-### 启动体验说明
-
-- 桌面端不会自动启动 FastAPI 后端
-- 后端未启动时报错是正常情况，不代表桌面端损坏
-- 当前安全测试建议优先使用 `hello ai hub`
-- 命中 `DifyEnglishSkill` 的输入可能消耗 Dify 额度
-- 当前没有文件上传、文件选择器、真实文件读取或真实文件操作
+- [版本计划](docs/VERSION_PLAN.md) — 完整版本路线与开发工程线
+- [架构设计](docs/ARCHITECTURE.md) — 分层架构与模块设计
+- [任务清单](docs/TASKS.md) — 当前任务状态与执行记录
+- [历史决策](docs/DECISIONS.md) — 技术决策记录
