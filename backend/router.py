@@ -1,7 +1,9 @@
 from fastapi import APIRouter
 
 from backend.ai_router import OllamaRouter, is_ai_router_enabled
+from backend.adapters.deepseek import is_deepseek_chat_enabled
 from backend.schemas import ChatRequest, ChatResponse
+from backend.skills.deepseek_chat import DeepSeekChatSkill
 from backend.skills.dify_english import DIFY_KEYWORDS, DifyEnglishSkill
 from backend.skills.echo import EchoSkill
 from backend.skills.file_analysis import FILE_ANALYSIS_KEYWORDS_LOWER, FileAnalysisSkill
@@ -52,6 +54,7 @@ SAFE_ACTION_OPERATION_HINTS = (
 def create_chat_router() -> APIRouter:
     router = APIRouter()
     ai_router = OllamaRouter()
+    deepseek_chat_skill = DeepSeekChatSkill()
     dify_english_skill = DifyEnglishSkill()
     echo_skill = EchoSkill()
     file_analysis_skill = FileAnalysisSkill()
@@ -90,6 +93,14 @@ def create_chat_router() -> APIRouter:
         if rule_skill.name != echo_skill.name:
             return rule_skill.execute(payload.message)
 
+        if is_deepseek_chat_enabled():
+            deepseek_response = execute_deepseek_with_echo_fallback(
+                payload.message,
+                deepseek_chat_skill=deepseek_chat_skill,
+                echo_skill=echo_skill,
+            )
+            return deepseek_response
+
         if not is_ai_router_enabled():
             return echo_skill.execute(payload.message)
 
@@ -99,6 +110,21 @@ def create_chat_router() -> APIRouter:
         return routed_skill.execute(payload.message)
 
     return router
+
+
+def execute_deepseek_with_echo_fallback(
+    message: str,
+    deepseek_chat_skill: DeepSeekChatSkill,
+    echo_skill: EchoSkill,
+) -> ChatResponse:
+    try:
+        deepseek_response = deepseek_chat_skill.execute(message)
+    except Exception:
+        return echo_skill.execute(message)
+
+    if deepseek_response.status != "success":
+        return echo_skill.execute(message)
+    return deepseek_response
 
 
 def select_skill(
