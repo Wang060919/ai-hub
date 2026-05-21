@@ -16,11 +16,7 @@ const filesToolsPanel = document.querySelector("#panel-files-tools");
 const chatMessageInput = document.querySelector("#chat-message");
 const sendChatButton = document.querySelector("#send-chat");
 const chatStatus = document.querySelector("#chat-status");
-const chatSkill = document.querySelector("#chat-skill");
-const chatResultStatus = document.querySelector("#chat-result-status");
-const chatReply = document.querySelector("#chat-reply");
-const chatDataSection = document.querySelector("#chat-data-section");
-const chatData = document.querySelector("#chat-data");
+const chatMessages = document.querySelector("#chat-messages");
 
 const filesToolsStatus = document.querySelector("#files-tools-status");
 const filesToolsGrid = document.querySelector("#files-tools-grid");
@@ -151,12 +147,8 @@ function resetSummary() {
 }
 
 function resetChatResult() {
-  chatSkill.textContent = "-";
-  chatResultStatus.textContent = "-";
-  chatReply.textContent = "-";
-  chatData.textContent = "";
-  chatDataSection.hidden = true;
-  chatDataSection.open = false;
+  chatMessages.innerHTML =
+    '<div class="chat-empty-state">Send a message to start the Echo chat loop.</div>';
 }
 
 function renderEmptyRow(message) {
@@ -419,19 +411,56 @@ async function checkBackend() {
   }
 }
 
-function renderChatResult(payload) {
-  chatSkill.textContent = payload.skill || "-";
-  chatResultStatus.textContent = payload.status || "-";
-  chatReply.textContent = payload.reply || "-";
-
-  if (payload.data !== null && payload.data !== undefined) {
-    chatData.textContent = JSON.stringify(payload.data, null, 2);
-    chatDataSection.hidden = false;
-  } else {
-    chatData.textContent = "";
-    chatDataSection.hidden = true;
-    chatDataSection.open = false;
+function clearChatEmptyState() {
+  const emptyState = chatMessages.querySelector(".chat-empty-state");
+  if (emptyState) {
+    emptyState.remove();
   }
+}
+
+function appendChatMessage(role, content, metadata = "") {
+  clearChatEmptyState();
+
+  const messageItem = document.createElement("article");
+  messageItem.className = `chat-message ${role}`;
+
+  const label = document.createElement("div");
+  label.className = "chat-message-label";
+  label.textContent = role === "user" ? "You" : "AI Hub";
+
+  const bubble = document.createElement("div");
+  bubble.className = "chat-message-bubble";
+  bubble.textContent = content || "-";
+
+  messageItem.append(label, bubble);
+
+  if (metadata) {
+    const meta = document.createElement("div");
+    meta.className = "chat-message-meta";
+    meta.textContent = metadata;
+    messageItem.append(meta);
+  }
+
+  chatMessages.append(messageItem);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function renderChatResult(payload) {
+  const skill = payload.skill || "-";
+  const status = payload.status || "-";
+  appendChatMessage(
+    "assistant",
+    payload.reply || "-",
+    `skill: ${skill} | status: ${status}`
+  );
+}
+
+function renderChatError(message) {
+  appendChatMessage("assistant", message, "status: error");
+}
+
+function setChatSending(isSending) {
+  sendChatButton.disabled = isSending;
 }
 
 async function sendChat() {
@@ -440,11 +469,12 @@ async function sendChat() {
 
   if (!message) {
     setChatState("error", "Message cannot be empty");
-    resetChatResult();
     return;
   }
 
-  sendChatButton.disabled = true;
+  appendChatMessage("user", message);
+  chatMessageInput.value = "";
+  setChatSending(true);
   setChatState("idle", "Sending /chat request ...");
 
   try {
@@ -456,13 +486,15 @@ async function sendChat() {
     renderChatResult(payload.chat);
     setChatState("success", `Chat response received from ${payload.backendUrl}`);
   } catch (error) {
-    resetChatResult();
+    renderChatError(
+      error instanceof Error ? error.message : "Chat request failed"
+    );
     setChatState(
       "error",
       error instanceof Error ? error.message : "Chat request failed"
     );
   } finally {
-    sendChatButton.disabled = false;
+    setChatSending(false);
   }
 }
 
