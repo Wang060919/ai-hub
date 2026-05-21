@@ -24,7 +24,18 @@
 - 已验证默认 Echo 链路。
 - 已验证真实 DeepSeek 链路，成功返回 `skill: deepseek_chat`。
 - API Key 只通过环境变量读取，不写入前端、日志或 Git。
-- 下一步是 V1.2-M6：短上下文管理。
+
+## V1.2-M6 短上下文管理状态
+
+- V1.2-M6 短上下文管理已完成。
+- 后端 `ChatRequest` 已兼容可选 `messages`，旧 `{"message":"..."}` 请求继续兼容。
+- DeepSeek adapter / skill / router 已支持 `messages`。
+- 前端已新增内存 `chatHistory`。
+- 浏览器代理已透传 `messages`。
+- 当前只做内存短上下文，页面刷新后丢失。
+- 不做持久化、不做历史会话列表、不做多会话管理。
+- 已验证 DeepSeek 连续追问能记住前文。
+- 下一步是 V1.2-M7：基础 Markdown 渲染。
 
 ## 通用化原则
 

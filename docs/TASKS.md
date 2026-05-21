@@ -149,9 +149,9 @@ AI Hub 的开发和运行都必须避免把推测当事实，避免把计划中�
 - [ ] Markdown 渲染：标题、列表、代码块、表格、加粗
 - [ ] 统一 AI 调用接口：`POST /api/chat`
 - [x] DeepSeek 模型适配层
-- [ ] 短上下文管理：保留最近 5–10 轮对话
+- [x] 短上下文管理：保留最近 4 轮内存对话
 - [x] 普通完整回复链路验证
-- [ ] 手动对话测试：普通问题、连续追问、错误场景
+- [x] 手动对话测试：普通问题、连续追问、错误场景
 - [x] 更新 README / TASKS 进度说明
 
 V1.2-M5 DeepSeek 接入同步：
@@ -168,7 +168,22 @@ M5 安全边界：
 - `ENABLE_DEEPSEEK_CHAT=false` 为默认值，不会自动消耗 DeepSeek API 额度。
 - API Key 只通过环境变量读取，不写入前端、日志或 Git。
 - 已验证默认 Echo 链路仍可用。
-- 下一步进入 V1.2-M6：短上下文管理。
+
+V1.2-M6 短上下文管理同步：
+
+- [x] M6a：`ChatRequest` 已兼容可选 `messages`，旧 `{"message":"..."}` 请求继续兼容。
+- [x] M6b：DeepSeek adapter 已支持 `messages` payload，单轮 message 调用继续可用。
+- [x] M6c：`DeepSeekChatSkill` 已支持 messages 调用，未修改 `BaseSkill`。
+- [x] M6d：router 只在 DeepSeek 分支使用 messages，Echo fallback 和非 echo skill 不受上下文影响。
+- [x] M6e：前端已新增内存 `chatHistory`，浏览器代理已透传 `messages`。
+
+M6 边界：
+
+- 当前只做内存短上下文，页面刷新后丢失。
+- 不做持久化、不做历史会话列表、不做多会话管理。
+- 不做 SSE、Markdown、知识库、文件上传、桌宠、语音或 Docker 沙盒。
+- 已验证 DeepSeek 连续追问能记住前文。
+- 下一步进入 V1.2-M7：基础 Markdown 渲染。
 
 **暂不纳入本版本**：
 
