@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import lru_cache
 import os
 
@@ -15,6 +15,11 @@ class Settings:
     debug: bool = False
     backend_host: str = "127.0.0.1"
     backend_port: int = 8000
+    enable_deepseek_chat: bool = False
+    deepseek_api_key: str = field(default="", repr=False)
+    deepseek_api_url: str = "https://api.deepseek.com/chat/completions"
+    deepseek_model: str = "deepseek-v4-flash"
+    deepseek_timeout_seconds: int = 20
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -25,6 +30,26 @@ class Settings:
             debug=_parse_bool(os.getenv("AI_HUB_DEBUG"), cls.debug),
             backend_host=os.getenv("AI_HUB_BACKEND_HOST", cls.backend_host),
             backend_port=_parse_int(os.getenv("AI_HUB_BACKEND_PORT"), cls.backend_port),
+            enable_deepseek_chat=_parse_bool(
+                os.getenv("ENABLE_DEEPSEEK_CHAT"),
+                cls.enable_deepseek_chat,
+            ),
+            deepseek_api_key=_parse_str(
+                os.getenv("DEEPSEEK_API_KEY"),
+                cls.deepseek_api_key,
+            ),
+            deepseek_api_url=_parse_str(
+                os.getenv("DEEPSEEK_API_URL"),
+                cls.deepseek_api_url,
+            ),
+            deepseek_model=_parse_str(
+                os.getenv("DEEPSEEK_MODEL"),
+                cls.deepseek_model,
+            ),
+            deepseek_timeout_seconds=_parse_int(
+                os.getenv("DEEPSEEK_TIMEOUT_SECONDS"),
+                cls.deepseek_timeout_seconds,
+            ),
         )
 
 
@@ -46,3 +71,10 @@ def _parse_int(raw_value: str | None, default: int) -> int:
         return int(raw_value)
     except ValueError:
         return default
+
+
+def _parse_str(raw_value: str | None, default: str) -> str:
+    if raw_value is None:
+        return default
+    clean_value = raw_value.strip()
+    return clean_value or default
