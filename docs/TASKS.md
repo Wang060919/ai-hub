@@ -313,3 +313,23 @@
 - 不得跨版本并行开发多个功能模块
 - 若任务超出当前版本边界，必须停止并回看 VERSION_PLAN.md
 - 完成每个版本后必须更新本文档状态
+
+# V1.1-M6 最新同步
+
+当前 V1.1 高适配性底层框架进度：
+
+- [x] V1.1-M2 后端分层目录骨架已完成
+- [x] V1.1-M3 core 基础模块已完成
+- [x] V1.1-M4 API 路由拆分已完成
+- [x] V1.1-M5 前端预留结构已完成
+- [ ] V1.1-M7 轻量验证
+
+说明：
+
+- M2 建立了 `backend/core/`、`backend/api/`、`backend/services/`、`backend/adapters/`、`backend/modules/` 等后端分层目录骨架。
+- M3 建立了 `backend/core/config.py`、`backend/core/logging.py`、`backend/core/errors.py`，仅提供基础配置、日志、错误定义，未接入现有业务逻辑。
+- M4 将 `/health`、`/version`、`/skills`、`/chat` 路由拆入 `backend/api/routes/`，接口路径、请求格式和响应格式保持不变。
+- M5 建立了 `frontend/components/`、`frontend/pages/`、`frontend/preview/`、`frontend/services/api.js`，仅作为前端组件化和 API 封装预留结构，暂未接入现有页面。
+- V1.1 下一步是 M7 轻量验证。
+
+---

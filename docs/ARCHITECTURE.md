@@ -248,3 +248,55 @@ ai-hub/
 - `backend/adapters/chromadb/` — 向量数据库（V1.4 实现）
 - `backend/adapters/docker/` — Docker（V1.9 实现）
 - `backend/adapters/stt/` + `backend/adapters/tts/` — 语音（V1.7 实现）
+
+# V1.1-M6 最新架构状态
+
+截至 V1.1-M6，架构落地状态如下：
+
+- V1.1-M2 后端分层目录骨架已完成。
+- V1.1-M3 core 基础模块已完成。
+- V1.1-M4 API 路由拆分已完成。
+- V1.1-M5 前端预留结构已完成。
+
+当前实际目录结构：
+
+```text
+backend/
+  main.py
+  api/
+    routes/
+      chat.py
+      health.py
+      meta.py
+    schemas/
+  core/
+    config.py
+    errors.py
+    logging.py
+  adapters/
+  services/
+  modules/
+    chat/
+    files/
+    knowledge/
+    sandbox/
+    screen/
+    skills/
+    voice/
+frontend/
+  components/
+  pages/
+  preview/
+  services/
+    api.js
+```
+
+当前边界说明：
+
+- `backend/main.py` 现在只负责 FastAPI app 创建、startup 初始化和 `include_router`。
+- `backend/api/routes/chat.py` 复用现有 `backend.router.create_chat_router()`，未改写聊天业务逻辑。
+- `backend/core/` 只提供基础配置、日志和错误类型，暂未接入现有启动流程。
+- `frontend/services/api.js` 只提供基础 API 调用封装，暂未接入现有页面。
+- V1.1 下一步是 M7 轻量验证，不进入 V1.2 AI 对话功能。
+
+---

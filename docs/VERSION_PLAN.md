@@ -398,3 +398,35 @@
 6. 不允许为了速度破坏整体架构
 7. 功能不删减，但按版本逐步落地
 8. 开发工程线和产品功能线分开记录
+
+# V1.1-M6 当前进度同步
+
+V1.1 高适配性底层框架当前状态：进行中，M2-M5 已完成。
+
+已完成里程碑：
+
+- V1.1-M2 后端分层目录骨架已完成。
+- V1.1-M3 core 基础模块已完成。
+- V1.1-M4 API 路由拆分已完成。
+- V1.1-M5 前端预留结构已完成。
+
+当前已经落地的结构：
+
+- 后端已预留 `backend/core/`、`backend/api/`、`backend/services/`、`backend/adapters/`、`backend/modules/`。
+- `backend/core/` 已包含 `config.py`、`logging.py`、`errors.py`。
+- API 路由已拆分到 `backend/api/routes/health.py`、`backend/api/routes/meta.py`、`backend/api/routes/chat.py`。
+- 前端已预留 `frontend/components/`、`frontend/pages/`、`frontend/preview/`、`frontend/services/api.js`。
+
+当前边界：
+
+- 未新增业务功能。
+- 未接真实模型。
+- 未进入 V1.2 AI 对话功能。
+- 未重构现有前端页面。
+- 未改变现有接口路径、请求格式或响应格式。
+
+V1.1 下一步：
+
+- V1.1-M7 轻量验证。
+
+---
