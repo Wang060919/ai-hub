@@ -22,8 +22,11 @@ const filesToolsStatus = document.querySelector("#files-tools-status");
 const filesToolsGrid = document.querySelector("#files-tools-grid");
 const filePreviewPathInput = document.querySelector("#file-preview-path");
 const readFilePreviewButton = document.querySelector("#read-file-preview");
+const summarizeFilePreviewButton = document.querySelector("#summarize-file-preview");
 const filePreviewStatus = document.querySelector("#file-preview-status");
 const filePreviewResult = document.querySelector("#file-preview-result");
+const fileSummaryStatus = document.querySelector("#file-summary-status");
+const fileSummaryResult = document.querySelector("#file-summary-result");
 const tauriInvoke = window.__TAURI__?.core?.invoke;
 const MAX_CHAT_HISTORY_TURNS = 4;
 const MAX_CHAT_HISTORY_MESSAGES = MAX_CHAT_HISTORY_TURNS * 2;
@@ -124,7 +127,10 @@ const state = {
   hasCheckedBackend: false,
   chatSending: false,
   filePreviewLoading: false,
+  fileSummaryLoading: false,
+  hasPreviewResult: false,
   chatHistory: [],
+  lastPreviewPath: "",
   skills: [],
 };
 
@@ -157,10 +163,27 @@ function setFilePreviewState(type, message) {
   filePreviewStatus.textContent = message;
 }
 
+function setFileSummaryState(type, message) {
+  fileSummaryStatus.className = `request-status ${type}`;
+  fileSummaryStatus.textContent = message;
+}
+
 function resetSummary() {
   healthStatus.textContent = "-";
   appVersion.textContent = "-";
   skillsCount.textContent = "0";
+}
+
+function resetFileSummaryResult() {
+  state.fileSummaryLoading = false;
+  state.hasPreviewResult = false;
+  state.lastPreviewPath = "";
+  fileSummaryResult.classList.add("hidden");
+  fileSummaryResult.innerHTML = "";
+  setFileSummaryState(
+    "idle",
+    "Summary is available only after preview succeeds and only when you click the button."
+  );
 }
 
 function resetChatResult() {
@@ -654,6 +677,34 @@ async function requestFilePreview(backendUrl, path) {
   return payload.preview;
 }
 
+async function requestFileSummary(backendUrl, path) {
+  const response = await fetch("/api/files/summarize", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ backendUrl, path }),
+  });
+
+  const payload = await readJsonResponse(response);
+  if (!response.ok) {
+    const code =
+      payload?.error?.code ||
+      payload?.summary?.error?.code ||
+      `HTTP_${response.status}`;
+    const message =
+      payload?.error?.message ||
+      payload?.summary?.error?.message ||
+      `${code}: /api/files/summarize failed`;
+    const error = new Error(message);
+    error.code = code;
+    throw error;
+  }
+
+  return payload.summary;
+}
+
 function renderFilePreview(payload) {
   const file = payload.file || {};
   const preview = payload.preview || {};
@@ -691,6 +742,39 @@ function renderFilePreview(payload) {
   `;
 }
 
+function renderFileSummary(payload) {
+  const file = payload.file || {};
+  const summary = payload.summary || {};
+  const truncated = summary.truncated ? "true" : "false";
+
+  fileSummaryResult.classList.remove("hidden");
+  fileSummaryResult.innerHTML = `
+    <div class="file-preview-meta">
+      <div class="file-preview-meta-item">
+        <span>model</span>
+        <strong>${escapeHtml(summary.model || "-")}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>input_chars</span>
+        <strong>${escapeHtml(summary.input_chars ?? "-")}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>source_chars</span>
+        <strong>${escapeHtml(summary.source_chars ?? "-")}</strong>
+      </div>
+      <div class="file-preview-meta-item wide">
+        <span>relative_path</span>
+        <strong>${escapeHtml(file.relative_path || "-")}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>truncated</span>
+        <strong>${truncated}</strong>
+      </div>
+    </div>
+    <div class="file-summary-text">${escapeHtml(summary.text || "")}</div>
+  `;
+}
+
 function renderFilePreviewError(error) {
   const code = error?.code || "REQUEST_FAILED";
   const message = error instanceof Error ? error.message : "File preview failed";
@@ -704,15 +788,48 @@ function renderFilePreviewError(error) {
   `;
 }
 
+function renderFileSummaryError(error) {
+  const code = error?.code || "REQUEST_FAILED";
+  const message = error instanceof Error ? error.message : "File summary failed";
+
+  fileSummaryResult.classList.remove("hidden");
+  fileSummaryResult.innerHTML = `
+    <div class="file-preview-error">
+      <strong>${escapeHtml(code)}</strong>
+      <p>${escapeHtml(message)}</p>
+    </div>
+  `;
+}
+
 function updateFilePreviewButtonState() {
   const hasPath = Boolean(filePreviewPathInput.value.trim());
   readFilePreviewButton.disabled = state.filePreviewLoading || !hasPath;
+  summarizeFilePreviewButton.disabled =
+    state.filePreviewLoading ||
+    state.fileSummaryLoading ||
+    !hasPath ||
+    !state.hasPreviewResult ||
+    state.lastPreviewPath !== filePreviewPathInput.value.trim();
 }
 
 function setFilePreviewLoading(isLoading) {
   state.filePreviewLoading = isLoading;
   readFilePreviewButton.classList.toggle("sending", isLoading);
   readFilePreviewButton.textContent = isLoading ? "读取中..." : "读取预览";
+  updateFilePreviewButtonState();
+}
+
+function setFileSummaryLoading(isLoading) {
+  state.fileSummaryLoading = isLoading;
+  summarizeFilePreviewButton.classList.toggle("sending", isLoading);
+  summarizeFilePreviewButton.textContent = isLoading ? "总结中..." : "生成总结";
+  updateFilePreviewButtonState();
+}
+
+function handleFilePreviewPathInput() {
+  if (state.lastPreviewPath && state.lastPreviewPath !== filePreviewPathInput.value.trim()) {
+    resetFileSummaryResult();
+  }
   updateFilePreviewButtonState();
 }
 
@@ -731,13 +848,18 @@ async function readFilePreview() {
   }
 
   setFilePreviewLoading(true);
+  state.hasPreviewResult = false;
+  state.lastPreviewPath = "";
   filePreviewResult.classList.add("hidden");
   filePreviewResult.innerHTML = "";
+  resetFileSummaryResult();
   setFilePreviewState("idle", "Reading /files/preview ...");
 
   try {
     const payload = await requestFilePreview(backendUrl, path);
     renderFilePreview(payload);
+    state.hasPreviewResult = true;
+    state.lastPreviewPath = path;
     setFilePreviewState("success", "Preview loaded from /files/preview");
   } catch (error) {
     renderFilePreviewError(error);
@@ -748,6 +870,44 @@ async function readFilePreview() {
     );
   } finally {
     setFilePreviewLoading(false);
+  }
+}
+
+async function summarizeFilePreview() {
+  if (state.fileSummaryLoading || summarizeFilePreviewButton.disabled) {
+    return;
+  }
+
+  const backendUrl = backendUrlInput.value.trim();
+  const path = filePreviewPathInput.value.trim();
+
+  if (!state.hasPreviewResult || state.lastPreviewPath !== path) {
+    setFileSummaryState(
+      "error",
+      "Please load a preview for the current path before summarizing."
+    );
+    updateFilePreviewButtonState();
+    return;
+  }
+
+  setFileSummaryLoading(true);
+  fileSummaryResult.classList.add("hidden");
+  fileSummaryResult.innerHTML = "";
+  setFileSummaryState("idle", "Sending /api/files/summarize ...");
+
+  try {
+    const payload = await requestFileSummary(backendUrl, path);
+    renderFileSummary(payload);
+    setFileSummaryState("success", "Summary loaded from /api/files/summarize");
+  } catch (error) {
+    renderFileSummaryError(error);
+    const code = error?.code ? `${error.code}: ` : "";
+    setFileSummaryState(
+      "error",
+      `${code}${error instanceof Error ? error.message : "File summary failed"}`
+    );
+  } finally {
+    setFileSummaryLoading(false);
   }
 }
 
@@ -955,7 +1115,8 @@ sendChatButton.addEventListener("click", sendChat);
 chatMessageInput.addEventListener("input", updateSendChatButtonState);
 chatMessageInput.addEventListener("keydown", handleChatInputKeydown);
 readFilePreviewButton.addEventListener("click", readFilePreview);
-filePreviewPathInput.addEventListener("input", updateFilePreviewButtonState);
+summarizeFilePreviewButton.addEventListener("click", summarizeFilePreview);
+filePreviewPathInput.addEventListener("input", handleFilePreviewPathInput);
 filesToolsGrid.addEventListener("click", (event) => {
   const target = event.target;
   if (!(target instanceof HTMLElement)) {
@@ -969,5 +1130,6 @@ filesToolsGrid.addEventListener("click", (event) => {
 });
 
 renderFilesTools();
+resetFileSummaryResult();
 updateSendChatButtonState();
 updateFilePreviewButtonState();

@@ -197,7 +197,7 @@
           </div>
           <div class="inline-note">
             <p>
-              当前页面只展示能力和安全边界，不上传文件，不执行文件操作，示例仅用于复制，不会自动发送。
+              当前页面只展示能力和安全边界，不会上传文件，也不会执行文件操作。
             </p>
           </div>
           <p id="files-tools-status" class="request-status idle">
@@ -211,7 +211,7 @@
             <p>Calls <code>POST /files/preview</code> only after clicking the button.</p>
           </div>
 
-          <label class="field-label" for="file-preview-path">File path</label>
+          <label class="field-label" for="file-preview-path">文件路径</label>
           <div class="control-row">
             <input
               id="file-preview-path"
@@ -225,7 +225,7 @@
             </button>
           </div>
           <p id="file-preview-status" class="request-status idle">
-            Enter a path inside the backend whitelist scope.
+            请输入后端白名单范围内的文件路径。
           </p>
 
           <div
@@ -233,6 +233,23 @@
             class="file-preview-result hidden"
             aria-live="polite"
           ></div>
+
+          <div class="summary-actions">
+            <button id="summarize-file-preview" class="check-button" type="button" disabled>
+              生成总结
+            </button>
+          </div>
+
+          <div class="summary-result-panel">
+            <p id="file-summary-status" class="request-status idle">
+              预览成功后，才可以手动生成总结。
+            </p>
+            <div
+              id="file-summary-result"
+              class="file-preview-result hidden"
+              aria-live="polite"
+            ></div>
+          </div>
         </section>
 
         <section

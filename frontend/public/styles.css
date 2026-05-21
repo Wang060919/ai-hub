@@ -528,6 +528,17 @@ code {
   gap: 14px;
 }
 
+.summary-result-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.summary-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 2px;
+}
+
 .file-preview-result {
   display: grid;
   gap: 14px;
@@ -595,6 +606,17 @@ code {
 .file-preview-error p {
   margin-top: 8px;
   line-height: 1.55;
+}
+
+.file-summary-text {
+  margin: 0;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(214, 199, 179, 0.75);
+  background: rgba(255, 255, 255, 0.62);
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .tool-card {
@@ -763,6 +785,10 @@ code {
   }
 
   .chat-actions .check-button {
+    width: 100%;
+  }
+
+  .summary-actions .check-button {
     width: 100%;
   }
 

@@ -263,6 +263,54 @@ async function handleFilePreviewProxy(request, response) {
   }
 }
 
+async function handleFileSummarizeProxy(request, response) {
+  try {
+    const rawBody = await readRequestBody(request);
+    const payload = rawBody ? JSON.parse(rawBody) : {};
+    const baseUrl = normalizeBackendUrl(payload.backendUrl);
+    const path = String(payload.path || "").trim();
+    const maxInputChars = Number(payload.max_input_chars);
+
+    if (!path) {
+      sendJson(response, 400, {
+        ok: false,
+        error: {
+          code: "PATH_NOT_ALLOWED",
+          message: "File path cannot be empty",
+        },
+      });
+      return;
+    }
+
+    const summarizePayload = { path };
+    if (Number.isFinite(maxInputChars)) {
+      summarizePayload.max_input_chars = maxInputChars;
+    }
+
+    const result = await postJsonWithStatus(
+      baseUrl,
+      "/files/summarize",
+      summarizePayload,
+    );
+    sendJson(response, result.statusCode, {
+      ok: result.statusCode >= 200 && result.statusCode < 300,
+      backendUrl: baseUrl,
+      summary: result.payload,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : backendUnavailableMessage;
+
+    sendJson(response, 502, {
+      ok: false,
+      error: {
+        code: "REQUEST_FAILED",
+        message,
+      },
+    });
+  }
+}
+
 function serveStaticFile(requestPath, response) {
   const safePath = requestPath === "/" ? "/index.html" : requestPath;
   const resolvedPath = resolve(preferredRoot, `.${normalize(safePath)}`);
@@ -296,6 +344,11 @@ const server = http.createServer(async (request, response) => {
 
   if (request.method === "POST" && requestUrl.pathname === "/api/files/preview") {
     await handleFilePreviewProxy(request, response);
+    return;
+  }
+
+  if (request.method === "POST" && requestUrl.pathname === "/api/files/summarize") {
+    await handleFileSummarizeProxy(request, response);
     return;
   }
 
