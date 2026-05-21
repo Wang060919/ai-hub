@@ -4,6 +4,7 @@ import json
 from urllib import error, request
 
 from backend.core.config import get_settings
+from backend.schemas import ChatMessage
 
 
 class DeepSeekError(RuntimeError):
@@ -24,25 +25,31 @@ def is_deepseek_chat_enabled() -> bool:
 
 
 def create_deepseek_reply(message: str) -> str:
+    return create_deepseek_reply_from_messages(
+        [
+            {
+                "role": "user",
+                "content": message,
+            }
+        ]
+    )
+
+
+def create_deepseek_reply_from_messages(messages: list[ChatMessage | dict[str, str]]) -> str:
     settings = get_settings()
-    clean_message = message.strip()
+    clean_messages = _normalize_messages(messages)
 
     if not settings.enable_deepseek_chat:
         raise DeepSeekConfigError("DeepSeek chat is disabled.")
     if not settings.deepseek_api_key:
         raise DeepSeekConfigError("DeepSeek API key is not configured.")
-    if not clean_message:
-        raise DeepSeekConfigError("DeepSeek message cannot be empty.")
+    if not clean_messages:
+        raise DeepSeekConfigError("DeepSeek messages cannot be empty.")
 
     payload = json.dumps(
         {
             "model": settings.deepseek_model,
-            "messages": [
-                {
-                    "role": "user",
-                    "content": clean_message,
-                }
-            ],
+            "messages": clean_messages,
             "stream": False,
         }
     ).encode("utf-8")
@@ -78,6 +85,30 @@ def create_deepseek_reply(message: str) -> str:
         raise DeepSeekResponseError("DeepSeek returned a non-JSON response.") from exc
 
     return _extract_reply(response_data)
+
+
+def _normalize_messages(messages: list[ChatMessage | dict[str, str]]) -> list[dict[str, str]]:
+    clean_messages = []
+    for message in messages:
+        if isinstance(message, ChatMessage):
+            role = message.role
+            content = message.content
+        elif isinstance(message, dict):
+            role = str(message.get("role", ""))
+            content = str(message.get("content", ""))
+        else:
+            continue
+
+        clean_content = content.strip()
+        if role in {"user", "assistant"} and clean_content:
+            clean_messages.append(
+                {
+                    "role": role,
+                    "content": clean_content,
+                }
+            )
+
+    return clean_messages
 
 
 def _extract_reply(response_data: object) -> str:
