@@ -113,6 +113,7 @@ const fileToolsCatalog = [
 
 const state = {
   hasCheckedBackend: false,
+  chatSending: false,
   skills: [],
 };
 
@@ -418,11 +419,14 @@ function clearChatEmptyState() {
   }
 }
 
-function appendChatMessage(role, content, metadata = "") {
+function appendChatMessage(role, content, metadata = "", options = {}) {
   clearChatEmptyState();
 
   const messageItem = document.createElement("article");
   messageItem.className = `chat-message ${role}`;
+  if (options.loading) {
+    messageItem.classList.add("loading");
+  }
 
   const label = document.createElement("div");
   label.className = "chat-message-label";
@@ -443,6 +447,7 @@ function appendChatMessage(role, content, metadata = "") {
 
   chatMessages.append(messageItem);
   chatMessages.scrollTop = chatMessages.scrollHeight;
+  return messageItem;
 }
 
 function renderChatResult(payload) {
@@ -459,23 +464,64 @@ function renderChatError(message) {
   appendChatMessage("assistant", message, "status: error");
 }
 
+function renderChatLoading() {
+  return appendChatMessage("assistant", "Waiting for /chat response ...", "status: sending", {
+    loading: true,
+  });
+}
+
+function removeChatLoading(loadingMessage) {
+  if (loadingMessage) {
+    loadingMessage.remove();
+  }
+}
+
+function updateSendChatButtonState() {
+  const hasMessage = Boolean(chatMessageInput.value.trim());
+  sendChatButton.disabled = state.chatSending || !hasMessage;
+}
+
 function setChatSending(isSending) {
-  sendChatButton.disabled = isSending;
+  state.chatSending = isSending;
+  sendChatButton.classList.toggle("sending", isSending);
+  updateSendChatButtonState();
+}
+
+function handleChatInputKeydown(event) {
+  if (event.isComposing) {
+    return;
+  }
+
+  if (event.key !== "Enter" || event.shiftKey) {
+    return;
+  }
+
+  event.preventDefault();
+  if (!sendChatButton.disabled) {
+    void sendChat();
+  }
 }
 
 async function sendChat() {
+  if (state.chatSending) {
+    return;
+  }
+
   const backendUrl = backendUrlInput.value.trim();
   const message = chatMessageInput.value.trim();
 
   if (!message) {
     setChatState("error", "Message cannot be empty");
+    updateSendChatButtonState();
     return;
   }
 
   appendChatMessage("user", message);
   chatMessageInput.value = "";
+  updateSendChatButtonState();
   setChatSending(true);
   setChatState("idle", "Sending /chat request ...");
+  const loadingMessage = renderChatLoading();
 
   try {
     const payload = await requestChat(backendUrl, message);
@@ -483,9 +529,11 @@ async function sendChat() {
       throw new Error(payload.details || payload.error || "Chat request failed");
     }
 
+    removeChatLoading(loadingMessage);
     renderChatResult(payload.chat);
     setChatState("success", `Chat response received from ${payload.backendUrl}`);
   } catch (error) {
+    removeChatLoading(loadingMessage);
     renderChatError(
       error instanceof Error ? error.message : "Chat request failed"
     );
@@ -520,6 +568,8 @@ chatTabButton.addEventListener("click", () => showTab("chat"));
 filesToolsTabButton.addEventListener("click", () => showTab("files-tools"));
 checkButton.addEventListener("click", checkBackend);
 sendChatButton.addEventListener("click", sendChat);
+chatMessageInput.addEventListener("input", updateSendChatButtonState);
+chatMessageInput.addEventListener("keydown", handleChatInputKeydown);
 filesToolsGrid.addEventListener("click", (event) => {
   const target = event.target;
   if (!(target instanceof HTMLElement)) {
@@ -533,3 +583,4 @@ filesToolsGrid.addEventListener("click", (event) => {
 });
 
 renderFilesTools();
+updateSendChatButtonState();
