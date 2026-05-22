@@ -37,6 +37,38 @@ export async function requestKnowledgeIndexFile(backendUrl, path, kbId) {
   return payload;
 }
 
+export async function requestKnowledgeIndexMarkdownDirectory(
+  backendUrl,
+  directory,
+  kbId,
+  recursive,
+  forceReindex,
+  maxFiles
+) {
+  const response = await fetch("/api/knowledge/index-markdown-directory", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      backendUrl,
+      directory,
+      kb_id: kbId,
+      recursive,
+      force_reindex: forceReindex,
+      max_files: maxFiles,
+    }),
+  });
+
+  const payload = await readJsonResponse(response);
+  if (!response.ok) {
+    throwApiError(response, payload, "/api/knowledge/index-markdown-directory", "summary");
+  }
+
+  return payload;
+}
+
 export async function requestKnowledgeSearch(backendUrl, query, kbId, topK) {
   const response = await fetch("/api/knowledge/search", {
     method: "POST",

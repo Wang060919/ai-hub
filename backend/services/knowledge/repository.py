@@ -244,6 +244,7 @@ def build_knowledge_storage_status(connection: sqlite3.Connection) -> KnowledgeS
         fts_table_exists=fts_table_exists,
         files_count=files_count,
         chunks_count=chunks_count,
+        markdown_files_count=_count_markdown_files(connection) if files_table_exists else 0,
     )
 
 
@@ -551,4 +552,15 @@ def _table_exists(connection: sqlite3.Connection, table_name: str) -> bool:
 
 def _count_rows(connection: sqlite3.Connection, table_name: str) -> int:
     row = connection.execute(f"SELECT COUNT(*) AS row_count FROM {table_name}").fetchone()
+    return int(row[0]) if row is not None else 0
+
+
+def _count_markdown_files(connection: sqlite3.Connection) -> int:
+    row = connection.execute(
+        """
+        SELECT COUNT(*) AS row_count
+        FROM knowledge_files
+        WHERE LOWER(suffix) = '.md'
+        """
+    ).fetchone()
     return int(row[0]) if row is not None else 0

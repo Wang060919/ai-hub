@@ -513,7 +513,7 @@ V1.6 风险边界：
 
 ### V1.7：本地 Markdown 笔记接入 / Obsidian Bridge 第一版
 
-**状态**：`DOING`（M1 文档口径统一与主题规格固定进行中）
+**状态**：`DOING`（M3-M6 已完成，等待 M7 收尾）
 
 定位与边界：
 
@@ -531,12 +531,22 @@ V1.6 风险边界：
 任务清单：
 
 - [x] M1：文档口径统一 + V1.7 主题规格固定
-- [ ] M2：Markdown / Obsidian 接入方案设计
-- [ ] M3：单篇 Markdown 笔记手动入库
-- [ ] M4：受控目录内 Markdown 手动批量入库
-- [ ] M5：Panel / Knowledge 入口展示接入状态
-- [ ] M6：安全边界验证与文档同步
+- [x] M2：Markdown / Obsidian 接入方案设计
+- [x] M3：单篇 Markdown 笔记手动入库
+- [x] M4：受控目录内 Markdown 手动批量入库
+- [x] M5：Panel / Knowledge 入口展示接入状态
+- [x] M6：安全边界验证与文档同步
 - [ ] M7：收尾 tag
+
+本轮同步说明：
+
+- [x] 新增 `POST /knowledge/index-markdown-directory`，仅支持白名单根目录内相对目录
+- [x] 批量入库只处理 `.md`，忽略 `.obsidian`、隐藏目录和隐藏文件、`attachments`、`assets`、`images`
+- [x] `max_files` 默认 50，且保持有限上限
+- [x] Knowledge 区域新增 Markdown 目录手动批量入库入口
+- [x] `/knowledge/status` 新增 `markdown_files_count`，Knowledge / Panel 已展示 Markdown 接入摘要
+- [x] 保持单篇 Markdown 入库、search、query、Panel 跳转入口不受影响
+- [x] 仍不支持自动扫描全盘、自动读取整个 Vault、`/chat` 自动接入知识库、PDF / Word / Excel、embedding / ChromaDB、Obsidian tags / 双链
 
 ---
 

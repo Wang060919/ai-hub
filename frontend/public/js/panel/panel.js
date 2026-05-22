@@ -84,10 +84,14 @@ export function createPanelModule(deps) {
 
   function resetKnowledgeSummary() {
     dom.panelKnowledgeFiles.textContent = "-";
+    const panelKnowledgeMarkdownFiles = document.querySelector("#panel-knowledge-markdown-files");
     dom.panelKnowledgeChunks.textContent = "-";
     dom.panelKnowledgeIndexMethod.textContent = "-";
     dom.panelKnowledgeFtsEnabled.textContent = "-";
     dom.panelKnowledgeFtsAvailable.textContent = "-";
+    if (panelKnowledgeMarkdownFiles) {
+      panelKnowledgeMarkdownFiles.textContent = "-";
+    }
     setTextStatus(
       dom.panelKnowledgeStatus,
       "刷新知识库状态后，这里会同步显示最新摘要。",
@@ -96,24 +100,32 @@ export function createPanelModule(deps) {
   }
 
   function updateKnowledgeSummary(payload) {
+    const panelKnowledgeMarkdownFiles = document.querySelector("#panel-knowledge-markdown-files");
     dom.panelKnowledgeFiles.textContent = String(payload?.files_count ?? "-");
     dom.panelKnowledgeChunks.textContent = String(payload?.chunks_count ?? "-");
     dom.panelKnowledgeIndexMethod.textContent = payload?.index_method || "-";
     dom.panelKnowledgeFtsEnabled.textContent = String(Boolean(payload?.fts_enabled));
     dom.panelKnowledgeFtsAvailable.textContent = String(Boolean(payload?.fts_available));
+    if (panelKnowledgeMarkdownFiles) {
+      panelKnowledgeMarkdownFiles.textContent = String(payload?.markdown_files_count ?? "-");
+    }
     setTextStatus(
       dom.panelKnowledgeStatus,
-      "知识库摘要已复用 /api/knowledge/status 最新结果。",
+      "Markdown 接入摘要已复用 /api/knowledge/status 最新结果。",
       "success"
     );
   }
 
   function setKnowledgeUnavailable(message) {
     dom.panelKnowledgeFiles.textContent = "-";
+    const panelKnowledgeMarkdownFiles = document.querySelector("#panel-knowledge-markdown-files");
     dom.panelKnowledgeChunks.textContent = "-";
     dom.panelKnowledgeIndexMethod.textContent = "-";
     dom.panelKnowledgeFtsEnabled.textContent = "-";
     dom.panelKnowledgeFtsAvailable.textContent = "-";
+    if (panelKnowledgeMarkdownFiles) {
+      panelKnowledgeMarkdownFiles.textContent = "-";
+    }
     setTextStatus(
       dom.panelKnowledgeStatus,
       message || "暂无知识库状态。",

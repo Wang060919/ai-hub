@@ -5,6 +5,7 @@ import { renderErrorBox } from "../ui/error.js";
 import {
   requestKnowledgeStatus,
   requestKnowledgeIndexFile,
+  requestKnowledgeIndexMarkdownDirectory,
   requestKnowledgeSearch,
   requestKnowledgeQuery,
 } from "../api/knowledge.js";
@@ -33,6 +34,10 @@ function renderKnowledgeStatus(dom, payload) {
         <strong>${escapeHtml(knowledge.index_method || "-")}</strong>
       </div>
       <div class="file-preview-meta-item">
+        <span>markdown_files_count</span>
+        <strong>${escapeHtml(knowledge.markdown_files_count ?? "-")}</strong>
+      </div>
+      <div class="file-preview-meta-item">
         <span>fts_enabled</span>
         <strong>${escapeHtml(String(Boolean(knowledge.fts_enabled)))}</strong>
       </div>
@@ -46,6 +51,14 @@ function renderKnowledgeStatus(dom, payload) {
       </div>
     </div>
   `;
+}
+
+function normalizePositiveInteger(input, fallback, minValue = 1, maxValue = 200) {
+  const value = Number(input?.value);
+  if (!Number.isFinite(value)) {
+    return fallback;
+  }
+  return Math.max(minValue, Math.min(maxValue, Math.floor(value)));
 }
 
 function renderKnowledgeIndexResult(dom, payload) {
@@ -81,6 +94,107 @@ function renderKnowledgeIndexResult(dom, payload) {
       <div class="file-preview-meta-item">
         <span>kb_id</span>
         <strong>${escapeHtml(file.kb_id || "-")}</strong>
+      </div>
+    </div>
+  `;
+}
+
+function renderKnowledgeDirectoryIndexResult(dom, payload) {
+  const summary = payload?.summary || {};
+  const errors = Array.isArray(payload?.errors) ? payload.errors.slice(0, 5) : [];
+  const results = Array.isArray(payload?.results) ? payload.results.slice(0, 8) : [];
+
+  dom.knowledgeDirectoryIndexResult.classList.remove("hidden");
+  dom.knowledgeDirectoryIndexResult.innerHTML = `
+    <div class="knowledge-index-result-heading">
+      <p class="field-label">Markdown 目录手动批量入库结果</p>
+    </div>
+    <div class="file-preview-meta">
+      <div class="file-preview-meta-item wide">
+        <span>directory</span>
+        <strong>${escapeHtml(payload?.directory || "-")}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>matched_files</span>
+        <strong>${escapeHtml(summary.matched_files ?? "-")}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>indexed_files</span>
+        <strong>${escapeHtml(summary.indexed_files ?? "-")}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>reused_files</span>
+        <strong>${escapeHtml(summary.reused_files ?? "-")}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>failed_files</span>
+        <strong>${escapeHtml(summary.failed_files ?? "-")}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>skipped_files</span>
+        <strong>${escapeHtml(summary.skipped_files ?? "-")}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>kb_id</span>
+        <strong>${escapeHtml(payload?.kb_id || "-")}</strong>
+      </div>
+    </div>
+    <div class="summary-result-panel">
+      <div>
+        <p class="field-label">已处理结果（最多展示 8 条）</p>
+        ${
+          results.length === 0
+            ? '<div class="file-summary-text">results=[]</div>'
+            : `
+              <ol class="knowledge-hit-list">
+                ${results
+                  .map(
+                    (item) => `
+                      <li class="knowledge-hit-card">
+                        <strong>${escapeHtml(item.path || "-")}</strong>
+                        <p class="knowledge-hit-meta">
+                          status=${escapeHtml(item.status || "-")} | chunk_count=${escapeHtml(
+                            item.chunk_count ?? "-"
+                          )} | reused_existing=${escapeHtml(String(Boolean(item.reused_existing)))}
+                        </p>
+                        ${
+                          item.error_code || item.error_message
+                            ? `<pre class="knowledge-hit-content">${escapeHtml(
+                                `${item.error_code || "ERROR"}: ${item.error_message || ""}`
+                              )}</pre>`
+                            : ""
+                        }
+                      </li>
+                    `
+                  )
+                  .join("")}
+              </ol>
+            `
+        }
+      </div>
+      <div>
+        <p class="field-label">失败摘要（最多展示 5 条）</p>
+        ${
+          errors.length === 0
+            ? '<div class="file-summary-text">errors=[]</div>'
+            : `
+              <ol class="knowledge-citation-list">
+                ${errors
+                  .map(
+                    (error) => `
+                      <li class="knowledge-citation-card">
+                        <strong>${escapeHtml(error.path || "-")}</strong>
+                        <p class="knowledge-citation-meta">
+                          ${escapeHtml(error.code || "ERROR")}
+                        </p>
+                        <p class="knowledge-hit-content">${escapeHtml(error.message || "")}</p>
+                      </li>
+                    `
+                  )
+                  .join("")}
+              </ol>
+            `
+        }
       </div>
     </div>
   `;
@@ -201,9 +315,18 @@ function renderKnowledgeQueryResult(dom, payload) {
 
 function createUpdateKnowledgeButtonState(dom, state) {
   return function updateKnowledgeButtonState() {
+    const knowledgeDirectoryIndexPathInput =
+      dom.knowledgeDirectoryIndexPathInput || document.querySelector("#knowledge-directory-index-path");
+    const knowledgeDirectoryIndexSubmitButton =
+      dom.knowledgeDirectoryIndexSubmitButton || document.querySelector("#knowledge-directory-index-submit");
+
     dom.refreshKnowledgeStatusButton.disabled = state.knowledgeStatusLoading;
     dom.knowledgeIndexSubmitButton.disabled =
       state.knowledgeIndexLoading || !dom.knowledgeIndexPathInput.value.trim();
+    if (knowledgeDirectoryIndexSubmitButton && knowledgeDirectoryIndexPathInput) {
+      knowledgeDirectoryIndexSubmitButton.disabled =
+        state.knowledgeDirectoryIndexLoading || !knowledgeDirectoryIndexPathInput.value.trim();
+    }
     dom.knowledgeSearchSubmitButton.disabled =
       state.knowledgeSearchLoading || !dom.knowledgeSearchQueryInput.value.trim();
     dom.knowledgeQuerySubmitButton.disabled =
@@ -244,6 +367,21 @@ function createSetKnowledgeSearchLoading(dom, state, updateKnowledgeButtonState)
   };
 }
 
+function createSetKnowledgeDirectoryIndexLoading(dom, state, updateKnowledgeButtonState) {
+  return function setKnowledgeDirectoryIndexLoading(isLoading) {
+    state.knowledgeDirectoryIndexLoading = isLoading;
+    const button =
+      dom.knowledgeDirectoryIndexSubmitButton || document.querySelector("#knowledge-directory-index-submit");
+    if (button) {
+      setButtonLoading(button, isLoading, {
+        loading: "批量接入中...",
+        idle: "批量接入 Markdown 目录",
+      });
+    }
+    updateKnowledgeButtonState();
+  };
+}
+
 function createSetKnowledgeQueryLoading(dom, state, updateKnowledgeButtonState) {
   return function setKnowledgeQueryLoading(isLoading) {
     state.knowledgeQueryLoading = isLoading;
@@ -261,8 +399,30 @@ export function createKnowledgeModule(deps) {
   const updateKnowledgeButtonState = createUpdateKnowledgeButtonState(dom, state);
   const setKnowledgeStatusLoading = createSetKnowledgeStatusLoading(dom, state, updateKnowledgeButtonState);
   const setKnowledgeIndexLoading = createSetKnowledgeIndexLoading(dom, state, updateKnowledgeButtonState);
+  const setKnowledgeDirectoryIndexLoading = createSetKnowledgeDirectoryIndexLoading(
+    dom,
+    state,
+    updateKnowledgeButtonState
+  );
   const setKnowledgeSearchLoading = createSetKnowledgeSearchLoading(dom, state, updateKnowledgeButtonState);
   const setKnowledgeQueryLoading = createSetKnowledgeQueryLoading(dom, state, updateKnowledgeButtonState);
+  const knowledgeDirectoryIndexPathInput =
+    dom.knowledgeDirectoryIndexPathInput || document.querySelector("#knowledge-directory-index-path");
+  const knowledgeDirectoryIndexKbIdInput =
+    dom.knowledgeDirectoryIndexKbIdInput || document.querySelector("#knowledge-directory-index-kb-id");
+  const knowledgeDirectoryIndexRecursiveInput =
+    dom.knowledgeDirectoryIndexRecursiveInput || document.querySelector("#knowledge-directory-index-recursive");
+  const knowledgeDirectoryIndexForceReindexInput =
+    dom.knowledgeDirectoryIndexForceReindexInput ||
+    document.querySelector("#knowledge-directory-index-force-reindex");
+  const knowledgeDirectoryIndexMaxFilesInput =
+    dom.knowledgeDirectoryIndexMaxFilesInput || document.querySelector("#knowledge-directory-index-max-files");
+  const knowledgeDirectoryIndexSubmitButton =
+    dom.knowledgeDirectoryIndexSubmitButton || document.querySelector("#knowledge-directory-index-submit");
+  const knowledgeDirectoryIndexStatus =
+    dom.knowledgeDirectoryIndexStatus || document.querySelector("#knowledge-directory-index-status");
+  const knowledgeDirectoryIndexResult =
+    dom.knowledgeDirectoryIndexResult || document.querySelector("#knowledge-directory-index-result");
 
   async function refreshKnowledgeStatus() {
     if (state.knowledgeStatusLoading) {
@@ -337,6 +497,73 @@ export function createKnowledgeModule(deps) {
       );
     } finally {
       setKnowledgeIndexLoading(false);
+    }
+  }
+
+  async function addDirectoryToKnowledge() {
+    if (
+      state.knowledgeDirectoryIndexLoading ||
+      !knowledgeDirectoryIndexSubmitButton ||
+      knowledgeDirectoryIndexSubmitButton.disabled
+    ) {
+      return;
+    }
+
+    const backendUrl = dom.backendUrlInput.value.trim();
+    const directory = knowledgeDirectoryIndexPathInput?.value.trim() || "";
+    const kbId = knowledgeDirectoryIndexKbIdInput?.value.trim() || "default";
+    const recursive = Boolean(knowledgeDirectoryIndexRecursiveInput?.checked);
+    const forceReindex = Boolean(knowledgeDirectoryIndexForceReindexInput?.checked);
+    const maxFiles = normalizePositiveInteger(knowledgeDirectoryIndexMaxFilesInput, 50);
+
+    if (!directory) {
+      setTextStatus(knowledgeDirectoryIndexStatus, "Markdown 相对目录不能为空", "error");
+      updateKnowledgeButtonState();
+      return;
+    }
+
+    setKnowledgeDirectoryIndexLoading(true);
+    knowledgeDirectoryIndexResult?.classList.add("hidden");
+    if (knowledgeDirectoryIndexResult) {
+      knowledgeDirectoryIndexResult.innerHTML = "";
+    }
+    setTextStatus(
+      knowledgeDirectoryIndexStatus,
+      "正在调用 /api/knowledge/index-markdown-directory 手动批量接入 Markdown 目录...",
+      "idle"
+    );
+
+    try {
+      const payload = await requestKnowledgeIndexMarkdownDirectory(
+        backendUrl,
+        directory,
+        kbId,
+        recursive,
+        forceReindex,
+        maxFiles
+      );
+      if (knowledgeDirectoryIndexResult) {
+        dom.knowledgeDirectoryIndexResult = knowledgeDirectoryIndexResult;
+        renderKnowledgeDirectoryIndexResult(dom, payload);
+      }
+      setTextStatus(
+        knowledgeDirectoryIndexStatus,
+        "Markdown 目录已通过 /api/knowledge/index-markdown-directory 手动批量入库。",
+        "success"
+      );
+      void refreshKnowledgeStatus();
+    } catch (error) {
+      if (knowledgeDirectoryIndexResult) {
+        renderErrorBox(knowledgeDirectoryIndexResult, error, "Markdown 目录批量入库请求失败");
+      }
+      const code = error?.code ? `${error.code}: ` : "";
+      setTextStatus(
+        knowledgeDirectoryIndexStatus,
+        `${code}${error instanceof Error ? error.message : "Markdown 目录批量入库失败"}`,
+        "error"
+      );
+    } finally {
+      setKnowledgeDirectoryIndexLoading(false);
     }
   }
 
@@ -424,10 +651,15 @@ export function createKnowledgeModule(deps) {
     }
   }
 
+  knowledgeDirectoryIndexSubmitButton?.addEventListener("click", addDirectoryToKnowledge);
+  knowledgeDirectoryIndexPathInput?.addEventListener("input", updateKnowledgeButtonState);
+  knowledgeDirectoryIndexMaxFilesInput?.addEventListener("input", updateKnowledgeButtonState);
+
   return {
     updateKnowledgeButtonState,
     refreshKnowledgeStatus,
     addToKnowledge,
+    addDirectoryToKnowledge,
     searchKnowledge,
     queryKnowledge,
   };

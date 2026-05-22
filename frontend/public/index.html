@@ -205,6 +205,10 @@
                     <strong id="panel-knowledge-files">-</strong>
                   </div>
                   <div class="panel-summary-item">
+                    <span>markdown_files</span>
+                    <strong id="panel-knowledge-markdown-files">-</strong>
+                  </div>
+                  <div class="panel-summary-item">
                     <span>chunks_count</span>
                     <strong id="panel-knowledge-chunks">-</strong>
                   </div>
@@ -507,6 +511,79 @@
             </p>
             <div
               id="knowledge-index-result"
+              class="file-preview-result hidden"
+              aria-live="polite"
+            ></div>
+          </section>
+
+          <section class="knowledge-section">
+            <div class="section-heading">
+              <h3>Markdown 目录手动批量入库</h3>
+              <p>仅在手动点击按钮后调用 <code>POST /knowledge/index-markdown-directory</code>。</p>
+            </div>
+            <div class="inline-note knowledge-boundary-note">
+              <p>当前只支持白名单根目录内的相对目录，且仍保持手动触发边界。</p>
+              <ul class="knowledge-boundary-list">
+                <li>目录必须位于当前受控白名单根目录内。</li>
+                <li>只处理 <code>.md</code> 文件。</li>
+                <li>自动忽略 <code>.obsidian</code>、隐藏项、<code>attachments</code>、<code>assets</code>、<code>images</code>。</li>
+                <li>不会自动扫描全盘，不会自动入库。</li>
+              </ul>
+            </div>
+            <label class="field-label" for="knowledge-directory-index-path">Markdown 相对目录</label>
+            <div class="control-row">
+              <input
+                id="knowledge-directory-index-path"
+                class="backend-input"
+                type="text"
+                placeholder="notes"
+                autocomplete="off"
+              />
+            </div>
+            <div class="knowledge-inline-fields knowledge-inline-fields-triple">
+              <div>
+                <label class="field-label" for="knowledge-directory-index-kb-id">知识库 ID</label>
+                <input
+                  id="knowledge-directory-index-kb-id"
+                  class="backend-input"
+                  type="text"
+                  value="default"
+                  autocomplete="off"
+                />
+              </div>
+              <div>
+                <label class="field-label" for="knowledge-directory-index-max-files">Max Files</label>
+                <input
+                  id="knowledge-directory-index-max-files"
+                  class="backend-input"
+                  type="number"
+                  min="1"
+                  max="200"
+                  value="50"
+                  autocomplete="off"
+                />
+              </div>
+              <div class="knowledge-option-stack">
+                <label class="knowledge-option-item" for="knowledge-directory-index-recursive">
+                  <input id="knowledge-directory-index-recursive" type="checkbox" checked />
+                  <span>递归扫描子目录</span>
+                </label>
+                <label class="knowledge-option-item" for="knowledge-directory-index-force-reindex">
+                  <input id="knowledge-directory-index-force-reindex" type="checkbox" />
+                  <span>强制重建已存在条目</span>
+                </label>
+              </div>
+            </div>
+            <div class="control-row">
+              <button id="knowledge-directory-index-submit" class="check-button" type="button">
+                批量接入 Markdown 目录
+              </button>
+            </div>
+            <p id="knowledge-directory-index-status" class="request-status idle">
+              输入相对目录后手动批量接入；不会自动扫描、不会自动入库。
+            </p>
+            <div
+              id="knowledge-directory-index-result"
               class="file-preview-result hidden"
               aria-live="polite"
             ></div>

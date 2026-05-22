@@ -29,6 +29,50 @@ class KnowledgeIndexFileResponse(BaseModel):
     index: KnowledgeIndexFileBody
 
 
+class KnowledgeIndexMarkdownDirectoryRequest(BaseModel):
+    directory: str = Field(..., min_length=1)
+    kb_id: str = Field(default="default", min_length=1)
+    recursive: bool = True
+    force_reindex: bool = False
+    max_files: int = Field(default=50, ge=1, le=200)
+
+
+class KnowledgeIndexMarkdownDirectorySummary(BaseModel):
+    matched_files: int
+    indexed_files: int
+    reused_files: int
+    failed_files: int
+    skipped_files: int
+
+
+class KnowledgeIndexMarkdownDirectoryItem(BaseModel):
+    path: str
+    status: str
+    chunk_count: int
+    reused_existing: bool
+    replaced_existing: bool
+    error_code: str | None = None
+    error_message: str | None = None
+
+
+class KnowledgeIndexMarkdownDirectoryError(BaseModel):
+    path: str
+    code: str
+    message: str
+
+
+class KnowledgeIndexMarkdownDirectoryResponse(BaseModel):
+    status: str
+    directory: str
+    kb_id: str
+    recursive: bool
+    force_reindex: bool
+    max_files: int
+    summary: KnowledgeIndexMarkdownDirectorySummary
+    results: list[KnowledgeIndexMarkdownDirectoryItem]
+    errors: list[KnowledgeIndexMarkdownDirectoryError]
+
+
 class KnowledgeStatusBody(BaseModel):
     enabled: bool
     fts_enabled: bool
@@ -36,6 +80,7 @@ class KnowledgeStatusBody(BaseModel):
     index_method: str
     files_count: int
     chunks_count: int
+    markdown_files_count: int
     files_table_exists: bool
     chunks_table_exists: bool
     fts_table_exists: bool

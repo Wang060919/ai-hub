@@ -4,6 +4,11 @@ from fastapi.responses import JSONResponse
 from backend.api.schemas.knowledge import (
     KnowledgeAnswerItem,
     KnowledgeCitationItem,
+    KnowledgeIndexMarkdownDirectoryError,
+    KnowledgeIndexMarkdownDirectoryItem,
+    KnowledgeIndexMarkdownDirectoryRequest,
+    KnowledgeIndexMarkdownDirectoryResponse,
+    KnowledgeIndexMarkdownDirectorySummary,
     KnowledgeIndexFileInfo,
     KnowledgeIndexFileRequest,
     KnowledgeIndexFileResponse,
@@ -45,6 +50,7 @@ def knowledge_status() -> KnowledgeStatusResponse:
             index_method=storage_status.index_method,
             files_count=storage_status.files_count,
             chunks_count=storage_status.chunks_count,
+            markdown_files_count=storage_status.markdown_files_count,
             files_table_exists=storage_status.files_table_exists,
             chunks_table_exists=storage_status.chunks_table_exists,
             fts_table_exists=storage_status.fts_table_exists,
@@ -204,4 +210,68 @@ def index_file(request: KnowledgeIndexFileRequest) -> KnowledgeIndexFileResponse
             "replaced_existing": result.replaced_existing,
             "index_method": result.index_method,
         },
+    )
+
+
+@router.post(
+    "/knowledge/index-markdown-directory",
+    response_model=KnowledgeIndexMarkdownDirectoryResponse,
+)
+def index_markdown_directory(
+    request: KnowledgeIndexMarkdownDirectoryRequest,
+) -> KnowledgeIndexMarkdownDirectoryResponse | JSONResponse:
+    try:
+        result = knowledge_index_service.index_markdown_directory(
+            directory=request.directory,
+            kb_id=request.kb_id,
+            recursive=request.recursive,
+            force_reindex=request.force_reindex,
+            max_files=request.max_files,
+        )
+    except FileServiceError as exc:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "status": "error",
+                "error": {
+                    "code": exc.code,
+                    "message": exc.message,
+                },
+            },
+        )
+
+    return KnowledgeIndexMarkdownDirectoryResponse(
+        status="ok",
+        directory=result.directory,
+        kb_id=result.kb_id,
+        recursive=result.recursive,
+        force_reindex=result.force_reindex,
+        max_files=result.max_files,
+        summary=KnowledgeIndexMarkdownDirectorySummary(
+            matched_files=result.summary.matched_files,
+            indexed_files=result.summary.indexed_files,
+            reused_files=result.summary.reused_files,
+            failed_files=result.summary.failed_files,
+            skipped_files=result.summary.skipped_files,
+        ),
+        results=[
+            KnowledgeIndexMarkdownDirectoryItem(
+                path=item.path,
+                status=item.status,
+                chunk_count=item.chunk_count,
+                reused_existing=item.reused_existing,
+                replaced_existing=item.replaced_existing,
+                error_code=item.error_code,
+                error_message=item.error_message,
+            )
+            for item in result.results
+        ],
+        errors=[
+            KnowledgeIndexMarkdownDirectoryError(
+                path=error.path,
+                code=error.code,
+                message=error.message,
+            )
+            for error in result.errors
+        ],
     )

@@ -403,6 +403,56 @@ async function handleKnowledgeIndexFileProxy(request, response) {
   }
 }
 
+async function handleKnowledgeIndexMarkdownDirectoryProxy(request, response) {
+  try {
+    const rawBody = await readRequestBody(request);
+    const payload = rawBody ? JSON.parse(rawBody) : {};
+    const baseUrl = normalizeBackendUrl(payload.backendUrl);
+    const directory = String(payload.directory || "").trim();
+    const kbId = String(payload.kb_id || "default").trim() || "default";
+    const recursive = Boolean(payload.recursive);
+    const forceReindex = Boolean(payload.force_reindex);
+    const maxFiles = Number(payload.max_files);
+
+    if (!directory) {
+      sendJson(response, 400, {
+        ok: false,
+        error: {
+          code: "PATH_NOT_ALLOWED",
+          message: "Directory cannot be empty",
+        },
+      });
+      return;
+    }
+
+    const result = await postJsonWithStatus(baseUrl, "/knowledge/index-markdown-directory", {
+      directory,
+      kb_id: kbId,
+      recursive,
+      force_reindex: forceReindex,
+      max_files: Number.isFinite(maxFiles) && maxFiles >= 1 ? Math.floor(maxFiles) : 50,
+    });
+
+    sendJson(response, result.statusCode, {
+      ok: result.statusCode >= 200 && result.statusCode < 300,
+      backendUrl: baseUrl,
+      ...result.payload,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : backendUnavailableMessage;
+
+    sendJson(response, 502, {
+      ok: false,
+      error: {
+        code: "REQUEST_FAILED",
+        message,
+      },
+      details: message,
+    });
+  }
+}
+
 async function handleKnowledgeSearchProxy(request, response) {
   try {
     const rawBody = await readRequestBody(request);
@@ -543,6 +593,11 @@ const server = http.createServer(async (request, response) => {
 
   if (request.method === "POST" && requestUrl.pathname === "/api/knowledge/index-file") {
     await handleKnowledgeIndexFileProxy(request, response);
+    return;
+  }
+
+  if (request.method === "POST" && requestUrl.pathname === "/api/knowledge/index-markdown-directory") {
+    await handleKnowledgeIndexMarkdownDirectoryProxy(request, response);
     return;
   }
 

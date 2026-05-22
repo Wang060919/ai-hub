@@ -717,6 +717,32 @@ code {
   gap: 12px;
 }
 
+.knowledge-inline-fields-triple {
+  grid-template-columns: 1fr 180px 1fr;
+}
+
+.knowledge-option-stack {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.knowledge-option-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(214, 199, 179, 0.75);
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--ink);
+}
+
+.knowledge-option-item input {
+  margin: 0;
+}
+
 .summary-result-panel {
   display: grid;
   gap: 12px;

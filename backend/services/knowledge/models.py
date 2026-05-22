@@ -14,6 +14,7 @@ class KnowledgeStorageStatus:
     fts_table_exists: bool
     files_count: int
     chunks_count: int
+    markdown_files_count: int
 
 
 @dataclass(frozen=True)
@@ -50,6 +51,45 @@ class KnowledgeIndexResult:
     reused_existing: bool
     replaced_existing: bool
     index_method: str
+
+
+@dataclass(frozen=True)
+class KnowledgeDirectoryIndexItem:
+    path: str
+    status: str
+    chunk_count: int
+    reused_existing: bool
+    replaced_existing: bool
+    error_code: str | None = None
+    error_message: str | None = None
+
+
+@dataclass(frozen=True)
+class KnowledgeDirectoryIndexSummary:
+    matched_files: int
+    indexed_files: int
+    reused_files: int
+    failed_files: int
+    skipped_files: int
+
+
+@dataclass(frozen=True)
+class KnowledgeDirectoryIndexError:
+    path: str
+    code: str
+    message: str
+
+
+@dataclass(frozen=True)
+class KnowledgeDirectoryIndexResult:
+    directory: str
+    kb_id: str
+    recursive: bool
+    force_reindex: bool
+    max_files: int
+    summary: KnowledgeDirectoryIndexSummary
+    results: list[KnowledgeDirectoryIndexItem]
+    errors: list[KnowledgeDirectoryIndexError]
 
 
 @dataclass(frozen=True)

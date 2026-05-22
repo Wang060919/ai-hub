@@ -269,6 +269,8 @@ V1.7 当前主题补充：
 - V1.7 主题已固定为“本地 Markdown 笔记接入 / Obsidian Bridge 第一版”
 - 该阶段优先复用现有 `files` 与 `knowledge` 模块
 - 第一版重点是手动指定 Markdown 单文件或受控目录接入
+- 当前后端 Markdown 接入入口为 `POST /knowledge/index-file` 与 `POST /knowledge/index-markdown-directory`
+- 当前前端只在 Knowledge 页面提供完整 Markdown 手动接入表单，Panel 仅展示摘要和跳转入口
 - 当前不要求为 V1.7 新增语音模块、STT、TTS 或桌面语音助手链路
 
 ## 九、V1.5 当前前端结构补充
@@ -338,7 +340,7 @@ V1.6 当前方向已统一为“桌面小面板 / 项目管家面板第一版”
 
 - Panel 壳层与独立顶层 tab
 - Panel 后端状态摘要，复用现有 metadata 结果
-- Panel 知识库状态摘要，复用现有 knowledge status 结果
+- Panel 知识库状态摘要，复用现有 knowledge status 结果，并显示 Markdown 接入摘要
 - Panel 快速 Chat 手动发送，复用现有 chat API
 - Panel 跳转到完整后端状态、聊天、文件工具、知识库区域
 

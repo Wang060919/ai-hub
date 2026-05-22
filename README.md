@@ -29,7 +29,7 @@ V1.0 / V1.0.1 已基本完成：
 | V1.4 | 知识库与记忆系统 | M8-M12 已完成，进入收尾审查 / 收尾验证 |
 | V1.5 | 屏幕感知工具组与学习辅助模式 | M1-M9 已完成前端结构整理核心目标，进入收尾 |
 | V1.6 | 桌面小面板 / 项目管家面板第一版 | M1-M6 已完成，等待 M7 |
-| V1.7 | 本地 Markdown 笔记接入 / Obsidian Bridge 第一版 | M1 文档口径统一与主题规格固定 |
+| V1.7 | 本地 Markdown 笔记接入 / Obsidian Bridge 第一版 | M3-M6 已完成，等待 M7 |
 | V1.8 | 手机端 / 局域网 / 室友测试 | 待开始 |
 | V1.9 | Docker 安全沙盒与自动化执行 | 待开始 |
 | V2.0 | 个人 AI Agent 工作站完全体 | 远期 |
@@ -155,6 +155,8 @@ M11 回归中还已验证 `/chat hello` 返回 Echo、`/files/preview` 正常、
 V1.4 当前仍是本地文本知识库第一版，已支持前端 Knowledge 最小入口，但该入口只支持手动刷新 status、手动入库、手动 search、手动 query；页面加载不会自动入库，也不会自动触发 query。当前仍不支持 embedding、ChromaDB、自动长期记忆、自动监听聊天入库、`/chat` 自动接入知识库，也不支持 PDF / Word / Excel 入库。下一步进入 V1.4 收尾审查 / 收尾验证与 tag，或转入 V1.5 规划。
 
 V1.4-M13 文档修正补充：以上 V1.4 旧表述如与本段冲突，以本段为准。V1.4 当前状态应视为 M8-M12 已完成，已进入收尾审查 / 收尾验证。当前知识库能力仍是本地文本知识库第一版，已支持前端 Knowledge 最小入口；该入口只支持手动刷新 status、手动入库、手动 search、手动 query，页面加载不会自动入库，也不会自动触发 query。当前仍不支持 embedding、ChromaDB、PDF / Word / Excel 入库、自动长期记忆、自动监听聊天入库，且 `/chat` 仍未自动接入知识库。下一步为 V1.4 收尾验证 / tag，或转入 V1.5 规划。
+
+V1.7 当前已完成到 M6：在不改变 `/chat`、不新增依赖、不扩展到 PDF / Word / Excel、embedding 或 ChromaDB 的前提下，Knowledge 区域已支持单篇 Markdown 手动入库与受控目录内 Markdown 手动批量入库，Panel / Knowledge 也已展示 Markdown 接入状态摘要。当前批量能力仅支持白名单根目录内的相对目录，且只在用户手动点击时执行；不会自动扫描全盘、不会自动读取整个 Vault、不会自动入库、不会自动 query。当前仍不支持 Obsidian tags、双链、`/chat` 自动接入知识库。下一步进入 V1.7-M7 收尾 tag。
 
 ## V1.5 当前状态
 

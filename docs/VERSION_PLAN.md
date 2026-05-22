@@ -480,7 +480,7 @@ V1.4-M13 文档修正补充：上方 V1.4 节若仍保留旧表述，以本补�
 
 ### V1.7：本地 Markdown 笔记接入 / Obsidian Bridge 第一版
 
-**状态**：V1.7-M1 已启动，当前只做文档口径统一与主题规格固定。
+**状态**：V1.7-M3 到 M6 已完成，当前等待 M7 收尾 tag。
 
 **目标**：在不扩展后端能力边界的前提下，基于现有 V1.4 本地文本知识库第一版，建立面向 Obsidian / 本地 Markdown 笔记的手动接入闭环。
 
@@ -497,6 +497,7 @@ V1.4-M13 文档修正补充：上方 V1.4 节若仍保留旧表述，以本补�
 - 复用现有 V1.4 知识库接口与索引能力
 - 支持手动指定单篇 `.md` 笔记
 - 支持手动指定受控目录内的 Markdown 笔记
+- Knowledge / Panel 展示 Markdown 接入状态摘要
 - 所有入库、搜索、问答动作继续保持手动触发
 
 **明确不做**：
@@ -508,15 +509,25 @@ V1.4-M13 文档修正补充：上方 V1.4 节若仍保留旧表述，以本补�
 - 不做 embedding / ChromaDB
 - 不做完整笔记系统
 - 不做真正桌宠
+- 不支持 Obsidian tags / 双链
+
+**当前已完成内容**：
+
+- `POST /knowledge/index-file` 保持单篇 Markdown 手动入库
+- 新增 `POST /knowledge/index-markdown-directory`，支持受控目录内 `.md` 手动批量入库
+- `GET /knowledge/status` 已补充 `markdown_files_count` 摘要字段
+- Knowledge 区域已新增“Markdown 目录手动批量入库”小区域
+- Panel 继续只展示 Markdown 接入摘要和跳转入口，不在 Panel 内放完整批量表单
+- 批量入库安全边界包含：相对目录、禁止 `../` 越界、仅处理 `.md`、忽略 `.obsidian` / 隐藏项 / `attachments` / `assets` / `images`、`max_files` 限制、手动点击才执行
 
 **推荐里程碑**：
 
 - M1：文档口径统一 + V1.7 主题规格固定
 - M2：Markdown / Obsidian 接入方案设计
-- M3：单篇 Markdown 笔记手动入库
-- M4：受控目录内 Markdown 手动批量入库
-- M5：Panel / Knowledge 入口展示接入状态
-- M6：安全边界验证与文档同步
+- M3：单篇 Markdown 笔记手动入库（已完成）
+- M4：受控目录内 Markdown 手动批量入库（已完成）
+- M5：Panel / Knowledge 入口展示接入状态（已完成）
+- M6：安全边界验证与文档同步（已完成）
 - M7：收尾 tag
 
 **不包含**：
