@@ -27,6 +27,26 @@ const filePreviewStatus = document.querySelector("#file-preview-status");
 const filePreviewResult = document.querySelector("#file-preview-result");
 const fileSummaryStatus = document.querySelector("#file-summary-status");
 const fileSummaryResult = document.querySelector("#file-summary-result");
+const refreshKnowledgeStatusButton = document.querySelector("#refresh-knowledge-status");
+const knowledgeStatusMessage = document.querySelector("#knowledge-status-message");
+const knowledgeStatusResult = document.querySelector("#knowledge-status-result");
+const knowledgeIndexPathInput = document.querySelector("#knowledge-index-path");
+const knowledgeIndexKbIdInput = document.querySelector("#knowledge-index-kb-id");
+const knowledgeIndexSubmitButton = document.querySelector("#knowledge-index-submit");
+const knowledgeIndexStatus = document.querySelector("#knowledge-index-status");
+const knowledgeIndexResult = document.querySelector("#knowledge-index-result");
+const knowledgeSearchQueryInput = document.querySelector("#knowledge-search-query");
+const knowledgeSearchKbIdInput = document.querySelector("#knowledge-search-kb-id");
+const knowledgeSearchTopKInput = document.querySelector("#knowledge-search-top-k");
+const knowledgeSearchSubmitButton = document.querySelector("#knowledge-search-submit");
+const knowledgeSearchStatus = document.querySelector("#knowledge-search-status");
+const knowledgeSearchResult = document.querySelector("#knowledge-search-result");
+const knowledgeQueryQuestionInput = document.querySelector("#knowledge-query-question");
+const knowledgeQueryKbIdInput = document.querySelector("#knowledge-query-kb-id");
+const knowledgeQueryTopKInput = document.querySelector("#knowledge-query-top-k");
+const knowledgeQuerySubmitButton = document.querySelector("#knowledge-query-submit");
+const knowledgeQueryStatus = document.querySelector("#knowledge-query-status");
+const knowledgeQueryResult = document.querySelector("#knowledge-query-result");
 const tauriInvoke = window.__TAURI__?.core?.invoke;
 const MAX_CHAT_HISTORY_TURNS = 4;
 const MAX_CHAT_HISTORY_MESSAGES = MAX_CHAT_HISTORY_TURNS * 2;
@@ -128,6 +148,10 @@ const state = {
   chatSending: false,
   filePreviewLoading: false,
   fileSummaryLoading: false,
+  knowledgeStatusLoading: false,
+  knowledgeIndexLoading: false,
+  knowledgeSearchLoading: false,
+  knowledgeQueryLoading: false,
   hasPreviewResult: false,
   chatHistory: [],
   lastPreviewPath: "",
@@ -166,6 +190,26 @@ function setFilePreviewState(type, message) {
 function setFileSummaryState(type, message) {
   fileSummaryStatus.className = `request-status ${type}`;
   fileSummaryStatus.textContent = message;
+}
+
+function setKnowledgeStatusState(type, message) {
+  knowledgeStatusMessage.className = `request-status ${type}`;
+  knowledgeStatusMessage.textContent = message;
+}
+
+function setKnowledgeIndexState(type, message) {
+  knowledgeIndexStatus.className = `request-status ${type}`;
+  knowledgeIndexStatus.textContent = message;
+}
+
+function setKnowledgeSearchState(type, message) {
+  knowledgeSearchStatus.className = `request-status ${type}`;
+  knowledgeSearchStatus.textContent = message;
+}
+
+function setKnowledgeQueryState(type, message) {
+  knowledgeQueryStatus.className = `request-status ${type}`;
+  knowledgeQueryStatus.textContent = message;
 }
 
 function resetSummary() {
@@ -705,6 +749,114 @@ async function requestFileSummary(backendUrl, path) {
   return payload.summary;
 }
 
+async function requestKnowledgeStatus(backendUrl) {
+  const response = await fetch(
+    `/api/knowledge/status?backendUrl=${encodeURIComponent(backendUrl)}`,
+    {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    }
+  );
+
+  const payload = await readJsonResponse(response);
+  if (!response.ok) {
+    const code = payload?.error?.code || `HTTP_${response.status}`;
+    const message =
+      payload?.error?.message || payload?.details || `${code}: /api/knowledge/status failed`;
+    const error = new Error(message);
+    error.code = code;
+    throw error;
+  }
+
+  return payload.knowledge;
+}
+
+async function requestKnowledgeIndexFile(backendUrl, path, kbId) {
+  const response = await fetch("/api/knowledge/index-file", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ backendUrl, path, kb_id: kbId }),
+  });
+
+  const payload = await readJsonResponse(response);
+  if (!response.ok) {
+    const code =
+      payload?.error?.code ||
+      payload?.index?.error?.code ||
+      `HTTP_${response.status}`;
+    const message =
+      payload?.error?.message ||
+      payload?.index?.error?.message ||
+      `${code}: /api/knowledge/index-file failed`;
+    const error = new Error(message);
+    error.code = code;
+    throw error;
+  }
+
+  return payload;
+}
+
+async function requestKnowledgeSearch(backendUrl, query, kbId, topK) {
+  const response = await fetch("/api/knowledge/search", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ backendUrl, query, kb_id: kbId, top_k: topK }),
+  });
+
+  const payload = await readJsonResponse(response);
+  if (!response.ok) {
+    const code =
+      payload?.error?.code ||
+      payload?.search?.error?.code ||
+      `HTTP_${response.status}`;
+    const message =
+      payload?.error?.message ||
+      payload?.search?.error?.message ||
+      `${code}: /api/knowledge/search failed`;
+    const error = new Error(message);
+    error.code = code;
+    throw error;
+  }
+
+  return payload;
+}
+
+async function requestKnowledgeQuery(backendUrl, question, kbId, topK) {
+  const response = await fetch("/api/knowledge/query", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ backendUrl, question, kb_id: kbId, top_k: topK }),
+  });
+
+  const payload = await readJsonResponse(response);
+  if (!response.ok) {
+    const code =
+      payload?.error?.code ||
+      payload?.answer?.error?.code ||
+      `HTTP_${response.status}`;
+    const message =
+      payload?.error?.message ||
+      payload?.answer?.error?.message ||
+      `${code}: /api/knowledge/query failed`;
+    const error = new Error(message);
+    error.code = code;
+    throw error;
+  }
+
+  return payload;
+}
+
 function renderFilePreview(payload) {
   const file = payload.file || {};
   const preview = payload.preview || {};
@@ -801,6 +953,206 @@ function renderFileSummaryError(error) {
   `;
 }
 
+function renderKnowledgeError(container, error) {
+  const code = error?.code || "REQUEST_FAILED";
+  const message = error instanceof Error ? error.message : "Knowledge request failed";
+
+  container.classList.remove("hidden");
+  container.innerHTML = `
+    <div class="file-preview-error">
+      <strong>${escapeHtml(code)}</strong>
+      <p>${escapeHtml(message)}</p>
+    </div>
+  `;
+}
+
+function renderKnowledgeStatus(payload) {
+  const knowledge = payload || {};
+
+  knowledgeStatusResult.classList.remove("hidden");
+  knowledgeStatusResult.innerHTML = `
+    <div class="file-preview-meta">
+      <div class="file-preview-meta-item">
+        <span>files_count</span>
+        <strong>${escapeHtml(knowledge.files_count ?? "-")}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>chunks_count</span>
+        <strong>${escapeHtml(knowledge.chunks_count ?? "-")}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>index_method</span>
+        <strong>${escapeHtml(knowledge.index_method || "-")}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>fts_enabled</span>
+        <strong>${escapeHtml(String(Boolean(knowledge.fts_enabled)))}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>fts_available</span>
+        <strong>${escapeHtml(String(Boolean(knowledge.fts_available)))}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>enabled</span>
+        <strong>${escapeHtml(String(Boolean(knowledge.enabled)))}</strong>
+      </div>
+    </div>
+  `;
+}
+
+function renderKnowledgeIndexResult(payload) {
+  const file = payload?.file || {};
+  const index = payload?.index || {};
+
+  knowledgeIndexResult.classList.remove("hidden");
+  knowledgeIndexResult.innerHTML = `
+    <div class="file-preview-meta">
+      <div class="file-preview-meta-item">
+        <span>chunk_count</span>
+        <strong>${escapeHtml(index.chunk_count ?? "-")}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>reused_existing</span>
+        <strong>${escapeHtml(String(Boolean(index.reused_existing)))}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>replaced_existing</span>
+        <strong>${escapeHtml(String(Boolean(index.replaced_existing)))}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>index_method</span>
+        <strong>${escapeHtml(index.index_method || "-")}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>kb_id</span>
+        <strong>${escapeHtml(file.kb_id || "-")}</strong>
+      </div>
+      <div class="file-preview-meta-item wide">
+        <span>relative_path</span>
+        <strong>${escapeHtml(file.relative_path || "-")}</strong>
+      </div>
+    </div>
+  `;
+}
+
+function renderKnowledgeHits(hits) {
+  if (!Array.isArray(hits) || hits.length === 0) {
+    return `<div class="file-summary-text">hits=[]</div>`;
+  }
+
+  return `
+    <ol class="knowledge-hit-list">
+      ${hits
+        .map(
+          (hit) => `
+            <li class="knowledge-hit-card">
+              <strong>${escapeHtml(hit.relative_path || "-")}</strong>
+              <p class="knowledge-hit-meta">
+                chunk_index=${escapeHtml(hit.chunk_index ?? "-")} | score=${escapeHtml(
+                  hit.score ?? "-"
+                )}
+              </p>
+              <pre class="knowledge-hit-content">${escapeHtml(hit.content || "")}</pre>
+            </li>
+          `
+        )
+        .join("")}
+    </ol>
+  `;
+}
+
+function renderKnowledgeSearchResult(payload) {
+  const search = payload?.search || {};
+
+  knowledgeSearchResult.classList.remove("hidden");
+  knowledgeSearchResult.innerHTML = `
+    <div class="file-preview-meta">
+      <div class="file-preview-meta-item">
+        <span>query</span>
+        <strong>${escapeHtml(search.query || "-")}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>top_k</span>
+        <strong>${escapeHtml(search.top_k ?? "-")}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>hits_count</span>
+        <strong>${escapeHtml(search.hits_count ?? "-")}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>kb_id</span>
+        <strong>${escapeHtml(search.kb_id || "-")}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>index_method</span>
+        <strong>${escapeHtml(search.index_method || "-")}</strong>
+      </div>
+    </div>
+    ${renderKnowledgeHits(payload?.hits)}
+  `;
+}
+
+function renderKnowledgeQueryResult(payload) {
+  const answer = payload?.answer || {};
+  const citations = Array.isArray(payload?.citations) ? payload.citations : [];
+
+  knowledgeQueryResult.classList.remove("hidden");
+  knowledgeQueryResult.innerHTML = `
+    <div class="file-preview-meta">
+      <div class="file-preview-meta-item">
+        <span>model</span>
+        <strong>${escapeHtml(answer.model || "-")}</strong>
+      </div>
+      <div class="file-preview-meta-item">
+        <span>grounded</span>
+        <strong>${escapeHtml(String(Boolean(answer.grounded)))}</strong>
+      </div>
+      <div class="file-preview-meta-item wide">
+        <span>answer.text</span>
+        <strong class="knowledge-answer-text">${escapeHtml(answer.text || "")}</strong>
+      </div>
+    </div>
+    <div class="summary-result-panel">
+      <div>
+        <p class="field-label">citations</p>
+        ${
+          citations.length === 0
+            ? '<div class="file-summary-text">citations=[]</div>'
+            : `
+              <ol class="knowledge-citation-list">
+                ${citations
+                  .map(
+                    (citation) => `
+                      <li class="knowledge-citation-card">
+                        <strong>[${escapeHtml(citation.index ?? "-")}] ${escapeHtml(
+                          citation.relative_path || "-"
+                        )}</strong>
+                        <p class="knowledge-citation-meta">
+                          chunk_id=${escapeHtml(citation.chunk_id ?? "-")} | chunk_index=${escapeHtml(
+                            citation.chunk_index ?? "-"
+                          )}
+                        </p>
+                      </li>
+                    `
+                  )
+                  .join("")}
+              </ol>
+            `
+        }
+      </div>
+      <div>
+        <p class="field-label">hits</p>
+        ${renderKnowledgeHits(payload?.hits)}
+      </div>
+    </div>
+  `;
+}
+
+function normalizeTopK(input, fallback = 4) {
+  const value = Number(input?.value);
+  return Number.isFinite(value) && value >= 1 ? Math.floor(value) : fallback;
+}
+
 function updateFilePreviewButtonState() {
   const hasPath = Boolean(filePreviewPathInput.value.trim());
   readFilePreviewButton.disabled = state.filePreviewLoading || !hasPath;
@@ -831,6 +1183,46 @@ function handleFilePreviewPathInput() {
     resetFileSummaryResult();
   }
   updateFilePreviewButtonState();
+}
+
+function updateKnowledgeButtonState() {
+  refreshKnowledgeStatusButton.disabled = state.knowledgeStatusLoading;
+  knowledgeIndexSubmitButton.disabled =
+    state.knowledgeIndexLoading || !knowledgeIndexPathInput.value.trim();
+  knowledgeSearchSubmitButton.disabled =
+    state.knowledgeSearchLoading || !knowledgeSearchQueryInput.value.trim();
+  knowledgeQuerySubmitButton.disabled =
+    state.knowledgeQueryLoading || !knowledgeQueryQuestionInput.value.trim();
+}
+
+function setKnowledgeStatusLoading(isLoading) {
+  state.knowledgeStatusLoading = isLoading;
+  refreshKnowledgeStatusButton.classList.toggle("sending", isLoading);
+  refreshKnowledgeStatusButton.textContent = isLoading
+    ? "Refreshing..."
+    : "Refresh Knowledge Status";
+  updateKnowledgeButtonState();
+}
+
+function setKnowledgeIndexLoading(isLoading) {
+  state.knowledgeIndexLoading = isLoading;
+  knowledgeIndexSubmitButton.classList.toggle("sending", isLoading);
+  knowledgeIndexSubmitButton.textContent = isLoading ? "Adding..." : "Add To Knowledge";
+  updateKnowledgeButtonState();
+}
+
+function setKnowledgeSearchLoading(isLoading) {
+  state.knowledgeSearchLoading = isLoading;
+  knowledgeSearchSubmitButton.classList.toggle("sending", isLoading);
+  knowledgeSearchSubmitButton.textContent = isLoading ? "Searching..." : "Search Knowledge";
+  updateKnowledgeButtonState();
+}
+
+function setKnowledgeQueryLoading(isLoading) {
+  state.knowledgeQueryLoading = isLoading;
+  knowledgeQuerySubmitButton.classList.toggle("sending", isLoading);
+  knowledgeQuerySubmitButton.textContent = isLoading ? "Asking..." : "Ask Knowledge";
+  updateKnowledgeButtonState();
 }
 
 async function readFilePreview() {
@@ -911,6 +1303,151 @@ async function summarizeFilePreview() {
   }
 }
 
+async function refreshKnowledgeStatus() {
+  if (state.knowledgeStatusLoading) {
+    return;
+  }
+
+  const backendUrl = backendUrlInput.value.trim();
+  setKnowledgeStatusLoading(true);
+  knowledgeStatusResult.classList.add("hidden");
+  knowledgeStatusResult.innerHTML = "";
+  setKnowledgeStatusState("idle", "Loading /api/knowledge/status ...");
+
+  try {
+    const payload = await requestKnowledgeStatus(backendUrl);
+    renderKnowledgeStatus(payload);
+    setKnowledgeStatusState("success", "Knowledge status loaded from /api/knowledge/status");
+  } catch (error) {
+    renderKnowledgeError(knowledgeStatusResult, error);
+    const code = error?.code ? `${error.code}: ` : "";
+    setKnowledgeStatusState(
+      "error",
+      `${code}${error instanceof Error ? error.message : "Knowledge status failed"}`
+    );
+  } finally {
+    setKnowledgeStatusLoading(false);
+  }
+}
+
+async function addToKnowledge() {
+  if (state.knowledgeIndexLoading || knowledgeIndexSubmitButton.disabled) {
+    return;
+  }
+
+  const backendUrl = backendUrlInput.value.trim();
+  const path = knowledgeIndexPathInput.value.trim();
+  const kbId = knowledgeIndexKbIdInput.value.trim() || "default";
+
+  if (!path) {
+    setKnowledgeIndexState("error", "File path cannot be empty");
+    updateKnowledgeButtonState();
+    return;
+  }
+
+  setKnowledgeIndexLoading(true);
+  knowledgeIndexResult.classList.add("hidden");
+  knowledgeIndexResult.innerHTML = "";
+  setKnowledgeIndexState("idle", "Sending /api/knowledge/index-file ...");
+
+  try {
+    const payload = await requestKnowledgeIndexFile(backendUrl, path, kbId);
+    renderKnowledgeIndexResult(payload);
+    setKnowledgeIndexState("success", "Knowledge file indexed via /api/knowledge/index-file");
+    void refreshKnowledgeStatus();
+  } catch (error) {
+    renderKnowledgeError(knowledgeIndexResult, error);
+    const code = error?.code ? `${error.code}: ` : "";
+    setKnowledgeIndexState(
+      "error",
+      `${code}${error instanceof Error ? error.message : "Knowledge index failed"}`
+    );
+  } finally {
+    setKnowledgeIndexLoading(false);
+  }
+}
+
+async function searchKnowledge() {
+  if (state.knowledgeSearchLoading || knowledgeSearchSubmitButton.disabled) {
+    return;
+  }
+
+  const backendUrl = backendUrlInput.value.trim();
+  const query = knowledgeSearchQueryInput.value.trim();
+  const kbId = knowledgeSearchKbIdInput.value.trim() || "default";
+  const topK = normalizeTopK(knowledgeSearchTopKInput);
+
+  if (!query) {
+    setKnowledgeSearchState("error", "Query cannot be empty");
+    updateKnowledgeButtonState();
+    return;
+  }
+
+  setKnowledgeSearchLoading(true);
+  knowledgeSearchResult.classList.add("hidden");
+  knowledgeSearchResult.innerHTML = "";
+  setKnowledgeSearchState("idle", "Sending /api/knowledge/search ...");
+
+  try {
+    const payload = await requestKnowledgeSearch(backendUrl, query, kbId, topK);
+    renderKnowledgeSearchResult(payload);
+    setKnowledgeSearchState("success", "Knowledge hits loaded from /api/knowledge/search");
+  } catch (error) {
+    renderKnowledgeError(knowledgeSearchResult, error);
+    const code = error?.code ? `${error.code}: ` : "";
+    setKnowledgeSearchState(
+      "error",
+      `${code}${error instanceof Error ? error.message : "Knowledge search failed"}`
+    );
+  } finally {
+    setKnowledgeSearchLoading(false);
+  }
+}
+
+async function queryKnowledge() {
+  if (state.knowledgeQueryLoading || knowledgeQuerySubmitButton.disabled) {
+    return;
+  }
+
+  const backendUrl = backendUrlInput.value.trim();
+  const question = knowledgeQueryQuestionInput.value.trim();
+  const kbId = knowledgeQueryKbIdInput.value.trim() || "default";
+  const topK = normalizeTopK(knowledgeQueryTopKInput);
+
+  if (!question) {
+    setKnowledgeQueryState("error", "Question cannot be empty");
+    updateKnowledgeButtonState();
+    return;
+  }
+
+  setKnowledgeQueryLoading(true);
+  knowledgeQueryResult.classList.add("hidden");
+  knowledgeQueryResult.innerHTML = "";
+  setKnowledgeQueryState("idle", "Sending /api/knowledge/query ...");
+
+  try {
+    const payload = await requestKnowledgeQuery(backendUrl, question, kbId, topK);
+    renderKnowledgeQueryResult(payload);
+    setKnowledgeQueryState("success", "Knowledge answer loaded from /api/knowledge/query");
+  } catch (error) {
+    renderKnowledgeError(knowledgeQueryResult, error);
+    if (error?.code === "KNOWLEDGE_MODEL_DISABLED") {
+      setKnowledgeQueryState(
+        "error",
+        "KNOWLEDGE_MODEL_DISABLED: DeepSeek is not enabled in the backend environment."
+      );
+    } else {
+      const code = error?.code ? `${error.code}: ` : "";
+      setKnowledgeQueryState(
+        "error",
+        `${code}${error instanceof Error ? error.message : "Knowledge query failed"}`
+      );
+    }
+  } finally {
+    setKnowledgeQueryLoading(false);
+  }
+}
+
 async function checkBackend() {
   const backendUrl = backendUrlInput.value.trim();
   checkButton.disabled = true;
@@ -932,12 +1469,16 @@ async function checkBackend() {
     renderSkills(skills);
     renderFilesTools();
     setRequestState("success", `Connected: ${payload.backendUrl}`);
+    void refreshKnowledgeStatus();
   } catch (error) {
     state.hasCheckedBackend = false;
     state.skills = [];
     resetSummary();
     renderEmptyRow(backendUnavailableMessage);
     renderFilesTools();
+    knowledgeStatusResult.classList.add("hidden");
+    knowledgeStatusResult.innerHTML = "";
+    setKnowledgeStatusState("error", "Knowledge status unavailable until backend is reachable.");
     setRequestState(
       "error",
       error instanceof Error ? error.message : backendUnavailableMessage
@@ -1117,6 +1658,13 @@ chatMessageInput.addEventListener("keydown", handleChatInputKeydown);
 readFilePreviewButton.addEventListener("click", readFilePreview);
 summarizeFilePreviewButton.addEventListener("click", summarizeFilePreview);
 filePreviewPathInput.addEventListener("input", handleFilePreviewPathInput);
+refreshKnowledgeStatusButton.addEventListener("click", refreshKnowledgeStatus);
+knowledgeIndexSubmitButton.addEventListener("click", addToKnowledge);
+knowledgeSearchSubmitButton.addEventListener("click", searchKnowledge);
+knowledgeQuerySubmitButton.addEventListener("click", queryKnowledge);
+knowledgeIndexPathInput.addEventListener("input", updateKnowledgeButtonState);
+knowledgeSearchQueryInput.addEventListener("input", updateKnowledgeButtonState);
+knowledgeQueryQuestionInput.addEventListener("input", updateKnowledgeButtonState);
 filesToolsGrid.addEventListener("click", (event) => {
   const target = event.target;
   if (!(target instanceof HTMLElement)) {
@@ -1133,3 +1681,5 @@ renderFilesTools();
 resetFileSummaryResult();
 updateSendChatButtonState();
 updateFilePreviewButtonState();
+updateKnowledgeButtonState();
+void refreshKnowledgeStatus();
