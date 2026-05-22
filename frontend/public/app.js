@@ -1,7 +1,7 @@
 import { escapeHtml } from "./js/core/utils.js";
 import { requestMetadata } from "./js/api/metadata.js";
 import { requestChat } from "./js/api/chat.js";
-import { requestFilePreview, requestFileSummary } from "./js/api/files.js";
+import { createFilesModule } from "./js/files/files.js";
 import { createKnowledgeModule } from "./js/knowledge/knowledge.js";
 import { setTextStatus } from "./js/ui/status.js";
 import { setButtonLoading } from "./js/ui/loading.js";
@@ -200,24 +200,32 @@ const {
   state,
 });
 
+const {
+  updateFilePreviewButtonState,
+  readFilePreview,
+  summarizeFilePreview,
+  resetFileSummaryResult,
+  handleFilePreviewPathInput,
+} = createFilesModule({
+  dom: {
+    backendUrlInput,
+    filePreviewPathInput,
+    readFilePreviewButton,
+    summarizeFilePreviewButton,
+    filePreviewStatus,
+    filePreviewResult,
+    fileSummaryStatus,
+    fileSummaryResult,
+  },
+  state,
+});
+
 function resetSummary() {
   healthStatus.textContent = "-";
   appVersion.textContent = "-";
   skillsCount.textContent = "0";
 }
 
-function resetFileSummaryResult() {
-  state.fileSummaryLoading = false;
-  state.hasPreviewResult = false;
-  state.lastPreviewPath = "";
-  fileSummaryResult.classList.add("hidden");
-  fileSummaryResult.innerHTML = "";
-  setTextStatus(
-    fileSummaryStatus,
-    "Summary is available only after preview succeeds and only when you click the button.",
-    "idle"
-  );
-}
 
 function resetChatResult() {
   chatMessages.innerHTML =
@@ -596,193 +604,6 @@ function showTab(activeTab) {
   statusPanel.classList.toggle("hidden", !isStatus);
   chatPanel.classList.toggle("hidden", !isChat);
   filesToolsPanel.classList.toggle("hidden", !isFilesTools);
-}
-
-function renderFilePreview(payload) {
-  const file = payload.file || {};
-  const preview = payload.preview || {};
-  const truncated = preview.truncated ? "true" : "false";
-
-  filePreviewResult.classList.remove("hidden");
-  filePreviewResult.innerHTML = `
-    <div class="file-preview-meta">
-      <div class="file-preview-meta-item">
-        <span>name</span>
-        <strong>${escapeHtml(file.name || "-")}</strong>
-      </div>
-      <div class="file-preview-meta-item">
-        <span>suffix</span>
-        <strong>${escapeHtml(file.suffix || "-")}</strong>
-      </div>
-      <div class="file-preview-meta-item">
-        <span>size_human</span>
-        <strong>${escapeHtml(file.size_human || "-")}</strong>
-      </div>
-      <div class="file-preview-meta-item">
-        <span>modified_at</span>
-        <strong>${escapeHtml(file.modified_at || "-")}</strong>
-      </div>
-      <div class="file-preview-meta-item wide">
-        <span>relative_path</span>
-        <strong>${escapeHtml(file.relative_path || "-")}</strong>
-      </div>
-      <div class="file-preview-meta-item">
-        <span>truncated</span>
-        <strong>${truncated}</strong>
-      </div>
-    </div>
-    <pre class="file-preview-text"><code>${escapeHtml(preview.text || "")}</code></pre>
-  `;
-}
-
-function renderFileSummary(payload) {
-  const file = payload.file || {};
-  const summary = payload.summary || {};
-  const truncated = summary.truncated ? "true" : "false";
-
-  fileSummaryResult.classList.remove("hidden");
-  fileSummaryResult.innerHTML = `
-    <div class="file-preview-meta">
-      <div class="file-preview-meta-item">
-        <span>model</span>
-        <strong>${escapeHtml(summary.model || "-")}</strong>
-      </div>
-      <div class="file-preview-meta-item">
-        <span>input_chars</span>
-        <strong>${escapeHtml(summary.input_chars ?? "-")}</strong>
-      </div>
-      <div class="file-preview-meta-item">
-        <span>source_chars</span>
-        <strong>${escapeHtml(summary.source_chars ?? "-")}</strong>
-      </div>
-      <div class="file-preview-meta-item wide">
-        <span>relative_path</span>
-        <strong>${escapeHtml(file.relative_path || "-")}</strong>
-      </div>
-      <div class="file-preview-meta-item">
-        <span>truncated</span>
-        <strong>${truncated}</strong>
-      </div>
-    </div>
-    <div class="file-summary-text">${escapeHtml(summary.text || "")}</div>
-  `;
-}
-
-function updateFilePreviewButtonState() {
-  const hasPath = Boolean(filePreviewPathInput.value.trim());
-  readFilePreviewButton.disabled = state.filePreviewLoading || !hasPath;
-  summarizeFilePreviewButton.disabled =
-    state.filePreviewLoading ||
-    state.fileSummaryLoading ||
-    !hasPath ||
-    !state.hasPreviewResult ||
-    state.lastPreviewPath !== filePreviewPathInput.value.trim();
-}
-
-function setFilePreviewLoading(isLoading) {
-  state.filePreviewLoading = isLoading;
-  setButtonLoading(readFilePreviewButton, isLoading, {
-    loading: "读取中...",
-    idle: "读取预览",
-  });
-  updateFilePreviewButtonState();
-}
-
-function setFileSummaryLoading(isLoading) {
-  state.fileSummaryLoading = isLoading;
-  setButtonLoading(summarizeFilePreviewButton, isLoading, {
-    loading: "总结中...",
-    idle: "生成总结",
-  });
-  updateFilePreviewButtonState();
-}
-
-function handleFilePreviewPathInput() {
-  if (state.lastPreviewPath && state.lastPreviewPath !== filePreviewPathInput.value.trim()) {
-    resetFileSummaryResult();
-  }
-  updateFilePreviewButtonState();
-}
-
-async function readFilePreview() {
-  if (state.filePreviewLoading) {
-    return;
-  }
-
-  const backendUrl = backendUrlInput.value.trim();
-  const path = filePreviewPathInput.value.trim();
-
-  if (!path) {
-    setTextStatus(filePreviewStatus, "File path cannot be empty", "error");
-    updateFilePreviewButtonState();
-    return;
-  }
-
-  setFilePreviewLoading(true);
-  state.hasPreviewResult = false;
-  state.lastPreviewPath = "";
-  filePreviewResult.classList.add("hidden");
-  filePreviewResult.innerHTML = "";
-  resetFileSummaryResult();
-  setTextStatus(filePreviewStatus, "Reading /files/preview ...", "idle");
-
-  try {
-    const payload = await requestFilePreview(backendUrl, path);
-    renderFilePreview(payload);
-    state.hasPreviewResult = true;
-    state.lastPreviewPath = path;
-    setTextStatus(filePreviewStatus, "Preview loaded from /files/preview", "success");
-  } catch (error) {
-    renderErrorBox(filePreviewResult, error, "File preview failed");
-    const code = error?.code ? `${error.code}: ` : "";
-    setTextStatus(
-      filePreviewStatus,
-      `${code}${error instanceof Error ? error.message : "File preview failed"}`,
-      "error"
-    );
-  } finally {
-    setFilePreviewLoading(false);
-  }
-}
-
-async function summarizeFilePreview() {
-  if (state.fileSummaryLoading || summarizeFilePreviewButton.disabled) {
-    return;
-  }
-
-  const backendUrl = backendUrlInput.value.trim();
-  const path = filePreviewPathInput.value.trim();
-
-  if (!state.hasPreviewResult || state.lastPreviewPath !== path) {
-    setTextStatus(
-      fileSummaryStatus,
-      "Please load a preview for the current path before summarizing.",
-      "error"
-    );
-    updateFilePreviewButtonState();
-    return;
-  }
-
-  setFileSummaryLoading(true);
-  fileSummaryResult.classList.add("hidden");
-  fileSummaryResult.innerHTML = "";
-  setTextStatus(fileSummaryStatus, "Sending /api/files/summarize ...", "idle");
-
-  try {
-    const payload = await requestFileSummary(backendUrl, path);
-    renderFileSummary(payload);
-    setTextStatus(fileSummaryStatus, "Summary loaded from /api/files/summarize", "success");
-  } catch (error) {
-    renderErrorBox(fileSummaryResult, error, "File summary failed");
-    const code = error?.code ? `${error.code}: ` : "";
-    setTextStatus(
-      fileSummaryStatus,
-      `${code}${error instanceof Error ? error.message : "File summary failed"}`,
-      "error"
-    );
-  } finally {
-    setFileSummaryLoading(false);
-  }
 }
 
 async function checkBackend() {
