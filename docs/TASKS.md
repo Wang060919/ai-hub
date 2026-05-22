@@ -2,6 +2,21 @@
 
 本文档约束当前开发顺序，记录任务状态与执行进度。
 
+## 文档优先级
+
+当前 V1.x 主线文档统一按以下顺序使用：
+
+1. `docs/VERSION_PLAN.md`
+2. `docs/ARCHITECTURE.md`
+3. `docs/TASKS.md`
+4. `README.md`
+
+以下文档为历史参考，不再作为当前版本开发的直接裁决依据：
+
+- `docs/AI_Hub_Version_Roadmap.md`
+- `docs/AI_Hub_Implementation_Plan.md`
+- `docs/AI_Hub_Project_Planning.md`
+
 ## 任务状态约定
 
 - `TODO`：未开始
@@ -496,18 +511,32 @@ V1.6 风险边界：
 
 ---
 
-### V1.7：语音交互
+### V1.7：本地 Markdown 笔记接入 / Obsidian Bridge 第一版
 
-**状态**：`TODO`
+**状态**：`DOING`（M1 文档口径统一与主题规格固定进行中）
+
+定位与边界：
+
+- 只做用户手动指定的 Obsidian / 本地 Markdown 笔记接入
+- 复用现有 V1.4 知识库能力
+- 支持手动选择或配置 Markdown 目录、单篇 `.md` 笔记
+- 不自动扫描全盘
+- 不自动读取隐私文件
+- 不自动接入 `/chat`
+- 不做 PDF / Word / Excel
+- 不做 embedding / ChromaDB
+- 不做完整笔记系统
+- 不做真正桌宠
 
 任务清单：
 
-- [ ] 语音输入捕获
-- [ ] VAD 语音活动检测
-- [ ] STT 语音转文字
-- [ ] TTS 文字转语音
-- [ ] 低延迟语音对话流程
-- [ ] 桌面语音助手体验
+- [x] M1：文档口径统一 + V1.7 主题规格固定
+- [ ] M2：Markdown / Obsidian 接入方案设计
+- [ ] M3：单篇 Markdown 笔记手动入库
+- [ ] M4：受控目录内 Markdown 手动批量入库
+- [ ] M5：Panel / Knowledge 入口展示接入状态
+- [ ] M6：安全边界验证与文档同步
+- [ ] M7：收尾 tag
 
 ---
 

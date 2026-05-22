@@ -2,6 +2,21 @@
 
 本文档定义 AI Hub 的分层架构、模块职责与接入规范。V1.1 阶段将按此架构重塑项目结构。
 
+## 文档优先级
+
+当前 V1.x 主线文档统一按以下顺序使用：
+
+1. `docs/VERSION_PLAN.md`
+2. `docs/ARCHITECTURE.md`
+3. `docs/TASKS.md`
+4. `README.md`
+
+以下文档为历史参考，不再作为当前版本开发的直接裁决依据：
+
+- `docs/AI_Hub_Version_Roadmap.md`
+- `docs/AI_Hub_Implementation_Plan.md`
+- `docs/AI_Hub_Project_Planning.md`
+
 ## 一、分层架构总览
 
 ```
@@ -242,12 +257,19 @@ ai-hub/
 - `backend/modules/files/` — 文件处理（V1.3 实现）
 - `backend/modules/knowledge/` — 知识库（V1.4 当前为本地文本知识库第一版）
 - `backend/modules/screen/` — 屏幕工具（V1.5 实现）
-- `backend/modules/voice/` — 语音（V1.7 实现）
+- `backend/modules/voice/` — 语音（后续版本预留，当前未纳入 V1.7 主线）
 - `backend/modules/sandbox/` — 沙盒（V1.9 实现）
 - `backend/modules/skills/` — 技能/路由预留目录（当前已预留，后续版本再定义主线）
 - `backend/adapters/chromadb/` — 向量数据库预留（V1.5+ 预留，当前未实现）
 - `backend/adapters/docker/` — Docker（V1.9 实现）
-- `backend/adapters/stt/` + `backend/adapters/tts/` — 语音（V1.7 实现）
+- `backend/adapters/stt/` + `backend/adapters/tts/` — 语音（后续版本预留，当前未纳入 V1.7 主线）
+
+V1.7 当前主题补充：
+
+- V1.7 主题已固定为“本地 Markdown 笔记接入 / Obsidian Bridge 第一版”
+- 该阶段优先复用现有 `files` 与 `knowledge` 模块
+- 第一版重点是手动指定 Markdown 单文件或受控目录接入
+- 当前不要求为 V1.7 新增语音模块、STT、TTS 或桌面语音助手链路
 
 ## 九、V1.5 当前前端结构补充
 

@@ -37,19 +37,27 @@ AI Hub 是一个面向学习与个人工作流的桌面 AI 智能中枢。
 
 ## 3. 文档优先级
 
-所有 AI 开发工具都必须按以下顺序读取并服从文档：
+当前主线文档统一按以下顺序读取并服从：
 
-1. `docs/AI_Hub_Version_Roadmap.md`
-2. `docs/AI_Hub_Implementation_Plan.md`
-3. `docs/AI_Hub_Project_Planning.md`
+1. `docs/VERSION_PLAN.md`
+2. `docs/ARCHITECTURE.md`
+3. `docs/TASKS.md`
+4. `README.md`
 
-如果三份文档之间出现范围冲突、优先级冲突或愿景膨胀，必须按以上顺序裁决。
+历史参考文档如下：
 
-默认规则：
+- `docs/AI_Hub_Version_Roadmap.md`
+- `docs/AI_Hub_Implementation_Plan.md`
+- `docs/AI_Hub_Project_Planning.md`
 
-- 路线图决定版本边界
-- 实施计划决定当前冲刺内容
-- 项目规划负责保留长期愿景与架构原则
+历史参考文档用于保留 V0.x 阶段背景、早期边界与长期愿景，不再作为当前版本开发的直接裁决依据。
+
+如果当前主线文档之间出现冲突，默认按以下规则裁决：
+
+- `VERSION_PLAN.md` 决定版本边界与迭代顺序
+- `ARCHITECTURE.md` 决定结构边界与接入方式
+- `TASKS.md` 记录当前执行状态与阶段进度
+- `README.md` 负责项目入口、运行说明与文档索引
 
 ## 4. 当前允许开发内容
 

@@ -29,12 +29,27 @@ V1.0 / V1.0.1 已基本完成：
 | V1.4 | 知识库与记忆系统 | M8-M12 已完成，进入收尾审查 / 收尾验证 |
 | V1.5 | 屏幕感知工具组与学习辅助模式 | M1-M9 已完成前端结构整理核心目标，进入收尾 |
 | V1.6 | 桌面小面板 / 项目管家面板第一版 | M1-M6 已完成，等待 M7 |
-| V1.7 | 语音交互 | 待开始 |
+| V1.7 | 本地 Markdown 笔记接入 / Obsidian Bridge 第一版 | M1 文档口径统一与主题规格固定 |
 | V1.8 | 手机端 / 局域网 / 室友测试 | 待开始 |
 | V1.9 | Docker 安全沙盒与自动化执行 | 待开始 |
 | V2.0 | 个人 AI Agent 工作站完全体 | 远期 |
 
 详见 [docs/VERSION_PLAN.md](docs/VERSION_PLAN.md)。
+
+## 文档优先级
+
+当前主线文档按以下顺序使用：
+
+1. [版本计划](docs/VERSION_PLAN.md)
+2. [架构设计](docs/ARCHITECTURE.md)
+3. [任务清单](docs/TASKS.md)
+4. [README](README.md)
+
+以下文档保留为历史参考，不再作为当前 V1.x 阶段的直接裁决依据：
+
+- `docs/AI_Hub_Version_Roadmap.md`
+- `docs/AI_Hub_Implementation_Plan.md`
+- `docs/AI_Hub_Project_Planning.md`
 
 ## 环境准备
 
@@ -111,6 +126,9 @@ python scripts/test_api.py
 - [架构设计](docs/ARCHITECTURE.md) — 分层架构与模块设计
 - [任务清单](docs/TASKS.md) — 当前任务状态与执行记录
 - [历史决策](docs/DECISIONS.md) — 技术决策记录
+- [历史路线图](docs/AI_Hub_Version_Roadmap.md) — V0.x 阶段路线与边界参考
+- [历史实施计划](docs/AI_Hub_Implementation_Plan.md) — V0.x 阶段实施节奏参考
+- [历史项目规划](docs/AI_Hub_Project_Planning.md) — 早期愿景与架构背景参考
 
 ## 通用化原则补充
 

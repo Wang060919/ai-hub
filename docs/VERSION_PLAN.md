@@ -4,12 +4,20 @@
 
 ## 文档优先级
 
+当前 V1.x 主线文档统一按以下顺序使用：
+
 1. `docs/VERSION_PLAN.md`（本文档）— 版本边界与迭代顺序
 2. `docs/ARCHITECTURE.md` — 分层架构与接入规范
 3. `docs/TASKS.md` — 当前任务状态与执行记录
 4. `README.md` — 项目入口与快速启动
 
-历史文档（`AI_Hub_Version_Roadmap.md`、`AI_Hub_Implementation_Plan.md`、`AI_Hub_Project_Planning.md`）为 V0.x 阶段的规划记录，不再作为当前开发依据。
+历史参考文档如下：
+
+- `docs/AI_Hub_Version_Roadmap.md`
+- `docs/AI_Hub_Implementation_Plan.md`
+- `docs/AI_Hub_Project_Planning.md`
+
+这些历史文档主要保留 V0.x 阶段规划、早期边界与长期愿景，不再作为当前 V1.x 开发的直接裁决依据；若与当前主线文档冲突，以当前主线文档为准。
 
 ---
 
@@ -470,18 +478,46 @@ V1.4-M13 文档修正补充：上方 V1.4 节若仍保留旧表述，以本补�
 
 ---
 
-### V1.7：语音交互
+### V1.7：本地 Markdown 笔记接入 / Obsidian Bridge 第一版
 
-**目标**：实现桌面端语音对话能力。
+**状态**：V1.7-M1 已启动，当前只做文档口径统一与主题规格固定。
 
-**内容**：
+**目标**：在不扩展后端能力边界的前提下，基于现有 V1.4 本地文本知识库第一版，建立面向 Obsidian / 本地 Markdown 笔记的手动接入闭环。
 
-- 语音输入
-- VAD 语音活动检测
-- STT 语音转文字
-- TTS 文字转语音
-- 低延迟语音对话
-- 桌面语音助手体验
+**定位说明**：
+
+- V1.7 不是完整笔记系统
+- V1.7 不是真正桌宠
+- V1.7 不新增模型侧知识增强自动化
+- V1.7 是对现有 Markdown 与知识库能力的受控接入整理
+
+**第一版范围**：
+
+- 只做用户手动指定的 Obsidian Vault 或本地 Markdown 目录接入
+- 复用现有 V1.4 知识库接口与索引能力
+- 支持手动指定单篇 `.md` 笔记
+- 支持手动指定受控目录内的 Markdown 笔记
+- 所有入库、搜索、问答动作继续保持手动触发
+
+**明确不做**：
+
+- 不自动扫描全盘
+- 不自动读取隐私文件
+- 不自动接入 `/chat`
+- 不做 PDF / Word / Excel
+- 不做 embedding / ChromaDB
+- 不做完整笔记系统
+- 不做真正桌宠
+
+**推荐里程碑**：
+
+- M1：文档口径统一 + V1.7 主题规格固定
+- M2：Markdown / Obsidian 接入方案设计
+- M3：单篇 Markdown 笔记手动入库
+- M4：受控目录内 Markdown 手动批量入库
+- M5：Panel / Knowledge 入口展示接入状态
+- M6：安全边界验证与文档同步
+- M7：收尾 tag
 
 **不包含**：
 
