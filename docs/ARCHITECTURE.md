@@ -278,6 +278,8 @@ frontend/public/js/
     files.js
   knowledge/
     knowledge.js
+  panel/
+    panel.js
 ```
 
 当前职责边界：
@@ -287,6 +289,7 @@ frontend/public/js/
 - `core/`：通用纯函数，例如 `escapeHtml` 与 assistant Markdown 渲染
 - `catalog/`：纯数据目录，例如 `fileToolsCatalog`
 - `chat/`、`files/`、`knowledge/`：各自页面的业务模块
+- `panel/`：Panel 入口层模块，负责摘要展示、快速 Chat 与跳转桥接
 - `frontend/public/app.js`：入口编排，负责 DOM 引用、state 组装、模块初始化、事件绑定、Tab 切换、backend metadata 检查，以及少量页面级展示逻辑
 
 当前边界保持不变：
@@ -308,6 +311,14 @@ V1.6 当前方向已统一为“桌面小面板 / 项目管家面板第一版”
 - Panel 只做入口、摘要和快捷动作，不替代完整页面
 - 所有高成本或高风险动作仍保持手动触发
 - 第一版优先不修改 Tauri 权限，不扩大后端能力边界
+
+当前已完成到 M6 的入口层能力包括：
+
+- Panel 壳层与独立顶层 tab
+- Panel 后端状态摘要，复用现有 metadata 结果
+- Panel 知识库状态摘要，复用现有 knowledge status 结果
+- Panel 快速 Chat 手动发送，复用现有 chat API
+- Panel 跳转到完整后端状态、聊天、文件工具、知识库区域
 
 当前明确不应写成 V1.6 已完成的内容：
 
