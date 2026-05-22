@@ -300,19 +300,54 @@ M7 说明：
 
 ### V1.4：知识库与记忆系统
 
-**状态**：`TODO`
+**状态**：`DOING`（M8-M10 已完成，M11 方向待确认）
 
 任务清单：
 
+- [x] 本地文本知识库状态接口：`GET /knowledge/status`
+- [x] 本地文本知识库入库接口：`POST /knowledge/index-file`
+- [x] 本地文本知识库纯检索接口：`POST /knowledge/search`
+- [x] 本地文本知识库检索增强回答接口：`POST /knowledge/query`
 - [ ] ChromaDB 接入
-- [ ] 文档切片服务
 - [ ] 向量化服务
-- [ ] 本地知识库 CRUD
-- [ ] RAG 问答流程
 - [ ] 长期记忆存储
 - [ ] 学习资料沉淀
 - [ ] 错题/薄弱点存储接口
 - [ ] 个性化知识图谱接口预留
+
+V1.4-M10 检索增强回答同步：
+
+- [x] M10a：已完成独立 `POST /knowledge/query`，不接入 `/chat`。
+- [x] M10b：已实现知识库第一版最小闭环：`/knowledge/index-file` 入库、`/knowledge/status`、`/knowledge/search` 纯检索、`/knowledge/query` 检索增强回答。
+- [x] M10c：`/knowledge/query` 先检索 chunks，再基于 hits 调用 DeepSeek 生成回答。
+- [x] M10d：hits 为空时不调用 DeepSeek，直接返回 `grounded=false`、空 `hits`、空 `citations`。
+- [x] M10e：`/knowledge/query` 不走 `/chat`，不自动接入聊天，不做 Echo fallback。
+- [x] M10f：第一版 `citations` 已由 hits 直接映射生成，未做模型真实引用抽取。
+- [x] M10g：已加入模型上下文长度控制，避免无界传入知识片段。
+- [x] M10h：真实 DeepSeek 知识库问答验证已通过。
+- [x] M10i：manual-test 测试知识库记录和测试文件已清理。
+
+M10 已验证结果：
+
+- `HTTP_STATUS: 200`
+- `model: deepseek-v4-flash`
+- `grounded: true`
+- `hits` 非空
+- `citations` 非空
+- `answer.text` 中文正常
+
+M10 当前边界：
+
+- `/knowledge/query` 是独立接口，当前不自动接入 `/chat`。
+- 当前知识库仍是本地文本知识库第一版，不做 embedding，不做 ChromaDB。
+- 当前不做自动长期记忆，不做自动监听聊天入库，不做自动知识增强聊天。
+- 当前不做前端知识库页面。
+- 当前不支持 PDF / Word / Excel 知识入库。
+
+V1.4 下一步待确认：
+
+- V1.4-M11：前端 Knowledge 最小入口
+- 或 V1.4-M11：错误处理与安全边界验证
 
 ---
 

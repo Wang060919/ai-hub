@@ -237,25 +237,53 @@ AI Hub 当前阶段优先做个人可用版，但代码不能写死为只能在�
 
 ### V1.4：知识库与记忆系统
 
-**目标**：建立本地知识库与长期记忆能力。
+**状态**：M8-M10 已完成，当前进入 M11 方向确认。
 
-**内容**：
+**目标**：先完成本地文本知识库第一版最小闭环，再决定前端入口或错误处理验证的下一步。
 
-- ChromaDB 接入
-- 文档切片
-- 向量化
-- 本地知识库
-- RAG 问答
-- 长期记忆
-- 学习资料沉淀
-- 错题 / 薄弱点存储接口
-- 后续可扩展个性化知识图谱
+**已完成内容**：
 
-**不包含**：
+- `GET /knowledge/status`
+- `POST /knowledge/index-file`
+- `POST /knowledge/search`
+- `POST /knowledge/query`
+- 本地文本知识库切片入库
+- 基于 SQLite FTS / LIKE fallback 的纯检索
+- 基于检索 hits 的 DeepSeek 增强回答
+- hits 为空时直接返回 `grounded=false`，不调用 DeepSeek
+- 第一版 `citations` 由 hits 直接映射生成
+- 传给模型的知识片段已做最大上下文长度控制
+- `/knowledge/query` 为独立接口，未接入 `/chat`
+- 真实 DeepSeek 知识库问答验证已通过
+- manual-test 测试知识库记录和测试文件已清理
 
-- 不做 GraphRAG
-- 不做知识图谱可视化
-- 不做多知识库管理
+**M10 已验证结果**：
+
+- `HTTP_STATUS: 200`
+- `model: deepseek-v4-flash`
+- `grounded: true`
+- `hits` 非空
+- `citations` 非空
+- `answer.text` 中文正常
+
+**当前边界**：
+
+- 当前 V1.4 仍是本地文本知识库第一版。
+- 当前不支持 embedding。
+- 当前不支持 ChromaDB。
+- 当前不支持自动长期记忆。
+- 当前不支持自动监听聊天入库。
+- 当前不支持自动接入 `/chat`。
+- 当前不支持前端知识库页面。
+- 当前不支持 PDF / Word / Excel 知识入库。
+- 当前不做 GraphRAG。
+- 当前不做知识图谱可视化。
+- 当前不做多知识库管理。
+
+**下一步待确认**：
+
+- V1.4-M11：前端 Knowledge 最小入口
+- 或 V1.4-M11：错误处理与安全边界验证
 
 ---
 
