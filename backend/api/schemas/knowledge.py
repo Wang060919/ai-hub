@@ -73,3 +73,29 @@ class KnowledgeSearchResponse(BaseModel):
     status: str
     search: KnowledgeSearchBody
     hits: list[KnowledgeSearchHitItem]
+
+
+class KnowledgeQueryRequest(BaseModel):
+    question: str = Field(..., min_length=1)
+    kb_id: str = Field(default="default", min_length=1)
+    top_k: int = Field(default=4, ge=1)
+
+
+class KnowledgeAnswerItem(BaseModel):
+    text: str
+    model: str | None
+    grounded: bool
+
+
+class KnowledgeCitationItem(BaseModel):
+    index: int
+    chunk_id: int
+    relative_path: str
+    chunk_index: int
+
+
+class KnowledgeQueryResponse(BaseModel):
+    status: str
+    answer: KnowledgeAnswerItem
+    hits: list[KnowledgeSearchHitItem]
+    citations: list[KnowledgeCitationItem]

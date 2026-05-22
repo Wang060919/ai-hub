@@ -69,3 +69,29 @@ class KnowledgeSearchResult:
     top_k: int
     index_method: str
     hits: list[KnowledgeSearchHit]
+
+
+@dataclass(frozen=True)
+class KnowledgeCitation:
+    index: int
+    chunk_id: int
+    relative_path: str
+    chunk_index: int
+
+
+@dataclass(frozen=True)
+class KnowledgeAnswer:
+    text: str
+    model: str | None
+    grounded: bool
+
+
+@dataclass(frozen=True)
+class KnowledgeQueryResult:
+    question: str
+    kb_id: str
+    top_k: int
+    index_method: str
+    answer: KnowledgeAnswer
+    hits: list[KnowledgeSearchHit]
+    citations: list[KnowledgeCitation]

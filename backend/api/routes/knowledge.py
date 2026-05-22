@@ -2,9 +2,13 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from backend.api.schemas.knowledge import (
+    KnowledgeAnswerItem,
+    KnowledgeCitationItem,
     KnowledgeIndexFileInfo,
     KnowledgeIndexFileRequest,
     KnowledgeIndexFileResponse,
+    KnowledgeQueryRequest,
+    KnowledgeQueryResponse,
     KnowledgeSearchBody,
     KnowledgeSearchHitItem,
     KnowledgeSearchRequest,
@@ -14,6 +18,7 @@ from backend.api.schemas.knowledge import (
 )
 from backend.services.file.text_file_service import FileServiceError, TextFileService
 from backend.services.knowledge.index_service import KnowledgeIndexService
+from backend.services.knowledge.answer_service import KnowledgeAnswerError
 from backend.services.knowledge.query_service import KnowledgeQueryService
 from backend.services.knowledge.repository import KnowledgeRepository
 from backend.storage import get_connection
@@ -86,6 +91,67 @@ def knowledge_search(request: KnowledgeSearchRequest) -> KnowledgeSearchResponse
                 content=hit.content,
             )
             for hit in result.hits
+        ],
+    )
+
+
+@router.post("/knowledge/query", response_model=KnowledgeQueryResponse)
+def knowledge_query(request: KnowledgeQueryRequest) -> KnowledgeQueryResponse | JSONResponse:
+    try:
+        result = knowledge_query_service.query(
+            question=request.question,
+            kb_id=request.kb_id,
+            top_k=request.top_k,
+        )
+    except ValueError as exc:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "status": "error",
+                "error": {
+                    "code": "INVALID_QUESTION",
+                    "message": str(exc),
+                },
+            },
+        )
+    except KnowledgeAnswerError as exc:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "error",
+                "error": {
+                    "code": exc.code,
+                    "message": exc.message,
+                },
+            },
+        )
+
+    return KnowledgeQueryResponse(
+        status="ok",
+        answer=KnowledgeAnswerItem(
+            text=result.answer.text,
+            model=result.answer.model,
+            grounded=result.answer.grounded,
+        ),
+        hits=[
+            KnowledgeSearchHitItem(
+                chunk_id=hit.chunk_id,
+                file_id=hit.file_id,
+                relative_path=hit.relative_path,
+                chunk_index=hit.chunk_index,
+                score=hit.score,
+                content=hit.content,
+            )
+            for hit in result.hits
+        ],
+        citations=[
+            KnowledgeCitationItem(
+                index=citation.index,
+                chunk_id=citation.chunk_id,
+                relative_path=citation.relative_path,
+                chunk_index=citation.chunk_index,
+            )
+            for citation in result.citations
         ],
     )
 
