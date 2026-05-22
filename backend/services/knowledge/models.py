@@ -50,3 +50,22 @@ class KnowledgeIndexResult:
     reused_existing: bool
     replaced_existing: bool
     index_method: str
+
+
+@dataclass(frozen=True)
+class KnowledgeSearchHit:
+    chunk_id: int
+    file_id: int
+    relative_path: str
+    chunk_index: int
+    score: float
+    content: str
+
+
+@dataclass(frozen=True)
+class KnowledgeSearchResult:
+    query: str
+    kb_id: str
+    top_k: int
+    index_method: str
+    hits: list[KnowledgeSearchHit]

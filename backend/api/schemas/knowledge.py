@@ -44,3 +44,32 @@ class KnowledgeStatusBody(BaseModel):
 class KnowledgeStatusResponse(BaseModel):
     status: str
     knowledge: KnowledgeStatusBody
+
+
+class KnowledgeSearchRequest(BaseModel):
+    query: str = Field(..., min_length=1)
+    kb_id: str = Field(default="default", min_length=1)
+    top_k: int = Field(default=4, ge=1)
+
+
+class KnowledgeSearchBody(BaseModel):
+    query: str
+    kb_id: str
+    top_k: int
+    index_method: str
+    hits_count: int
+
+
+class KnowledgeSearchHitItem(BaseModel):
+    chunk_id: int
+    file_id: int
+    relative_path: str
+    chunk_index: int
+    score: float
+    content: str
+
+
+class KnowledgeSearchResponse(BaseModel):
+    status: str
+    search: KnowledgeSearchBody
+    hits: list[KnowledgeSearchHitItem]

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import sqlite3
 from collections.abc import Callable
 from datetime import datetime
@@ -8,6 +9,8 @@ from backend.services.knowledge.models import (
     KnowledgeChunkDraft,
     KnowledgeFileDraft,
     KnowledgeIndexResult,
+    KnowledgeSearchHit,
+    KnowledgeSearchResult,
     KnowledgeStorageStatus,
 )
 
@@ -29,6 +32,51 @@ class KnowledgeRepository:
     def get_storage_status(self) -> KnowledgeStorageStatus:
         with self._connection_factory() as connection:
             return build_knowledge_storage_status(connection)
+
+    def search_chunks(
+        self,
+        query: str,
+        kb_id: str = "default",
+        top_k: int = 4,
+    ) -> KnowledgeSearchResult:
+        with self._connection_factory() as connection:
+            initialize_knowledge_schema(connection)
+
+            search_terms = _extract_search_terms(query)
+            if not search_terms:
+                return KnowledgeSearchResult(
+                    query=query,
+                    kb_id=kb_id,
+                    top_k=top_k,
+                    index_method=_get_index_method(connection),
+                    hits=[],
+                )
+
+            if _table_exists(connection, "knowledge_chunks_fts"):
+                hits = _search_chunks_with_fts(
+                    connection=connection,
+                    query=query,
+                    kb_id=kb_id,
+                    top_k=top_k,
+                    search_terms=search_terms,
+                )
+                index_method = "sqlite_fts"
+            else:
+                hits = _search_chunks_with_like(
+                    connection=connection,
+                    kb_id=kb_id,
+                    top_k=top_k,
+                    search_terms=search_terms,
+                )
+                index_method = "sqlite_like_fallback"
+
+            return KnowledgeSearchResult(
+                query=query,
+                kb_id=kb_id,
+                top_k=top_k,
+                index_method=index_method,
+                hits=hits,
+            )
 
     def index_file_content(
         self,
@@ -366,6 +414,125 @@ def _delete_file_record(connection: sqlite3.Connection, file_id: int) -> None:
 
 def _get_index_method(connection: sqlite3.Connection) -> str:
     return "sqlite_fts" if _table_exists(connection, "knowledge_chunks_fts") else "sqlite_like_fallback"
+
+
+def _search_chunks_with_fts(
+    connection: sqlite3.Connection,
+    query: str,
+    kb_id: str,
+    top_k: int,
+    search_terms: list[str],
+) -> list[KnowledgeSearchHit]:
+    match_query = _build_fts_match_query(search_terms)
+    if not match_query:
+        return []
+
+    rows = connection.execute(
+        """
+        SELECT
+            chunks.id AS chunk_id,
+            chunks.file_id AS file_id,
+            files.relative_path AS relative_path,
+            chunks.chunk_index AS chunk_index,
+            ABS(bm25(knowledge_chunks_fts)) AS score,
+            chunks.content AS content
+        FROM knowledge_chunks_fts
+        JOIN knowledge_chunks AS chunks
+          ON chunks.id = knowledge_chunks_fts.chunk_id
+        JOIN knowledge_files AS files
+          ON files.id = chunks.file_id
+        WHERE knowledge_chunks_fts.kb_id = ?
+          AND knowledge_chunks_fts MATCH ?
+        ORDER BY bm25(knowledge_chunks_fts) ASC, chunks.id ASC
+        LIMIT ?
+        """,
+        (kb_id, match_query, top_k),
+    ).fetchall()
+
+    if rows:
+        return [_build_search_hit(row) for row in rows]
+
+    # Fall back when MATCH parsing produces no hits for a free-form user question.
+    return _search_chunks_with_like(
+        connection=connection,
+        kb_id=kb_id,
+        top_k=top_k,
+        search_terms=search_terms,
+    )
+
+
+def _search_chunks_with_like(
+    connection: sqlite3.Connection,
+    kb_id: str,
+    top_k: int,
+    search_terms: list[str],
+) -> list[KnowledgeSearchHit]:
+    like_clauses = []
+    score_clauses = []
+    score_parameters: list[object] = []
+    where_parameters: list[object] = [kb_id]
+
+    for term in search_terms:
+        like_pattern = f"%{term.lower()}%"
+        like_clauses.append("LOWER(chunks.content) LIKE ?")
+        score_clauses.append("CASE WHEN LOWER(chunks.content) LIKE ? THEN 1.0 ELSE 0.0 END")
+        score_parameters.append(like_pattern)
+        where_parameters.append(like_pattern)
+
+    parameters: list[object] = [*score_parameters, *where_parameters, top_k]
+
+    rows = connection.execute(
+        f"""
+        SELECT
+            chunks.id AS chunk_id,
+            chunks.file_id AS file_id,
+            files.relative_path AS relative_path,
+            chunks.chunk_index AS chunk_index,
+            ({' + '.join(score_clauses)}) AS score,
+            chunks.content AS content
+        FROM knowledge_chunks AS chunks
+        JOIN knowledge_files AS files
+          ON files.id = chunks.file_id
+        WHERE chunks.kb_id = ?
+          AND ({' OR '.join(like_clauses)})
+        ORDER BY score DESC, chunks.id ASC
+        LIMIT ?
+        """,
+        parameters,
+    ).fetchall()
+
+    return [_build_search_hit(row) for row in rows]
+
+
+def _build_search_hit(row: sqlite3.Row) -> KnowledgeSearchHit:
+    return KnowledgeSearchHit(
+        chunk_id=int(row["chunk_id"]),
+        file_id=int(row["file_id"]),
+        relative_path=str(row["relative_path"]),
+        chunk_index=int(row["chunk_index"]),
+        score=float(row["score"]),
+        content=str(row["content"]),
+    )
+
+
+def _extract_search_terms(query: str) -> list[str]:
+    normalized = str(query or "").strip().lower()
+    if not normalized:
+        return []
+
+    terms = [term for term in re.split(r"\s+", normalized) if term]
+    if terms:
+        return terms
+    return [normalized]
+
+
+def _build_fts_match_query(search_terms: list[str]) -> str:
+    safe_terms = []
+    for term in search_terms:
+        cleaned = re.sub(r'["*]', " ", term).strip()
+        if cleaned:
+            safe_terms.append(f'"{cleaned}"')
+    return " OR ".join(safe_terms)
 
 
 def _table_exists(connection: sqlite3.Connection, table_name: str) -> bool:
