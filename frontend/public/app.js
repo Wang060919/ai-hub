@@ -2,7 +2,7 @@ import { escapeHtml } from "./js/core/utils.js";
 import { requestMetadata } from "./js/api/metadata.js";
 import { requestChat } from "./js/api/chat.js";
 import { requestFilePreview, requestFileSummary } from "./js/api/files.js";
-import { requestKnowledgeStatus, requestKnowledgeIndexFile, requestKnowledgeSearch, requestKnowledgeQuery } from "./js/api/knowledge.js";
+import { createKnowledgeModule } from "./js/knowledge/knowledge.js";
 import { setTextStatus } from "./js/ui/status.js";
 import { setButtonLoading } from "./js/ui/loading.js";
 import { renderErrorBox } from "./js/ui/error.js";
@@ -166,6 +166,39 @@ const state = {
   lastPreviewPath: "",
   skills: [],
 };
+
+const {
+  updateKnowledgeButtonState,
+  refreshKnowledgeStatus,
+  addToKnowledge,
+  searchKnowledge,
+  queryKnowledge,
+} = createKnowledgeModule({
+  dom: {
+    backendUrlInput,
+    refreshKnowledgeStatusButton,
+    knowledgeStatusMessage,
+    knowledgeStatusResult,
+    knowledgeIndexPathInput,
+    knowledgeIndexKbIdInput,
+    knowledgeIndexSubmitButton,
+    knowledgeIndexStatus,
+    knowledgeIndexResult,
+    knowledgeSearchQueryInput,
+    knowledgeSearchKbIdInput,
+    knowledgeSearchTopKInput,
+    knowledgeSearchSubmitButton,
+    knowledgeSearchStatus,
+    knowledgeSearchResult,
+    knowledgeQueryQuestionInput,
+    knowledgeQueryKbIdInput,
+    knowledgeQueryTopKInput,
+    knowledgeQuerySubmitButton,
+    knowledgeQueryStatus,
+    knowledgeQueryResult,
+  },
+  state,
+});
 
 function resetSummary() {
   healthStatus.textContent = "-";
@@ -635,193 +668,6 @@ function renderFileSummary(payload) {
   `;
 }
 
-function renderKnowledgeStatus(payload) {
-  const knowledge = payload || {};
-
-  knowledgeStatusResult.classList.remove("hidden");
-  knowledgeStatusResult.innerHTML = `
-    <div class="file-preview-meta">
-      <div class="file-preview-meta-item">
-        <span>files_count</span>
-        <strong>${escapeHtml(knowledge.files_count ?? "-")}</strong>
-      </div>
-      <div class="file-preview-meta-item">
-        <span>chunks_count</span>
-        <strong>${escapeHtml(knowledge.chunks_count ?? "-")}</strong>
-      </div>
-      <div class="file-preview-meta-item">
-        <span>index_method</span>
-        <strong>${escapeHtml(knowledge.index_method || "-")}</strong>
-      </div>
-      <div class="file-preview-meta-item">
-        <span>fts_enabled</span>
-        <strong>${escapeHtml(String(Boolean(knowledge.fts_enabled)))}</strong>
-      </div>
-      <div class="file-preview-meta-item">
-        <span>fts_available</span>
-        <strong>${escapeHtml(String(Boolean(knowledge.fts_available)))}</strong>
-      </div>
-      <div class="file-preview-meta-item">
-        <span>enabled</span>
-        <strong>${escapeHtml(String(Boolean(knowledge.enabled)))}</strong>
-      </div>
-    </div>
-  `;
-}
-
-function renderKnowledgeIndexResult(payload) {
-  const file = payload?.file || {};
-  const index = payload?.index || {};
-
-  knowledgeIndexResult.classList.remove("hidden");
-  knowledgeIndexResult.innerHTML = `
-    <div class="file-preview-meta">
-      <div class="file-preview-meta-item">
-        <span>chunk_count</span>
-        <strong>${escapeHtml(index.chunk_count ?? "-")}</strong>
-      </div>
-      <div class="file-preview-meta-item">
-        <span>reused_existing</span>
-        <strong>${escapeHtml(String(Boolean(index.reused_existing)))}</strong>
-      </div>
-      <div class="file-preview-meta-item">
-        <span>replaced_existing</span>
-        <strong>${escapeHtml(String(Boolean(index.replaced_existing)))}</strong>
-      </div>
-      <div class="file-preview-meta-item">
-        <span>index_method</span>
-        <strong>${escapeHtml(index.index_method || "-")}</strong>
-      </div>
-      <div class="file-preview-meta-item">
-        <span>kb_id</span>
-        <strong>${escapeHtml(file.kb_id || "-")}</strong>
-      </div>
-      <div class="file-preview-meta-item wide">
-        <span>relative_path</span>
-        <strong>${escapeHtml(file.relative_path || "-")}</strong>
-      </div>
-    </div>
-  `;
-}
-
-function renderKnowledgeHits(hits) {
-  if (!Array.isArray(hits) || hits.length === 0) {
-    return `<div class="file-summary-text">hits=[]</div>`;
-  }
-
-  return `
-    <ol class="knowledge-hit-list">
-      ${hits
-        .map(
-          (hit) => `
-            <li class="knowledge-hit-card">
-              <strong>${escapeHtml(hit.relative_path || "-")}</strong>
-              <p class="knowledge-hit-meta">
-                chunk_index=${escapeHtml(hit.chunk_index ?? "-")} | score=${escapeHtml(
-                  hit.score ?? "-"
-                )}
-              </p>
-              <pre class="knowledge-hit-content">${escapeHtml(hit.content || "")}</pre>
-            </li>
-          `
-        )
-        .join("")}
-    </ol>
-  `;
-}
-
-function renderKnowledgeSearchResult(payload) {
-  const search = payload?.search || {};
-
-  knowledgeSearchResult.classList.remove("hidden");
-  knowledgeSearchResult.innerHTML = `
-    <div class="file-preview-meta">
-      <div class="file-preview-meta-item">
-        <span>query</span>
-        <strong>${escapeHtml(search.query || "-")}</strong>
-      </div>
-      <div class="file-preview-meta-item">
-        <span>top_k</span>
-        <strong>${escapeHtml(search.top_k ?? "-")}</strong>
-      </div>
-      <div class="file-preview-meta-item">
-        <span>hits_count</span>
-        <strong>${escapeHtml(search.hits_count ?? "-")}</strong>
-      </div>
-      <div class="file-preview-meta-item">
-        <span>kb_id</span>
-        <strong>${escapeHtml(search.kb_id || "-")}</strong>
-      </div>
-      <div class="file-preview-meta-item">
-        <span>index_method</span>
-        <strong>${escapeHtml(search.index_method || "-")}</strong>
-      </div>
-    </div>
-    ${renderKnowledgeHits(payload?.hits)}
-  `;
-}
-
-function renderKnowledgeQueryResult(payload) {
-  const answer = payload?.answer || {};
-  const citations = Array.isArray(payload?.citations) ? payload.citations : [];
-
-  knowledgeQueryResult.classList.remove("hidden");
-  knowledgeQueryResult.innerHTML = `
-    <div class="file-preview-meta">
-      <div class="file-preview-meta-item">
-        <span>model</span>
-        <strong>${escapeHtml(answer.model || "-")}</strong>
-      </div>
-      <div class="file-preview-meta-item">
-        <span>grounded</span>
-        <strong>${escapeHtml(String(Boolean(answer.grounded)))}</strong>
-      </div>
-      <div class="file-preview-meta-item wide">
-        <span>answer.text</span>
-        <strong class="knowledge-answer-text">${escapeHtml(answer.text || "")}</strong>
-      </div>
-    </div>
-    <div class="summary-result-panel">
-      <div>
-        <p class="field-label">citations</p>
-        ${
-          citations.length === 0
-            ? '<div class="file-summary-text">citations=[]</div>'
-            : `
-              <ol class="knowledge-citation-list">
-                ${citations
-                  .map(
-                    (citation) => `
-                      <li class="knowledge-citation-card">
-                        <strong>[${escapeHtml(citation.index ?? "-")}] ${escapeHtml(
-                          citation.relative_path || "-"
-                        )}</strong>
-                        <p class="knowledge-citation-meta">
-                          chunk_id=${escapeHtml(citation.chunk_id ?? "-")} | chunk_index=${escapeHtml(
-                            citation.chunk_index ?? "-"
-                          )}
-                        </p>
-                      </li>
-                    `
-                  )
-                  .join("")}
-              </ol>
-            `
-        }
-      </div>
-      <div>
-        <p class="field-label">hits</p>
-        ${renderKnowledgeHits(payload?.hits)}
-      </div>
-    </div>
-  `;
-}
-
-function normalizeTopK(input, fallback = 4) {
-  const value = Number(input?.value);
-  return Number.isFinite(value) && value >= 1 ? Math.floor(value) : fallback;
-}
-
 function updateFilePreviewButtonState() {
   const hasPath = Boolean(filePreviewPathInput.value.trim());
   readFilePreviewButton.disabled = state.filePreviewLoading || !hasPath;
@@ -856,52 +702,6 @@ function handleFilePreviewPathInput() {
     resetFileSummaryResult();
   }
   updateFilePreviewButtonState();
-}
-
-function updateKnowledgeButtonState() {
-  refreshKnowledgeStatusButton.disabled = state.knowledgeStatusLoading;
-  knowledgeIndexSubmitButton.disabled =
-    state.knowledgeIndexLoading || !knowledgeIndexPathInput.value.trim();
-  knowledgeSearchSubmitButton.disabled =
-    state.knowledgeSearchLoading || !knowledgeSearchQueryInput.value.trim();
-  knowledgeQuerySubmitButton.disabled =
-    state.knowledgeQueryLoading || !knowledgeQueryQuestionInput.value.trim();
-}
-
-function setKnowledgeStatusLoading(isLoading) {
-  state.knowledgeStatusLoading = isLoading;
-  setButtonLoading(refreshKnowledgeStatusButton, isLoading, {
-    loading: "Refreshing...",
-    idle: "Refresh Knowledge Status",
-  });
-  updateKnowledgeButtonState();
-}
-
-function setKnowledgeIndexLoading(isLoading) {
-  state.knowledgeIndexLoading = isLoading;
-  setButtonLoading(knowledgeIndexSubmitButton, isLoading, {
-    loading: "Adding...",
-    idle: "Add To Knowledge",
-  });
-  updateKnowledgeButtonState();
-}
-
-function setKnowledgeSearchLoading(isLoading) {
-  state.knowledgeSearchLoading = isLoading;
-  setButtonLoading(knowledgeSearchSubmitButton, isLoading, {
-    loading: "Searching...",
-    idle: "Search Knowledge",
-  });
-  updateKnowledgeButtonState();
-}
-
-function setKnowledgeQueryLoading(isLoading) {
-  state.knowledgeQueryLoading = isLoading;
-  setButtonLoading(knowledgeQuerySubmitButton, isLoading, {
-    loading: "Asking...",
-    idle: "Ask Knowledge",
-  });
-  updateKnowledgeButtonState();
 }
 
 async function readFilePreview() {
@@ -982,156 +782,6 @@ async function summarizeFilePreview() {
     );
   } finally {
     setFileSummaryLoading(false);
-  }
-}
-
-async function refreshKnowledgeStatus() {
-  if (state.knowledgeStatusLoading) {
-    return;
-  }
-
-  const backendUrl = backendUrlInput.value.trim();
-  setKnowledgeStatusLoading(true);
-  knowledgeStatusResult.classList.add("hidden");
-  knowledgeStatusResult.innerHTML = "";
-  setTextStatus(knowledgeStatusMessage, "Loading /api/knowledge/status ...", "idle");
-
-  try {
-    const payload = await requestKnowledgeStatus(backendUrl);
-    renderKnowledgeStatus(payload);
-    setTextStatus(knowledgeStatusMessage, "Knowledge status loaded from /api/knowledge/status", "success");
-  } catch (error) {
-    renderErrorBox(knowledgeStatusResult, error, "Knowledge request failed");
-    const code = error?.code ? `${error.code}: ` : "";
-    setTextStatus(
-      knowledgeStatusMessage,
-      `${code}${error instanceof Error ? error.message : "Knowledge status failed"}`,
-      "error"
-    );
-  } finally {
-    setKnowledgeStatusLoading(false);
-  }
-}
-
-async function addToKnowledge() {
-  if (state.knowledgeIndexLoading || knowledgeIndexSubmitButton.disabled) {
-    return;
-  }
-
-  const backendUrl = backendUrlInput.value.trim();
-  const path = knowledgeIndexPathInput.value.trim();
-  const kbId = knowledgeIndexKbIdInput.value.trim() || "default";
-
-  if (!path) {
-    setTextStatus(knowledgeIndexStatus, "File path cannot be empty", "error");
-    updateKnowledgeButtonState();
-    return;
-  }
-
-  setKnowledgeIndexLoading(true);
-  knowledgeIndexResult.classList.add("hidden");
-  knowledgeIndexResult.innerHTML = "";
-  setTextStatus(knowledgeIndexStatus, "Sending /api/knowledge/index-file ...", "idle");
-
-  try {
-    const payload = await requestKnowledgeIndexFile(backendUrl, path, kbId);
-    renderKnowledgeIndexResult(payload);
-    setTextStatus(knowledgeIndexStatus, "Knowledge file indexed via /api/knowledge/index-file", "success");
-    void refreshKnowledgeStatus();
-  } catch (error) {
-    renderErrorBox(knowledgeIndexResult, error, "Knowledge request failed");
-    const code = error?.code ? `${error.code}: ` : "";
-    setTextStatus(
-      knowledgeIndexStatus,
-      `${code}${error instanceof Error ? error.message : "Knowledge index failed"}`,
-      "error"
-    );
-  } finally {
-    setKnowledgeIndexLoading(false);
-  }
-}
-
-async function searchKnowledge() {
-  if (state.knowledgeSearchLoading || knowledgeSearchSubmitButton.disabled) {
-    return;
-  }
-
-  const backendUrl = backendUrlInput.value.trim();
-  const query = knowledgeSearchQueryInput.value.trim();
-  const kbId = knowledgeSearchKbIdInput.value.trim() || "default";
-  const topK = normalizeTopK(knowledgeSearchTopKInput);
-
-  if (!query) {
-    setTextStatus(knowledgeSearchStatus, "Query cannot be empty", "error");
-    updateKnowledgeButtonState();
-    return;
-  }
-
-  setKnowledgeSearchLoading(true);
-  knowledgeSearchResult.classList.add("hidden");
-  knowledgeSearchResult.innerHTML = "";
-  setTextStatus(knowledgeSearchStatus, "Sending /api/knowledge/search ...", "idle");
-
-  try {
-    const payload = await requestKnowledgeSearch(backendUrl, query, kbId, topK);
-    renderKnowledgeSearchResult(payload);
-    setTextStatus(knowledgeSearchStatus, "Knowledge hits loaded from /api/knowledge/search", "success");
-  } catch (error) {
-    renderErrorBox(knowledgeSearchResult, error, "Knowledge request failed");
-    const code = error?.code ? `${error.code}: ` : "";
-    setTextStatus(
-      knowledgeSearchStatus,
-      `${code}${error instanceof Error ? error.message : "Knowledge search failed"}`,
-      "error"
-    );
-  } finally {
-    setKnowledgeSearchLoading(false);
-  }
-}
-
-async function queryKnowledge() {
-  if (state.knowledgeQueryLoading || knowledgeQuerySubmitButton.disabled) {
-    return;
-  }
-
-  const backendUrl = backendUrlInput.value.trim();
-  const question = knowledgeQueryQuestionInput.value.trim();
-  const kbId = knowledgeQueryKbIdInput.value.trim() || "default";
-  const topK = normalizeTopK(knowledgeQueryTopKInput);
-
-  if (!question) {
-    setTextStatus(knowledgeQueryStatus, "Question cannot be empty", "error");
-    updateKnowledgeButtonState();
-    return;
-  }
-
-  setKnowledgeQueryLoading(true);
-  knowledgeQueryResult.classList.add("hidden");
-  knowledgeQueryResult.innerHTML = "";
-  setTextStatus(knowledgeQueryStatus, "Sending /api/knowledge/query ...", "idle");
-
-  try {
-    const payload = await requestKnowledgeQuery(backendUrl, question, kbId, topK);
-    renderKnowledgeQueryResult(payload);
-    setTextStatus(knowledgeQueryStatus, "Knowledge answer loaded from /api/knowledge/query", "success");
-  } catch (error) {
-    renderErrorBox(knowledgeQueryResult, error, "Knowledge request failed");
-    if (error?.code === "KNOWLEDGE_MODEL_DISABLED") {
-      setTextStatus(
-        knowledgeQueryStatus,
-        "KNOWLEDGE_MODEL_DISABLED: DeepSeek is not enabled in the backend environment.",
-        "error"
-      );
-    } else {
-      const code = error?.code ? `${error.code}: ` : "";
-      setTextStatus(
-        knowledgeQueryStatus,
-        `${code}${error instanceof Error ? error.message : "Knowledge query failed"}`,
-        "error"
-      );
-    }
-  } finally {
-    setKnowledgeQueryLoading(false);
   }
 }
 
