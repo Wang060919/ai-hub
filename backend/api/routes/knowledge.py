@@ -5,6 +5,8 @@ from backend.api.schemas.knowledge import (
     KnowledgeIndexFileInfo,
     KnowledgeIndexFileRequest,
     KnowledgeIndexFileResponse,
+    KnowledgeStatusBody,
+    KnowledgeStatusResponse,
 )
 from backend.services.file.text_file_service import FileServiceError, TextFileService
 from backend.services.knowledge.index_service import KnowledgeIndexService
@@ -16,6 +18,27 @@ knowledge_index_service = KnowledgeIndexService(
     text_file_service=TextFileService(),
     repository=KnowledgeRepository(get_connection),
 )
+knowledge_repository = KnowledgeRepository(get_connection)
+
+
+@router.get("/knowledge/status", response_model=KnowledgeStatusResponse)
+def knowledge_status() -> KnowledgeStatusResponse:
+    storage_status = knowledge_repository.get_storage_status()
+
+    return KnowledgeStatusResponse(
+        status="ok",
+        knowledge=KnowledgeStatusBody(
+            enabled=storage_status.enabled,
+            fts_enabled=storage_status.fts_enabled,
+            fts_available=storage_status.fts_available,
+            index_method=storage_status.index_method,
+            files_count=storage_status.files_count,
+            chunks_count=storage_status.chunks_count,
+            files_table_exists=storage_status.files_table_exists,
+            chunks_table_exists=storage_status.chunks_table_exists,
+            fts_table_exists=storage_status.fts_table_exists,
+        ),
+    )
 
 
 @router.post("/knowledge/index-file", response_model=KnowledgeIndexFileResponse)

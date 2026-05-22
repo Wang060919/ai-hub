@@ -27,3 +27,20 @@ class KnowledgeIndexFileResponse(BaseModel):
     status: str
     file: KnowledgeIndexFileInfo
     index: KnowledgeIndexFileBody
+
+
+class KnowledgeStatusBody(BaseModel):
+    enabled: bool
+    fts_enabled: bool
+    fts_available: bool
+    index_method: str
+    files_count: int
+    chunks_count: int
+    files_table_exists: bool
+    chunks_table_exists: bool
+    fts_table_exists: bool
+
+
+class KnowledgeStatusResponse(BaseModel):
+    status: str
+    knowledge: KnowledgeStatusBody
