@@ -1,11 +1,9 @@
 import { escapeHtml } from "./js/core/utils.js";
 import { requestMetadata } from "./js/api/metadata.js";
-import { requestChat } from "./js/api/chat.js";
+import { createChatModule } from "./js/chat/chat.js";
 import { createFilesModule } from "./js/files/files.js";
 import { createKnowledgeModule } from "./js/knowledge/knowledge.js";
 import { setTextStatus } from "./js/ui/status.js";
-import { setButtonLoading } from "./js/ui/loading.js";
-import { renderErrorBox } from "./js/ui/error.js";
 
 const backendUrlInput = document.querySelector("#backend-url");
 const checkButton = document.querySelector("#check-backend");
@@ -56,12 +54,6 @@ const knowledgeQueryTopKInput = document.querySelector("#knowledge-query-top-k")
 const knowledgeQuerySubmitButton = document.querySelector("#knowledge-query-submit");
 const knowledgeQueryStatus = document.querySelector("#knowledge-query-status");
 const knowledgeQueryResult = document.querySelector("#knowledge-query-result");
-
-const MAX_CHAT_HISTORY_TURNS = 4;
-const MAX_CHAT_HISTORY_MESSAGES = MAX_CHAT_HISTORY_TURNS * 2;
-const MAX_CHAT_CONTEXT_MESSAGES = MAX_CHAT_HISTORY_MESSAGES + 1;
-const MAX_CHAT_MESSAGE_CHARS = 1500;
-const MAX_CHAT_CONTEXT_CHARS = 8000;
 
 const startupCommand =
   "python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000";
@@ -168,6 +160,23 @@ const state = {
 };
 
 const {
+  resetChatResult,
+  updateSendChatButtonState,
+  handleChatInputKeydown,
+  sendChat,
+} = createChatModule({
+  dom: {
+    backendUrlInput,
+    chatMessageInput,
+    sendChatButton,
+    chatStatus,
+    chatMessages,
+  },
+  state,
+  renderAssistantMessageContent,
+});
+
+const {
   updateKnowledgeButtonState,
   refreshKnowledgeStatus,
   addToKnowledge,
@@ -224,47 +233,6 @@ function resetSummary() {
   healthStatus.textContent = "-";
   appVersion.textContent = "-";
   skillsCount.textContent = "0";
-}
-
-
-function resetChatResult() {
-  chatMessages.innerHTML =
-    '<div class="chat-empty-state">Send a message to start the Echo chat loop.</div>';
-  state.chatHistory = [];
-}
-
-function normalizeChatContent(content) {
-  return String(content || "").trim().slice(0, MAX_CHAT_MESSAGE_CHARS);
-}
-
-function trimChatMessages(messages, maxMessages) {
-  const normalizedMessages = messages
-    .map((message) => ({
-      role: message.role,
-      content: normalizeChatContent(message.content),
-    }))
-    .filter(
-      (message) =>
-        (message.role === "user" || message.role === "assistant") &&
-        message.content
-    )
-    .slice(-maxMessages);
-
-  const trimmedMessages = [];
-  let totalChars = 0;
-
-  for (let index = normalizedMessages.length - 1; index >= 0; index -= 1) {
-    const message = normalizedMessages[index];
-    const nextTotal = totalChars + message.content.length;
-    if (nextTotal > MAX_CHAT_CONTEXT_CHARS && trimmedMessages.length > 0) {
-      break;
-    }
-
-    trimmedMessages.unshift(message);
-    totalChars = nextTotal;
-  }
-
-  return trimmedMessages;
 }
 
 function isMarkdownFence(line) {
@@ -434,36 +402,6 @@ function renderAssistantMessageContent(container, content) {
 
     appendParagraph(container, paragraphLines);
   }
-}
-
-function buildChatContextMessages(currentMessage) {
-  return trimChatMessages(
-    [
-      ...state.chatHistory,
-      {
-        role: "user",
-        content: currentMessage,
-      },
-    ],
-    MAX_CHAT_CONTEXT_MESSAGES
-  );
-}
-
-function recordSuccessfulChatTurn(userMessage, assistantMessage) {
-  state.chatHistory = trimChatMessages(
-    [
-      ...state.chatHistory,
-      {
-        role: "user",
-        content: userMessage,
-      },
-      {
-        role: "assistant",
-        content: assistantMessage,
-      },
-    ],
-    MAX_CHAT_HISTORY_MESSAGES
-  );
 }
 
 function renderEmptyRow(message) {
@@ -647,150 +585,6 @@ async function checkBackend() {
   }
 }
 
-function clearChatEmptyState() {
-  const emptyState = chatMessages.querySelector(".chat-empty-state");
-  if (emptyState) {
-    emptyState.remove();
-  }
-}
-
-function appendChatMessage(role, content, metadata = "", options = {}) {
-  clearChatEmptyState();
-
-  const messageItem = document.createElement("article");
-  messageItem.className = `chat-message ${role}`;
-  if (options.loading) {
-    messageItem.classList.add("loading");
-  }
-
-  const label = document.createElement("div");
-  label.className = "chat-message-label";
-  label.textContent = role === "user" ? "You" : "AI Hub";
-
-  const bubble = document.createElement("div");
-  bubble.className = "chat-message-bubble";
-  if (role === "assistant") {
-    bubble.classList.add("markdown-content");
-    renderAssistantMessageContent(bubble, content || "-");
-  } else {
-    bubble.textContent = content || "-";
-  }
-
-  messageItem.append(label, bubble);
-
-  if (metadata) {
-    const meta = document.createElement("div");
-    meta.className = "chat-message-meta";
-    meta.textContent = metadata;
-    messageItem.append(meta);
-  }
-
-  chatMessages.append(messageItem);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-  return messageItem;
-}
-
-function renderChatResult(payload) {
-  const skill = payload.skill || "-";
-  const status = payload.status || "-";
-  appendChatMessage(
-    "assistant",
-    payload.reply || "-",
-    `skill: ${skill} | status: ${status}`
-  );
-}
-
-function renderChatError(message) {
-  appendChatMessage("assistant", message, "status: error");
-}
-
-function renderChatLoading() {
-  return appendChatMessage("assistant", "Waiting for /chat response ...", "status: sending", {
-    loading: true,
-  });
-}
-
-function removeChatLoading(loadingMessage) {
-  if (loadingMessage) {
-    loadingMessage.remove();
-  }
-}
-
-function updateSendChatButtonState() {
-  const hasMessage = Boolean(chatMessageInput.value.trim());
-  sendChatButton.disabled = state.chatSending || !hasMessage;
-}
-
-function setChatSending(isSending) {
-  state.chatSending = isSending;
-  sendChatButton.classList.toggle("sending", isSending);
-  updateSendChatButtonState();
-}
-
-function handleChatInputKeydown(event) {
-  if (event.isComposing) {
-    return;
-  }
-
-  if (event.key !== "Enter" || event.shiftKey) {
-    return;
-  }
-
-  event.preventDefault();
-  if (!sendChatButton.disabled) {
-    void sendChat();
-  }
-}
-
-async function sendChat() {
-  if (state.chatSending) {
-    return;
-  }
-
-  const backendUrl = backendUrlInput.value.trim();
-  const message = chatMessageInput.value.trim();
-
-  if (!message) {
-    setTextStatus(chatStatus, "Message cannot be empty", "error");
-    updateSendChatButtonState();
-    return;
-  }
-
-  appendChatMessage("user", message);
-  const contextMessages = buildChatContextMessages(message);
-  chatMessageInput.value = "";
-  updateSendChatButtonState();
-  setChatSending(true);
-  setTextStatus(chatStatus, "Sending /chat request ...", "idle");
-  const loadingMessage = renderChatLoading();
-
-  try {
-    const payload = await requestChat(backendUrl, message, contextMessages);
-    if (!payload.ok) {
-      throw new Error(payload.details || payload.error || "Chat request failed");
-    }
-
-    removeChatLoading(loadingMessage);
-    renderChatResult(payload.chat);
-    if (payload.chat?.status === "success") {
-      recordSuccessfulChatTurn(message, payload.chat.reply || "");
-    }
-    setTextStatus(chatStatus, `Chat response received from ${payload.backendUrl}`, "success");
-  } catch (error) {
-    removeChatLoading(loadingMessage);
-    renderChatError(
-      error instanceof Error ? error.message : "Chat request failed"
-    );
-    setTextStatus(
-      chatStatus,
-      error instanceof Error ? error.message : "Chat request failed",
-      "error"
-    );
-  } finally {
-    setChatSending(false);
-  }
-}
-
 async function copyExample(example) {
   if (!navigator.clipboard?.writeText) {
     setTextStatus(filesToolsStatus, "当前环境不支持剪贴板复制，请手动复制示例文本。", "error");
@@ -839,6 +633,7 @@ filesToolsGrid.addEventListener("click", (event) => {
 });
 
 renderFilesTools();
+resetChatResult();
 resetFileSummaryResult();
 updateSendChatButtonState();
 updateFilePreviewButtonState();
