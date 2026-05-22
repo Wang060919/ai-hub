@@ -561,11 +561,11 @@ V1.4-M13 文档修正补充：上方 V1.4 节若仍保留旧表述，以本补�
 **推荐里程碑**：
 
 - M1：文档口径同步
-- M2：默认打开 Panel
-- M3：Tauri 默认窗口尺寸微调
-- M4：Panel 紧凑化
-- M5：Markdown 接入摘要桌面化表达
-- M6：轻量回归与文档同步
+- M2：默认打开 Panel（已完成）
+- M3：Tauri 默认窗口尺寸微调（已完成）
+- M4：Panel 紧凑化（已完成）
+- M5：Markdown 接入摘要桌面化表达（已完成）
+- M6：轻量回归与文档同步（已完成）
 - M7：收尾 tag
 
 **明确不做**：
@@ -582,6 +582,15 @@ V1.4-M13 文档修正补充：上方 V1.4 节若仍保留旧表述，以本补�
 - 不做自动启动后端
 - 不做自动读文件
 - 不做自动接入 `/chat`
+
+**M2-M6 当前已完成内容**：
+
+- 默认启动进入 Panel tab，同时保留切换到后端状态、聊天、文件工具与 Knowledge 完整页面的能力
+- Tauri 主窗口默认尺寸从 `1280x900` 微调为 `1120x820`，`resizable` 与 `minWidth / minHeight` 保持不变
+- Panel 四张卡片完成紧凑化，主要优化留白、卡片内摘要块密度和动作区
+- Panel 中的 Markdown 接入摘要继续复用现有 `knowledge/status` 返回，清楚展示 `markdown_files_count`、`files_count`、`chunks_count`、`index_method`
+- Panel 新增进入 Markdown 接入区域的跳转入口，但不在 Panel 内放完整批量入库表单
+- 本轮轻量回归已覆盖 `git status`、`node --check frontend/public/app.js`、`node --check frontend/public/js/panel/panel.js`、`npm run build` 与 `tauri.conf.json` JSON 格式校验
 
 **保留说明**：
 

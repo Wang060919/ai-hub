@@ -15,8 +15,8 @@
       {
         "label": "main",
         "title": "AI Hub",
-        "width": 1280,
-        "height": 900,
+        "width": 1120,
+        "height": 820,
         "minWidth": 960,
         "minHeight": 720,
         "resizable": true

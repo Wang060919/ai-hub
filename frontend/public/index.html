@@ -21,20 +21,20 @@
         <div class="tab-list" role="tablist" aria-label="Desktop sections">
           <button
             id="tab-panel"
-            class="tab-button"
+            class="tab-button active"
             type="button"
             role="tab"
-            aria-selected="false"
+            aria-selected="true"
             aria-controls="panel-overview"
           >
             面板
           </button>
           <button
             id="tab-status"
-            class="tab-button active"
+            class="tab-button"
             type="button"
             role="tab"
-            aria-selected="true"
+            aria-selected="false"
             aria-controls="panel-status"
           >
             后端状态
@@ -64,7 +64,7 @@
 
       <section
         id="panel-overview"
-        class="tab-section hidden"
+        class="tab-section"
         role="tabpanel"
         aria-labelledby="tab-panel"
       >
@@ -197,46 +197,59 @@
               <p class="panel-card-description">
                 进入现有知识库区域，保留手动刷新、搜索与问答边界。
               </p>
-              <div class="panel-card-placeholder panel-summary-block">
-                <span class="panel-card-label">知识库状态摘要</span>
-                <div class="panel-summary-grid">
+              <div class="panel-card-placeholder panel-summary-block panel-markdown-summary-block">
+                <span class="panel-card-label">Markdown 接入摘要</span>
+                <div class="panel-summary-grid panel-markdown-summary-grid">
                   <div class="panel-summary-item">
-                    <span>files_count</span>
+                    <span>总文件数</span>
                     <strong id="panel-knowledge-files">-</strong>
                   </div>
                   <div class="panel-summary-item">
-                    <span>markdown_files</span>
+                    <span>Markdown 笔记</span>
                     <strong id="panel-knowledge-markdown-files">-</strong>
                   </div>
                   <div class="panel-summary-item">
-                    <span>chunks_count</span>
+                    <span>分片数</span>
                     <strong id="panel-knowledge-chunks">-</strong>
                   </div>
                   <div class="panel-summary-item">
-                    <span>index_method</span>
+                    <span>索引方式</span>
                     <strong id="panel-knowledge-index-method">-</strong>
                   </div>
                   <div class="panel-summary-item">
-                    <span>fts_enabled</span>
+                    <span>FTS 状态</span>
                     <strong id="panel-knowledge-fts-enabled">-</strong>
                   </div>
                   <div class="panel-summary-item">
-                    <span>fts_available</span>
+                    <span>FTS 可用</span>
                     <strong id="panel-knowledge-fts-available">-</strong>
                   </div>
                 </div>
+                <p class="panel-card-caption">
+                  这里只展示桌面入口摘要；完整接入与批量操作仍在 Knowledge 页面手动触发。
+                </p>
                 <p id="panel-knowledge-status" class="panel-card-status">
                   刷新知识库状态后，这里会同步显示最新摘要。
                 </p>
               </div>
-              <button
-                class="check-button panel-entry-button"
-                type="button"
-                data-panel-target-tab="files-tools"
-                data-panel-target-section="knowledge-section"
-              >
-                去知识库
-              </button>
+              <div class="panel-card-actions">
+                <button
+                  class="check-button panel-entry-button"
+                  type="button"
+                  data-panel-target-tab="files-tools"
+                  data-panel-target-section="knowledge-section"
+                >
+                  查看知识库
+                </button>
+                <button
+                  class="check-button panel-entry-button"
+                  type="button"
+                  data-panel-target-tab="files-tools"
+                  data-panel-target-section="knowledge-markdown-directory-section"
+                >
+                  接入 Markdown 笔记
+                </button>
+              </div>
             </article>
           </section>
         </section>
@@ -516,7 +529,7 @@
             ></div>
           </section>
 
-          <section class="knowledge-section">
+          <section id="knowledge-markdown-file-section" class="knowledge-section">
             <div class="section-heading">
               <h3>Markdown 目录手动批量入库</h3>
               <p>仅在手动点击按钮后调用 <code>POST /knowledge/index-markdown-directory</code>。</p>
@@ -589,7 +602,7 @@
             ></div>
           </section>
 
-          <section class="knowledge-section">
+          <section id="knowledge-markdown-directory-section" class="knowledge-section">
             <div class="section-heading">
               <h3>知识库搜索</h3>
               <p>搜索使用 <code>POST /knowledge/search</code>，不调用模型。</p>

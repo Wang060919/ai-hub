@@ -31,6 +31,9 @@ const panelBackendVersion = document.querySelector("#panel-backend-version");
 const panelBackendSkills = document.querySelector("#panel-backend-skills");
 const panelBackendStatus = document.querySelector("#panel-backend-status");
 const panelKnowledgeFiles = document.querySelector("#panel-knowledge-files");
+const panelKnowledgeMarkdownFiles = document.querySelector(
+  "#panel-knowledge-markdown-files"
+);
 const panelKnowledgeChunks = document.querySelector("#panel-knowledge-chunks");
 const panelKnowledgeIndexMethod = document.querySelector("#panel-knowledge-index-method");
 const panelKnowledgeFtsEnabled = document.querySelector("#panel-knowledge-fts-enabled");
@@ -183,6 +186,7 @@ const {
     panelBackendSkills,
     panelBackendStatus,
     panelKnowledgeFiles,
+    panelKnowledgeMarkdownFiles,
     panelKnowledgeChunks,
     panelKnowledgeIndexMethod,
     panelKnowledgeFtsEnabled,
@@ -494,4 +498,5 @@ updateSendChatButtonState();
 updateQuickChatButtonState();
 updateFilePreviewButtonState();
 updateKnowledgeButtonState();
+showTab("panel");
 void refreshKnowledgeStatusWithPanel();

@@ -552,26 +552,26 @@ V1.6 风险边界：
 
 ### V1.8：Tauri 桌面体验增强 + Panel 轻量优化
 
-**状态**：`TODO`
+**状态**：`DOING`（M2-M6 已完成，等待 M7 收尾）
 
 任务清单：
 
 - [x] M1：文档口径同步
-- [ ] M2：默认打开 Panel
-- [ ] M3：Tauri 默认窗口尺寸微调
-- [ ] M4：Panel 紧凑化
-- [ ] M5：Markdown 接入摘要桌面化表达
-- [ ] M6：轻量回归与文档同步
+- [x] M2：默认打开 Panel
+- [x] M3：Tauri 默认窗口尺寸微调
+- [x] M4：Panel 紧凑化
+- [x] M5：Markdown 接入摘要桌面化表达
+- [x] M6：轻量回归与文档同步
 - [ ] M7：收尾 tag
 
 V1.8 第一版目标：
 
-- [ ] 默认启动体验更偏向 Panel
-- [ ] Tauri 默认窗口尺寸微调
-- [ ] Panel 信息更紧凑
-- [ ] 保留完整 Chat / Files / Knowledge 页面入口
-- [ ] 不新增后端能力
-- [ ] 不扩大 Tauri 权限
+- [x] 默认启动体验更偏向 Panel
+- [x] Tauri 默认窗口尺寸微调
+- [x] Panel 信息更紧凑
+- [x] 保留完整 Chat / Files / Knowledge 页面入口
+- [x] 不新增后端能力
+- [x] 不扩大 Tauri 权限
 
 V1.8 当前暂不做：
 
@@ -591,6 +591,15 @@ V1.8 当前暂不做：
 V1.8 保留说明：
 
 - [x] 手机端 / 局域网 / 室友测试可以后续另开版本，不作为当前 V1.8 主线
+
+本轮同步说明：
+
+- [x] 已完成默认打开 Panel，且仍保留手动切换到后端状态 / 聊天 / 文件工具 / Knowledge 完整页面的入口。
+- [x] 已完成 Tauri 默认窗口尺寸微调，主窗口默认尺寸已从 `1280x900` 调整为 `1120x820`，`resizable` 与合理最小尺寸保持不变。
+- [x] 已完成 Panel 紧凑化，主要收敛卡片留白、摘要块密度、按钮区和 Markdown 摘要卡表现。
+- [x] 已完成 Markdown 接入摘要桌面化表达，Panel 继续复用 `knowledge/status` 已有字段展示 `markdown_files_count`、`files_count`、`chunks_count`、`index_method`，并增加跳转到 Markdown 接入区域的入口。
+- [x] 已完成轻量回归与文档同步：`git status`、`node --check frontend/public/app.js`、`node --check frontend/public/js/panel/panel.js`、`npm run build`、`tauri.conf.json` JSON 格式校验。
+- [x] 仍不支持：系统托盘、全局快捷键、置顶 / 透明 / 无边框、真正桌宠、Live2D / 3D、自动启动后端、自动读文件、自动接入 `/chat`。
 
 ---
 

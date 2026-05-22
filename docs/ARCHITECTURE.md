@@ -359,11 +359,20 @@ V1.8 当前主题已统一为“Tauri 桌面体验增强 + Panel 轻量优化”
 当前建议理解为：
 
 - 继续复用现有单页桌面壳与现有页面结构
-- 默认启动体验更偏向 Panel
-- 对 Tauri 默认窗口尺寸做保守微调
+- 默认启动体验更偏向 Panel，且仍保留手动切换到完整页面
+- 对 Tauri 默认窗口尺寸做保守微调，不改变权限边界
 - Panel 继续做入口、摘要和跳转桥接，不替代完整 Chat / Files / Knowledge 页面
 - Markdown 接入摘要继续复用现有 Knowledge 状态结果做桌面化表达
+- Markdown 相关完整接入动作仍保留在 Knowledge 页面手动触发，Panel 只展示摘要与跳转入口
 - 全阶段不新增后端能力，不扩大 Tauri 权限
+
+当前已完成到 M6 的入口层增强包括：
+
+- 默认启动进入 Panel tab
+- 主窗口默认尺寸由 `1280x900` 微调为 `1120x820`
+- Panel 四卡信息密度收紧，保持现有中文桌面 UI 风格
+- Panel 更清楚展示 `markdown_files_count`、`files_count`、`chunks_count`、`index_method` 等 Markdown 接入摘要
+- Panel 新增跳转到 Markdown 接入区域的入口，但不在 Panel 内放完整批量入库表单
 
 当前明确不应写成 V1.8 已规划包含的内容：
 

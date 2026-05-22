@@ -5,6 +5,10 @@ import { setButtonLoading } from "../ui/loading.js";
 const MAX_PANEL_CHAT_CHARS = 400;
 const MAX_PANEL_CHAT_SUMMARY_CHARS = 220;
 
+function formatBooleanSummary(value, truthyLabel, falsyLabel) {
+  return value ? truthyLabel : falsyLabel;
+}
+
 function normalizeMessage(value) {
   return String(value || "").trim().slice(0, MAX_PANEL_CHAT_CHARS);
 }
@@ -84,13 +88,12 @@ export function createPanelModule(deps) {
 
   function resetKnowledgeSummary() {
     dom.panelKnowledgeFiles.textContent = "-";
-    const panelKnowledgeMarkdownFiles = document.querySelector("#panel-knowledge-markdown-files");
     dom.panelKnowledgeChunks.textContent = "-";
     dom.panelKnowledgeIndexMethod.textContent = "-";
     dom.panelKnowledgeFtsEnabled.textContent = "-";
     dom.panelKnowledgeFtsAvailable.textContent = "-";
-    if (panelKnowledgeMarkdownFiles) {
-      panelKnowledgeMarkdownFiles.textContent = "-";
+    if (dom.panelKnowledgeMarkdownFiles) {
+      dom.panelKnowledgeMarkdownFiles.textContent = "-";
     }
     setTextStatus(
       dom.panelKnowledgeStatus,
@@ -100,31 +103,37 @@ export function createPanelModule(deps) {
   }
 
   function updateKnowledgeSummary(payload) {
-    const panelKnowledgeMarkdownFiles = document.querySelector("#panel-knowledge-markdown-files");
     dom.panelKnowledgeFiles.textContent = String(payload?.files_count ?? "-");
     dom.panelKnowledgeChunks.textContent = String(payload?.chunks_count ?? "-");
     dom.panelKnowledgeIndexMethod.textContent = payload?.index_method || "-";
-    dom.panelKnowledgeFtsEnabled.textContent = String(Boolean(payload?.fts_enabled));
-    dom.panelKnowledgeFtsAvailable.textContent = String(Boolean(payload?.fts_available));
-    if (panelKnowledgeMarkdownFiles) {
-      panelKnowledgeMarkdownFiles.textContent = String(payload?.markdown_files_count ?? "-");
+    dom.panelKnowledgeFtsEnabled.textContent = formatBooleanSummary(
+      Boolean(payload?.fts_enabled),
+      "已启用",
+      "未启用"
+    );
+    dom.panelKnowledgeFtsAvailable.textContent = formatBooleanSummary(
+      Boolean(payload?.fts_available),
+      "可用",
+      "不可用"
+    );
+    if (dom.panelKnowledgeMarkdownFiles) {
+      dom.panelKnowledgeMarkdownFiles.textContent = String(payload?.markdown_files_count ?? "-");
     }
     setTextStatus(
       dom.panelKnowledgeStatus,
-      "Markdown 接入摘要已复用 /api/knowledge/status 最新结果。",
+      "Markdown 接入摘要已同步到桌面入口层，完整接入操作仍需手动进入 Knowledge 页面。",
       "success"
     );
   }
 
   function setKnowledgeUnavailable(message) {
     dom.panelKnowledgeFiles.textContent = "-";
-    const panelKnowledgeMarkdownFiles = document.querySelector("#panel-knowledge-markdown-files");
     dom.panelKnowledgeChunks.textContent = "-";
     dom.panelKnowledgeIndexMethod.textContent = "-";
     dom.panelKnowledgeFtsEnabled.textContent = "-";
     dom.panelKnowledgeFtsAvailable.textContent = "-";
-    if (panelKnowledgeMarkdownFiles) {
-      panelKnowledgeMarkdownFiles.textContent = "-";
+    if (dom.panelKnowledgeMarkdownFiles) {
+      dom.panelKnowledgeMarkdownFiles.textContent = "-";
     }
     setTextStatus(
       dom.panelKnowledgeStatus,
