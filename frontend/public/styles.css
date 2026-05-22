@@ -697,6 +697,20 @@ code {
   background: rgba(255, 255, 255, 0.42);
 }
 
+.knowledge-boundary-note {
+  margin-bottom: 0;
+}
+
+.knowledge-boundary-list {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: var(--ink);
+}
+
+.knowledge-boundary-list li + li {
+  margin-top: 8px;
+}
+
 .knowledge-inline-fields {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -718,6 +732,11 @@ code {
   display: grid;
   gap: 14px;
   margin-top: 4px;
+}
+
+.knowledge-index-result-heading {
+  display: grid;
+  gap: 4px;
 }
 
 .file-preview-meta {

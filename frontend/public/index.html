@@ -467,16 +467,25 @@
 
           <section class="knowledge-section">
             <div class="section-heading">
-              <h3>加入知识库</h3>
-              <p>仅点击按钮后调用 <code>POST /knowledge/index-file</code>。</p>
+              <h3>Markdown / Obsidian 笔记手动入库（单篇）</h3>
+              <p>仅在手动点击按钮后调用现有 <code>POST /knowledge/index-file</code>。</p>
             </div>
-            <label class="field-label" for="knowledge-index-path">文件路径</label>
+            <div class="inline-note knowledge-boundary-note">
+              <p>当前入口只复用现有单文件入库能力，不新增 Markdown / Obsidian 专用后端。</p>
+              <ul class="knowledge-boundary-list">
+                <li>路径必须位于当前白名单目录内。</li>
+                <li>第一版只支持单篇 Markdown 笔记手动入库。</li>
+                <li>不会自动扫描 Vault。</li>
+                <li>不会自动读取整个 Obsidian 库。</li>
+              </ul>
+            </div>
+            <label class="field-label" for="knowledge-index-path">Markdown 相对路径</label>
             <div class="control-row">
               <input
                 id="knowledge-index-path"
                 class="backend-input"
                 type="text"
-                placeholder="data\\scan_sandbox\\notes.md"
+                placeholder="data\\scan_sandbox\\notes\\daily-note.md"
                 autocomplete="off"
               />
             </div>
@@ -490,11 +499,11 @@
                 autocomplete="off"
               />
               <button id="knowledge-index-submit" class="check-button" type="button">
-                加入知识库
+                接入 Markdown 笔记
               </button>
             </div>
             <p id="knowledge-index-status" class="request-status idle">
-              输入文件路径，然后点击按钮将其索引到知识库。
+              输入单篇 Markdown 相对路径后手动接入；不会自动扫描、不会自动入库。
             </p>
             <div
               id="knowledge-index-result"

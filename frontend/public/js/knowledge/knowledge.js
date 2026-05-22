@@ -54,7 +54,14 @@ function renderKnowledgeIndexResult(dom, payload) {
 
   dom.knowledgeIndexResult.classList.remove("hidden");
   dom.knowledgeIndexResult.innerHTML = `
+    <div class="knowledge-index-result-heading">
+      <p class="field-label">Markdown / Obsidian 单篇笔记入库结果</p>
+    </div>
     <div class="file-preview-meta">
+      <div class="file-preview-meta-item wide">
+        <span>relative_path</span>
+        <strong>${escapeHtml(file.relative_path || "-")}</strong>
+      </div>
       <div class="file-preview-meta-item">
         <span>chunk_count</span>
         <strong>${escapeHtml(index.chunk_count ?? "-")}</strong>
@@ -74,10 +81,6 @@ function renderKnowledgeIndexResult(dom, payload) {
       <div class="file-preview-meta-item">
         <span>kb_id</span>
         <strong>${escapeHtml(file.kb_id || "-")}</strong>
-      </div>
-      <div class="file-preview-meta-item wide">
-        <span>relative_path</span>
-        <strong>${escapeHtml(file.relative_path || "-")}</strong>
       </div>
     </div>
   `;
@@ -223,8 +226,8 @@ function createSetKnowledgeIndexLoading(dom, state, updateKnowledgeButtonState) 
   return function setKnowledgeIndexLoading(isLoading) {
     state.knowledgeIndexLoading = isLoading;
     setButtonLoading(dom.knowledgeIndexSubmitButton, isLoading, {
-      loading: "加入中...",
-      idle: "加入知识库",
+      loading: "接入中...",
+      idle: "接入 Markdown 笔记",
     });
     updateKnowledgeButtonState();
   };
@@ -301,7 +304,7 @@ export function createKnowledgeModule(deps) {
     const kbId = dom.knowledgeIndexKbIdInput.value.trim() || "default";
 
     if (!path) {
-      setTextStatus(dom.knowledgeIndexStatus, "文件路径不能为空", "error");
+      setTextStatus(dom.knowledgeIndexStatus, "Markdown 相对路径不能为空", "error");
       updateKnowledgeButtonState();
       return;
     }
@@ -309,19 +312,27 @@ export function createKnowledgeModule(deps) {
     setKnowledgeIndexLoading(true);
     dom.knowledgeIndexResult.classList.add("hidden");
     dom.knowledgeIndexResult.innerHTML = "";
-    setTextStatus(dom.knowledgeIndexStatus, "正在发送 /api/knowledge/index-file ...", "idle");
+    setTextStatus(
+      dom.knowledgeIndexStatus,
+      "正在调用 /api/knowledge/index-file 接入单篇 Markdown 笔记...",
+      "idle"
+    );
 
     try {
       const payload = await requestKnowledgeIndexFile(backendUrl, path, kbId);
       renderKnowledgeIndexResult(dom, payload);
-      setTextStatus(dom.knowledgeIndexStatus, "知识库文件已通过 /api/knowledge/index-file 索引", "success");
+      setTextStatus(
+        dom.knowledgeIndexStatus,
+        "单篇 Markdown 笔记已通过 /api/knowledge/index-file 手动入库。",
+        "success"
+      );
       void refreshKnowledgeStatus();
     } catch (error) {
-      renderErrorBox(dom.knowledgeIndexResult, error, "知识库请求失败");
+      renderErrorBox(dom.knowledgeIndexResult, error, "Markdown 笔记入库请求失败");
       const code = error?.code ? `${error.code}: ` : "";
       setTextStatus(
         dom.knowledgeIndexStatus,
-        `${code}${error instanceof Error ? error.message : "知识库索引失败"}`,
+        `${code}${error instanceof Error ? error.message : "Markdown 笔记手动入库失败"}`,
         "error"
       );
     } finally {
