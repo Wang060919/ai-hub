@@ -245,7 +245,7 @@
                   class="check-button panel-entry-button"
                   type="button"
                   data-panel-target-tab="files-tools"
-                  data-panel-target-section="knowledge-markdown-directory-section"
+                  data-panel-target-section="panel-markdown-note-entry"
                 >
                   接入 Markdown 笔记
                 </button>
@@ -482,7 +482,7 @@
             ></div>
           </section>
 
-          <section class="knowledge-section">
+          <section id="panel-markdown-note-entry" class="knowledge-section">
             <div class="section-heading">
               <h3>Markdown / Obsidian 笔记手动入库（单篇）</h3>
               <p>仅在手动点击按钮后调用现有 <code>POST /knowledge/index-file</code>。</p>
@@ -529,7 +529,7 @@
             ></div>
           </section>
 
-          <section id="knowledge-markdown-file-section" class="knowledge-section">
+          <section id="knowledge-markdown-directory-section" class="knowledge-section">
             <div class="section-heading">
               <h3>Markdown 目录手动批量入库</h3>
               <p>仅在手动点击按钮后调用 <code>POST /knowledge/index-markdown-directory</code>。</p>
@@ -602,7 +602,7 @@
             ></div>
           </section>
 
-          <section id="knowledge-markdown-directory-section" class="knowledge-section">
+          <section class="knowledge-section">
             <div class="section-heading">
               <h3>知识库搜索</h3>
               <p>搜索使用 <code>POST /knowledge/search</code>，不调用模型。</p>
