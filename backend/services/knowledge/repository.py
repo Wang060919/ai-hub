@@ -2,9 +2,14 @@ from __future__ import annotations
 
 import sqlite3
 from collections.abc import Callable
-from typing import Any
+from datetime import datetime
 
-from backend.services.knowledge.models import KnowledgeStorageStatus
+from backend.services.knowledge.models import (
+    KnowledgeChunkDraft,
+    KnowledgeFileDraft,
+    KnowledgeIndexResult,
+    KnowledgeStorageStatus,
+)
 
 
 ConnectionFactory = Callable[[], sqlite3.Connection]
@@ -25,11 +30,62 @@ class KnowledgeRepository:
         with self._connection_factory() as connection:
             return build_knowledge_storage_status(connection)
 
-    def reserve_file_record(self, **_: Any) -> None:
-        raise NotImplementedError("Knowledge file indexing is not implemented yet.")
+    def index_file_content(
+        self,
+        file_draft: KnowledgeFileDraft,
+        chunks: list[KnowledgeChunkDraft],
+    ) -> KnowledgeIndexResult:
+        with self._connection_factory() as connection:
+            initialize_knowledge_schema(connection)
 
-    def reserve_chunk_records(self, **_: Any) -> None:
-        raise NotImplementedError("Knowledge chunk indexing is not implemented yet.")
+            existing_same_version = _get_existing_file_by_hash(
+                connection,
+                kb_id=file_draft.kb_id,
+                relative_path=file_draft.relative_path,
+                file_hash=file_draft.file_hash,
+            )
+            if existing_same_version is not None:
+                return KnowledgeIndexResult(
+                    file_id=int(existing_same_version["id"]),
+                    kb_id=str(existing_same_version["kb_id"]),
+                    relative_path=str(existing_same_version["relative_path"]),
+                    file_hash=str(existing_same_version["file_hash"]),
+                    chunk_count=int(existing_same_version["chunk_count"]),
+                    reused_existing=True,
+                    replaced_existing=False,
+                    index_method=_get_index_method(connection),
+                )
+
+            replaced_existing = False
+            existing_same_path = _get_existing_file_by_path(
+                connection,
+                kb_id=file_draft.kb_id,
+                relative_path=file_draft.relative_path,
+            )
+            if existing_same_path is not None:
+                _delete_file_record(connection, file_id=int(existing_same_path["id"]))
+                replaced_existing = True
+
+            file_id = _insert_file_record(connection, file_draft, chunk_count=len(chunks))
+            _insert_chunk_records(
+                connection,
+                file_id=file_id,
+                kb_id=file_draft.kb_id,
+                relative_path=file_draft.relative_path,
+                chunks=chunks,
+            )
+            connection.commit()
+
+            return KnowledgeIndexResult(
+                file_id=file_id,
+                kb_id=file_draft.kb_id,
+                relative_path=file_draft.relative_path,
+                file_hash=file_draft.file_hash,
+                chunk_count=len(chunks),
+                reused_existing=False,
+                replaced_existing=replaced_existing,
+                index_method=_get_index_method(connection),
+            )
 
 
 def initialize_knowledge_schema(connection: sqlite3.Connection) -> bool:
@@ -142,6 +198,175 @@ def build_knowledge_storage_status(connection: sqlite3.Connection) -> KnowledgeS
     )
 
 
+def _get_existing_file_by_hash(
+    connection: sqlite3.Connection,
+    kb_id: str,
+    relative_path: str,
+    file_hash: str,
+) -> sqlite3.Row | None:
+    return connection.execute(
+        """
+        SELECT id, kb_id, relative_path, file_hash, chunk_count
+        FROM knowledge_files
+        WHERE kb_id = ?
+          AND relative_path = ?
+          AND file_hash = ?
+        LIMIT 1
+        """,
+        (kb_id, relative_path, file_hash),
+    ).fetchone()
+
+
+def _get_existing_file_by_path(
+    connection: sqlite3.Connection,
+    kb_id: str,
+    relative_path: str,
+) -> sqlite3.Row | None:
+    return connection.execute(
+        """
+        SELECT id, kb_id, relative_path, file_hash, chunk_count
+        FROM knowledge_files
+        WHERE kb_id = ?
+          AND relative_path = ?
+        ORDER BY id DESC
+        LIMIT 1
+        """,
+        (kb_id, relative_path),
+    ).fetchone()
+
+
+def _insert_file_record(
+    connection: sqlite3.Connection,
+    file_draft: KnowledgeFileDraft,
+    chunk_count: int,
+) -> int:
+    timestamp = datetime.now().isoformat(timespec="seconds")
+    cursor = connection.execute(
+        """
+        INSERT INTO knowledge_files (
+            kb_id,
+            source_path,
+            relative_path,
+            file_name,
+            suffix,
+            size_bytes,
+            modified_at,
+            file_hash,
+            content_chars,
+            chunk_count,
+            status,
+            created_at,
+            updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'indexed', ?, ?)
+        """,
+        (
+            file_draft.kb_id,
+            file_draft.source_path,
+            file_draft.relative_path,
+            file_draft.file_name,
+            file_draft.suffix,
+            file_draft.size_bytes,
+            file_draft.modified_at,
+            file_draft.file_hash,
+            file_draft.content_chars,
+            chunk_count,
+            timestamp,
+            timestamp,
+        ),
+    )
+    return int(cursor.lastrowid)
+
+
+def _insert_chunk_records(
+    connection: sqlite3.Connection,
+    file_id: int,
+    kb_id: str,
+    relative_path: str,
+    chunks: list[KnowledgeChunkDraft],
+) -> None:
+    connection.executemany(
+        """
+        INSERT INTO knowledge_chunks (
+            file_id,
+            kb_id,
+            chunk_index,
+            char_start,
+            char_end,
+            content,
+            content_chars,
+            token_estimate,
+            created_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        [
+            (
+                file_id,
+                kb_id,
+                chunk.chunk_index,
+                chunk.char_start,
+                chunk.char_end,
+                chunk.content,
+                chunk.content_chars,
+                chunk.token_estimate,
+                datetime.now().isoformat(timespec="seconds"),
+            )
+            for chunk in chunks
+        ],
+    )
+
+    if _table_exists(connection, "knowledge_chunks_fts"):
+        inserted_rows = connection.execute(
+            """
+            SELECT id, file_id, kb_id, content
+            FROM knowledge_chunks
+            WHERE file_id = ?
+            ORDER BY chunk_index ASC
+            """,
+            (file_id,),
+        ).fetchall()
+        connection.executemany(
+            """
+            INSERT INTO knowledge_chunks_fts (
+                content,
+                chunk_id,
+                file_id,
+                kb_id,
+                relative_path
+            )
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            [
+                (
+                    str(row["content"]),
+                    int(row["id"]),
+                    int(row["file_id"]),
+                    str(row["kb_id"]),
+                    relative_path,
+                )
+                for row in inserted_rows
+            ],
+        )
+
+
+def _delete_file_record(connection: sqlite3.Connection, file_id: int) -> None:
+    if _table_exists(connection, "knowledge_chunks_fts"):
+        connection.execute(
+            """
+            DELETE FROM knowledge_chunks_fts
+            WHERE file_id = ?
+            """,
+            (file_id,),
+        )
+    connection.execute("DELETE FROM knowledge_chunks WHERE file_id = ?", (file_id,))
+    connection.execute("DELETE FROM knowledge_files WHERE id = ?", (file_id,))
+
+
+def _get_index_method(connection: sqlite3.Connection) -> str:
+    return "sqlite_fts" if _table_exists(connection, "knowledge_chunks_fts") else "sqlite_like_fallback"
+
+
 def _table_exists(connection: sqlite3.Connection, table_name: str) -> bool:
     row = connection.execute(
         """
@@ -159,4 +384,3 @@ def _table_exists(connection: sqlite3.Connection, table_name: str) -> bool:
 def _count_rows(connection: sqlite3.Connection, table_name: str) -> int:
     row = connection.execute(f"SELECT COUNT(*) AS row_count FROM {table_name}").fetchone()
     return int(row[0]) if row is not None else 0
-
