@@ -15,12 +15,15 @@ const appVersion = document.querySelector("#app-version");
 const skillsCount = document.querySelector("#skills-count");
 const skillsBody = document.querySelector("#skills-body");
 
+const panelTabButton = document.querySelector("#tab-panel");
 const statusTabButton = document.querySelector("#tab-status");
 const chatTabButton = document.querySelector("#tab-chat");
 const filesToolsTabButton = document.querySelector("#tab-files-tools");
+const panelOverview = document.querySelector("#panel-overview");
 const statusPanel = document.querySelector("#panel-status");
 const chatPanel = document.querySelector("#panel-chat");
 const filesToolsPanel = document.querySelector("#panel-files-tools");
+const panelEntryButtons = document.querySelectorAll("[data-panel-target-tab]");
 
 const chatMessageInput = document.querySelector("#chat-message");
 const sendChatButton = document.querySelector("#send-chat");
@@ -274,21 +277,38 @@ function renderFilesTools() {
 }
 
 function showTab(activeTab) {
+  const isPanel = activeTab === "panel";
   const isStatus = activeTab === "status";
   const isChat = activeTab === "chat";
   const isFilesTools = activeTab === "files-tools";
 
+  panelTabButton.classList.toggle("active", isPanel);
   statusTabButton.classList.toggle("active", isStatus);
   chatTabButton.classList.toggle("active", isChat);
   filesToolsTabButton.classList.toggle("active", isFilesTools);
 
+  panelTabButton.setAttribute("aria-selected", String(isPanel));
   statusTabButton.setAttribute("aria-selected", String(isStatus));
   chatTabButton.setAttribute("aria-selected", String(isChat));
   filesToolsTabButton.setAttribute("aria-selected", String(isFilesTools));
 
+  panelOverview.classList.toggle("hidden", !isPanel);
   statusPanel.classList.toggle("hidden", !isStatus);
   chatPanel.classList.toggle("hidden", !isChat);
   filesToolsPanel.classList.toggle("hidden", !isFilesTools);
+}
+
+function openTabTarget(tabName, sectionId) {
+  showTab(tabName);
+
+  if (!sectionId) {
+    return;
+  }
+
+  const targetSection = document.querySelector(`#${sectionId}`);
+  if (targetSection instanceof HTMLElement) {
+    targetSection.scrollIntoView({ block: "start", behavior: "smooth" });
+  }
 }
 
 async function checkBackend() {
@@ -350,6 +370,7 @@ async function copyExample(example) {
   }
 }
 
+panelTabButton.addEventListener("click", () => showTab("panel"));
 statusTabButton.addEventListener("click", () => showTab("status"));
 chatTabButton.addEventListener("click", () => showTab("chat"));
 filesToolsTabButton.addEventListener("click", () => showTab("files-tools"));
@@ -377,6 +398,19 @@ filesToolsGrid.addEventListener("click", (event) => {
   if (target.matches(".copy-button") && example) {
     void copyExample(example);
   }
+});
+
+panelEntryButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const tabName = button.getAttribute("data-panel-target-tab");
+    const sectionId = button.getAttribute("data-panel-target-section");
+
+    if (!tabName) {
+      return;
+    }
+
+    openTabTarget(tabName, sectionId);
+  });
 });
 
 renderFilesTools();

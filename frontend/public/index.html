@@ -20,6 +20,16 @@
       <section class="panel tab-panel">
         <div class="tab-list" role="tablist" aria-label="Desktop sections">
           <button
+            id="tab-panel"
+            class="tab-button"
+            type="button"
+            role="tab"
+            aria-selected="false"
+            aria-controls="panel-overview"
+          >
+            面板
+          </button>
+          <button
             id="tab-status"
             class="tab-button active"
             type="button"
@@ -50,6 +60,116 @@
             文件工具
           </button>
         </div>
+      </section>
+
+      <section
+        id="panel-overview"
+        class="tab-section hidden"
+        role="tabpanel"
+        aria-labelledby="tab-panel"
+      >
+        <section class="panel panel-overview-shell">
+          <div class="section-heading">
+            <div>
+              <h2>桌面小面板</h2>
+              <p>将现有能力整理为更适合桌面端使用的快捷入口。</p>
+            </div>
+          </div>
+          <div class="inline-note panel-overview-note">
+            <p>
+              当前为 V1.6-M2 静态壳层。这里不自动调用
+              <code>/chat</code>、<code>/files/*</code>、<code>/knowledge/query</code>，
+              也不自动入库、不自动扫描文件。
+            </p>
+          </div>
+          <section class="panel-cards-grid" aria-label="Panel quick entry cards">
+            <article class="panel-card">
+              <div class="panel-card-header">
+                <p class="panel-card-kicker">概览</p>
+                <h3>后端状态卡</h3>
+              </div>
+              <p class="panel-card-description">
+                查看后端是否在线、版本信息与能力入口位置。
+              </p>
+              <div class="panel-card-placeholder">
+                <span class="panel-card-label">占位信息</span>
+                <p>本轮先展示静态摘要，不在这里接入真实状态数据。</p>
+              </div>
+              <button
+                class="check-button panel-entry-button"
+                type="button"
+                data-panel-target-tab="status"
+              >
+                去后端状态
+              </button>
+            </article>
+
+            <article class="panel-card">
+              <div class="panel-card-header">
+                <p class="panel-card-kicker">快捷入口</p>
+                <h3>快速聊天卡</h3>
+              </div>
+              <p class="panel-card-description">
+                进入现有聊天页面，继续使用原有手动发送流程。
+              </p>
+              <div class="panel-card-placeholder">
+                <span class="panel-card-label">占位信息</span>
+                <p>这里先不放输入框，也不在本轮发起任何 `/chat` 请求。</p>
+              </div>
+              <button
+                class="check-button panel-entry-button"
+                type="button"
+                data-panel-target-tab="chat"
+              >
+                去聊天
+              </button>
+            </article>
+
+            <article class="panel-card">
+              <div class="panel-card-header">
+                <p class="panel-card-kicker">只读工具</p>
+                <h3>文件工具卡</h3>
+              </div>
+              <p class="panel-card-description">
+                跳转到现有文件工具页，使用预览与手动总结入口。
+              </p>
+              <div class="panel-card-placeholder">
+                <span class="panel-card-label">占位信息</span>
+                <p>本轮不在面板内读取文件，不自动触发 summarize。</p>
+              </div>
+              <button
+                class="check-button panel-entry-button"
+                type="button"
+                data-panel-target-tab="files-tools"
+                data-panel-target-section="file-preview-panel"
+              >
+                去文件工具
+              </button>
+            </article>
+
+            <article class="panel-card">
+              <div class="panel-card-header">
+                <p class="panel-card-kicker">手动知识库</p>
+                <h3>知识库卡</h3>
+              </div>
+              <p class="panel-card-description">
+                进入现有知识库区域，保留手动刷新、搜索与问答边界。
+              </p>
+              <div class="panel-card-placeholder">
+                <span class="panel-card-label">占位信息</span>
+                <p>本轮不自动触发 query，不自动入库，也不改知识库逻辑。</p>
+              </div>
+              <button
+                class="check-button panel-entry-button"
+                type="button"
+                data-panel-target-tab="files-tools"
+                data-panel-target-section="knowledge-section"
+              >
+                去知识库
+              </button>
+            </article>
+          </section>
+        </section>
       </section>
 
       <section
@@ -203,7 +323,7 @@
           </p>
         </section>
 
-        <section class="panel file-preview-panel">
+        <section id="file-preview-panel" class="panel file-preview-panel">
           <div class="section-heading">
             <h2>文件预览</h2>
             <p>仅点击按钮后调用 <code>POST /files/preview</code>。</p>
@@ -250,7 +370,7 @@
           </div>
         </section>
 
-        <section class="panel knowledge-panel">
+        <section id="knowledge-section" class="panel knowledge-panel">
           <div class="section-heading">
             <h2>知识库</h2>
             <p>

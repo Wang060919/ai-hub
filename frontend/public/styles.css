@@ -260,6 +260,78 @@ code {
   display: block;
 }
 
+.panel-overview-shell {
+  display: grid;
+  gap: 18px;
+}
+
+.panel-overview-note {
+  margin-bottom: 0;
+}
+
+.panel-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.panel-card {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border-radius: 22px;
+  border: 1px solid rgba(214, 199, 179, 0.75);
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.panel-card-header {
+  display: grid;
+  gap: 6px;
+}
+
+.panel-card-kicker {
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.panel-card-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.panel-card-description {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.panel-card-placeholder {
+  min-height: 112px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px dashed rgba(24, 109, 103, 0.28);
+  background: rgba(24, 109, 103, 0.05);
+}
+
+.panel-card-label {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: var(--accent-strong);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.panel-card-placeholder p {
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+.panel-entry-button {
+  justify-self: start;
+}
+
 .chat-panel {
   display: grid;
   gap: 18px;
@@ -821,6 +893,7 @@ code {
   .control-row,
   .summary-panel,
   .chat-result-grid,
+  .panel-cards-grid,
   .file-preview-meta,
   .knowledge-inline-fields,
   .tool-meta-grid,
