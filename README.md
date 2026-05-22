@@ -31,7 +31,7 @@ V1.0 / V1.0.1 已基本完成：
 | V1.6 | 桌面小面板 / 项目管家面板第一版 | M1-M6 已完成，等待 M7 |
 | V1.7 | 本地 Markdown 笔记接入 / Obsidian Bridge 第一版 | M3-M6 已完成，等待 M7 |
 | V1.8 | Tauri 桌面体验增强 + Panel 轻量优化 | M2-M6 已完成，等待 M7 |
-| V1.9 | Docker 安全沙盒与自动化执行 | 待开始 |
+| V1.9 | Chat 与 Knowledge 手动联动第一版 | M1/M2/M3 已完成，等待收尾验证 |
 | V2.0 | 个人 AI Agent 工作站完全体 | 远期 |
 
 详见 [docs/VERSION_PLAN.md](docs/VERSION_PLAN.md)。
@@ -161,6 +161,8 @@ V1.7 当前已完成到 M6：在不改变 `/chat`、不新增依赖、不扩展�
 V1.8 当前主题已改为“Tauri 桌面体验增强 + Panel 轻量优化”。这一阶段不再沿用“手机端 / 局域网 / 室友测试”旧方向，而是在 V1.6 Panel 第一版和 V1.7 Markdown / Obsidian Bridge 第一版的基础上，继续打磨桌面入口体验。当前已完成：默认启动进入 Panel、Tauri 默认窗口尺寸微调、Panel 信息紧凑化，以及 Markdown 接入摘要的桌面化表达；同时继续保留完整 Chat / Files / Knowledge 页面入口。当前仍不新增后端能力，不扩大 Tauri 权限。
 
 V1.8 当前暂不做：系统托盘、全局快捷键、置顶窗口、透明窗口、无边框窗口、Live2D / 3D、复杂动画、真正桌宠 / 悬浮窗、手机端 / 局域网 / 室友测试、自动启动后端、自动读文件、自动接入 `/chat`。手机端 / 局域网 / 室友测试可在后续另开版本单独规划，不作为当前 V1.8 主线。
+
+V1.9 当前主题为"Chat 与 Knowledge 手动联动第一版"，M1/M2/M3 已完成。Chat 页面新增模式切换按钮组（普通聊天 / 知识库问答），知识库问答模式复用现有 `/api/knowledge/query`，支持展示 answer、citations、hits、grounded 状态与 KNOWLEDGE_MODEL_DISABLED 错误处理。普通聊天默认行为保持不变，`/chat` 仍未自动接入知识库。Panel 新增"基于知识库提问"轻量跳转入口。当前不改后端、不新增 API、不新增依赖。仍不支持：自动记忆、自动读取文件、embedding / ChromaDB、自动入库。
 
 ## V1.5 当前状态
 

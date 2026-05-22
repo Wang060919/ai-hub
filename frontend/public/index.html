@@ -158,13 +158,23 @@
                   最近一次回答摘要会显示在这里。
                 </div>
               </div>
-              <button
-                class="check-button panel-entry-button"
-                type="button"
-                data-panel-target-tab="chat"
-              >
-                去聊天
-              </button>
+              <div class="panel-card-actions">
+                <button
+                  class="check-button panel-entry-button"
+                  type="button"
+                  data-panel-target-tab="chat"
+                >
+                  去聊天
+                </button>
+                <button
+                  class="check-button panel-entry-button"
+                  type="button"
+                  data-panel-target-tab="chat"
+                  data-panel-chat-mode="knowledge"
+                >
+                  基于知识库提问
+                </button>
+              </div>
             </article>
 
             <article class="panel-card">
@@ -360,6 +370,56 @@
           >
             <div class="chat-empty-state">
               发送消息以启动 Echo 聊天循环。
+            </div>
+          </div>
+
+          <div class="chat-mode-bar">
+            <span class="chat-mode-label">模式</span>
+            <div class="chat-mode-toggle" role="radiogroup" aria-label="聊天模式">
+              <button
+                id="chat-mode-normal"
+                class="chat-mode-button active"
+                type="button"
+                role="radio"
+                aria-checked="true"
+              >
+                普通聊天
+              </button>
+              <button
+                id="chat-mode-knowledge"
+                class="chat-mode-button"
+                type="button"
+                role="radio"
+                aria-checked="false"
+              >
+                知识库问答
+              </button>
+            </div>
+          </div>
+
+          <div id="chat-knowledge-params" class="chat-knowledge-params hidden">
+            <div class="knowledge-inline-fields">
+              <div>
+                <label class="field-label" for="chat-kb-id">知识库 ID</label>
+                <input
+                  id="chat-kb-id"
+                  class="backend-input"
+                  type="text"
+                  value="default"
+                  autocomplete="off"
+                />
+              </div>
+              <div>
+                <label class="field-label" for="chat-top-k">Top K</label>
+                <input
+                  id="chat-top-k"
+                  class="backend-input"
+                  type="number"
+                  min="1"
+                  value="4"
+                  autocomplete="off"
+                />
+              </div>
             </div>
           </div>
 

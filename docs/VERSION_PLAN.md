@@ -598,19 +598,48 @@ V1.4-M13 文档修正补充：上方 V1.4 节若仍保留旧表述，以本补�
 
 ---
 
-### V1.9：Docker 安全沙盒与自动化执行
+### V1.9：Chat 与 Knowledge 手动联动第一版
 
-**目标**：提供安全的隔离执行环境。
+**状态**：M1/M2/M3 已完成，当前等待收尾验证。
 
-**内容**：
+**目标**：在 Chat 页面增加手动"知识库问答模式"，让用户可以在 Chat 页面选择"基于知识库回答"，但不改变普通 Chat 默认行为。
 
-- Docker 安全沙盒
-- 隔离运行代码
-- 隔离文件操作
-- 自动化任务执行
-- 高风险操作确认
-- 执行日志追踪
-- 权限控制
+**定位说明**：
+
+- V1.9 不改后端
+- V1.9 不新增 API
+- V1.9 不新增依赖
+- V1.9 不改变 `/chat` 默认行为
+- V1.9 不自动接入知识库
+
+**第一版范围**：
+
+- Chat 页面新增模式切换按钮组（普通聊天 / 知识库问答）
+- 知识库问答模式调用现有 `/api/knowledge/query`
+- kb_id / top_k 可配置，默认为 `default` / `4`
+- 展示 answer.text、citations、hits
+- grounded=false 时提示"未找到可靠知识片段"
+- KNOWLEDGE_MODEL_DISABLED 时显示对应错误，不 fallback
+- Panel 新增"基于知识库提问"轻量跳转入口
+
+**当前已完成**：
+
+- `frontend/public/index.html` — Chat 区域新增模式切换按钮与知识库参数
+- `frontend/public/js/chat/chat.js` — 扩展 Chat 模块支持知识库模式
+- `frontend/public/app.js` — 挂载模式切换逻辑
+- `frontend/public/js/panel/panel.js` — 无需修改（Panel 入口通过 HTML + app.js 跳转）
+- `frontend/public/styles.css` — 新增模式按钮、知识库回答结果样式
+
+**明确不做**：
+
+- 不改后端
+- 不新增 API
+- 不改 `/chat` 默认行为
+- 不让 `/chat` 自动接入知识库
+- 不做 embedding / ChromaDB
+- 不做自动记忆
+- 不自动读取文件
+- 不自动入库
 
 **不包含**：
 

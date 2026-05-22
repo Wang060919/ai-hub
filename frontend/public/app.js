@@ -48,6 +48,11 @@ const chatMessageInput = document.querySelector("#chat-message");
 const sendChatButton = document.querySelector("#send-chat");
 const chatStatus = document.querySelector("#chat-status");
 const chatMessages = document.querySelector("#chat-messages");
+const chatModeNormalButton = document.querySelector("#chat-mode-normal");
+const chatModeKnowledgeButton = document.querySelector("#chat-mode-knowledge");
+const chatKbIdInput = document.querySelector("#chat-kb-id");
+const chatTopKInput = document.querySelector("#chat-top-k");
+const chatKnowledgeParams = document.querySelector("#chat-knowledge-params");
 
 const filesToolsStatus = document.querySelector("#files-tools-status");
 const filesToolsGrid = document.querySelector("#files-tools-grid");
@@ -102,6 +107,8 @@ const {
   updateSendChatButtonState,
   handleChatInputKeydown,
   sendChat,
+  getChatMode,
+  setChatMode,
 } = createChatModule({
   dom: {
     backendUrlInput,
@@ -109,6 +116,11 @@ const {
     sendChatButton,
     chatStatus,
     chatMessages,
+    chatModeNormalButton,
+    chatModeKnowledgeButton,
+    chatKbIdInput,
+    chatTopKInput,
+    chatKnowledgeParams,
   },
   state,
   renderAssistantMessageContent,
@@ -447,6 +459,8 @@ checkButton.addEventListener("click", checkBackend);
 sendChatButton.addEventListener("click", sendChat);
 chatMessageInput.addEventListener("input", updateSendChatButtonState);
 chatMessageInput.addEventListener("keydown", handleChatInputKeydown);
+chatModeNormalButton.addEventListener("click", () => setChatMode("chat"));
+chatModeKnowledgeButton.addEventListener("click", () => setChatMode("knowledge"));
 panelSendChatButton.addEventListener("click", () => {
   void sendQuickChat();
 });
@@ -479,12 +493,17 @@ panelEntryButtons.forEach((button) => {
   button.addEventListener("click", () => {
     const tabName = button.getAttribute("data-panel-target-tab");
     const sectionId = button.getAttribute("data-panel-target-section");
+    const chatModeAttr = button.getAttribute("data-panel-chat-mode");
 
     if (!tabName) {
       return;
     }
 
     openTabTarget(tabName, sectionId);
+
+    if (chatModeAttr === "knowledge") {
+      setChatMode("knowledge");
+    }
   });
 });
 

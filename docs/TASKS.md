@@ -603,19 +603,28 @@ V1.8 保留说明：
 
 ---
 
-### V1.9：Docker 安全沙盒与自动化执行
+### V1.9：Chat 与 Knowledge 手动联动第一版
 
-**状态**：`TODO`
+**状态**：M1/M2/M3 `DONE`，等待收尾验证。
 
 任务清单：
 
-- [ ] Docker 安全沙盒环境
-- [ ] 隔离代码运行
-- [ ] 隔离文件操作
-- [ ] 自动化任务执行
-- [ ] 高风险操作确认流程
-- [ ] 执行日志追踪
-- [ ] 权限控制体系
+- [x] M1：Chat 页面新增模式切换按钮组（普通聊天 / 知识库问答）
+- [x] M2：Chat 模块扩展知识库问答模式，调用 `/api/knowledge/query`
+- [x] M3：Panel 新增"基于知识库提问"轻量跳转入口
+- [ ] M4：轻量回归验证与文档同步
+
+当前支持：
+- Chat 页面手动知识库问答模式
+- 普通 Chat 默认行为不变
+- 底层复用 `/api/knowledge/query`
+- grounded=false 提示、citations/hits 展示、KNOWLEDGE_MODEL_DISABLED 错误处理
+
+仍不支持：
+- `/chat` 默认自动接入知识库
+- 自动记忆、自动读取文件
+- embedding / ChromaDB
+- 自动入库
 
 ---
 

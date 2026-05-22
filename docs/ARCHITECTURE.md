@@ -258,10 +258,10 @@ ai-hub/
 - `backend/modules/knowledge/` — 知识库（V1.4 当前为本地文本知识库第一版）
 - `backend/modules/screen/` — 屏幕工具（V1.5 实现）
 - `backend/modules/voice/` — 语音（后续版本预留，当前未纳入 V1.7 主线）
-- `backend/modules/sandbox/` — 沙盒（V1.9 实现）
+- `backend/modules/sandbox/` — 沙盒（后续版本实现）
 - `backend/modules/skills/` — 技能/路由预留目录（当前已预留，后续版本再定义主线）
 - `backend/adapters/chromadb/` — 向量数据库预留（V1.5+ 预留，当前未实现）
-- `backend/adapters/docker/` — Docker（V1.9 实现）
+- `backend/adapters/docker/` — Docker（后续版本实现）
 - `backend/adapters/stt/` + `backend/adapters/tts/` — 语音（后续版本预留，当前未纳入 V1.7 主线）
 
 V1.7 当前主题补充：
