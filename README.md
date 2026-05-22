@@ -25,7 +25,7 @@ V1.0 / V1.0.1 已基本完成：
 | V1.0 / V1.0.1 | 桌面端基础骨架与启动体验优化 | 基本完成 |
 | V1.1 | 高适配性底层框架 | 待开始 |
 | V1.2 | 基础 AI 对话功能 | M8 收尾验证与文档同步中 |
-| V1.3 | 文件处理功能 | M6 手动总结已完成，M7 待开始 |
+| V1.3 | 文件处理功能 | M1-M7 已完成，进入收尾判断 |
 | V1.4 | 知识库与记忆系统 | 待开始 |
 | V1.5 | 屏幕感知工具组与学习辅助模式 | 待开始 |
 | V1.6 | 技能网关 / 插件系统 | 待开始 |
@@ -122,4 +122,6 @@ V1.2-M1 到 M7 已完成，当前进入 M8 轻量验证与文档同步。当前�
 
 V1.2 仍不包含历史会话列表、多会话切换、持久化保存、文件上传、知识库、截图搜索、语音、桌宠形态、本地模型管理或 SSE 流式输出。DeepSeek 短上下文复测属于可选验证，建议避免重复消耗额度。
 
-V1.3 当前已完成 M6 手动文件总结闭环：后端已提供 `POST /files/summarize`，Files / Tools 页面已提供“生成总结”按钮，且总结只能由用户手动触发，读取预览不会自动调用 AI。当前只支持白名单目录内 `.txt` / `.md` / `.log` / `.csv` 文本类文件，不支持 PDF / Word / Excel；`ENABLE_FILE_SUMMARY=false` 为默认值，DeepSeek 未启用或无 Key 时返回 `SUMMARY_MODEL_DISABLED`。这还不是 V1.4 知识库能力，当前不做 ChromaDB、RAG、长期记忆或多文件知识库。
+V1.3 当前已完成到 M7：后端已提供 `POST /files/preview` 与 `POST /files/summarize`，Files / Tools 页面已提供“生成总结”按钮，且总结只能由用户手动触发，读取预览不会自动调用 AI。M7 已实际验证 `.txt` / `.md` / `.log` / `.csv` 正常预览，以及 `FILE_NOT_FOUND`、`PATH_NOT_ALLOWED`、`PATH_IS_NOT_FILE`、`UNSUPPORTED_FILE_TYPE`、`FILE_TOO_LARGE`、`BINARY_FILE_REJECTED` 等错误场景；`/files/summarize` 默认关闭返回 `SUMMARY_MODEL_DISABLED`，文件不存在、不支持后缀、路径越界也已验证能返回对应错误。
+
+V1.3 仍只支持白名单目录内只读文本文件预览 + 手动总结，不支持文件上传、PDF / Word / Excel、ChromaDB、RAG、长期记忆、多文件知识库、自动扫描全盘或文件修改 / 删除 / 移动。这还不是 V1.4 知识库能力。环境上，当前后端应使用 `ai_hub` / Python 3.11+；这台机器默认 Python 3.9 会因新语法无法启动后端。

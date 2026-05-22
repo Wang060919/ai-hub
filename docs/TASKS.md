@@ -229,7 +229,7 @@ M8 边界：
 
 ### V1.3：文件处理功能
 
-**状态**：`DOING`（M6 手动总结已完成，M7 错误处理与安全边界验证待开始）
+**状态**：`DOING`（M1-M7 已完成，当前进入 V1.3 收尾判断）
 
 任务清单：
 
@@ -268,6 +268,33 @@ M6 边界：
 - 当前不做读取预览自动调用 AI。
 - 当前不做 ChromaDB / RAG / 长期记忆 / 多文件知识库。
 - 下一步是 V1.3-M7：错误处理与安全边界验证。
+
+V1.3-M7 错误处理与安全边界验证：
+
+- [x] M7a：`/files/preview` 已验证 `.txt` / `.md` / `.log` / `.csv` 小文件正常预览。
+- [x] M7b：`/files/preview` 已验证错误码：`FILE_NOT_FOUND`、`PATH_NOT_ALLOWED`、`PATH_IS_NOT_FILE`、`UNSUPPORTED_FILE_TYPE`、`FILE_TOO_LARGE`、`BINARY_FILE_REJECTED`。
+- [x] M7c：`/files/summarize` 已验证默认关闭时返回 `SUMMARY_MODEL_DISABLED`。
+- [x] M7d：`/files/summarize` 已验证文件不存在、不支持后缀、路径越界时返回对应错误。
+- [x] M7e：回归验证已完成：`/chat` 发送 `hello` 正常返回 Echo。
+- [x] M7f：回归验证已完成：`/health`、`/version`、`/skills` 正常。
+- [x] M7g：`npm run build` 已实际通过。
+- [x] M7h：相关后端文件 `py_compile` 已实际通过。
+
+M7 说明：
+
+- 本轮已实际验证后端接口、前端代理、`npm run build` 与 `py_compile`。
+- “打开 Files / Tools 页面不应自动调用 `/files/summarize`”与“预览成功后不应自动调用 `/files/summarize`”本轮仅完成源码检查，不写成浏览器运行时验证。
+- 当前 V1.3 仍是只读文本文件预览 + 手动总结，不是知识库。
+- 当前仍不支持文件上传、PDF / Word / Excel、ChromaDB、RAG、长期记忆、多文件知识库、自动扫描全盘、文件修改 / 删除 / 移动。
+
+环境注意事项：
+
+- 当前项目后端应使用 `ai_hub` 环境 / Python 3.11+。
+- 默认 Python 3.9 会因新语法无法启动后端。
+
+下一步：
+
+- 进入 V1.3 收尾判断，准备合并或打 tag。
 
 ---
 

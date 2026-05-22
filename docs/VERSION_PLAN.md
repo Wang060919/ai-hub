@@ -169,19 +169,22 @@ AI Hub 当前阶段优先做个人可用版，但代码不能写死为只能在�
 
 ### V1.3：文件处理功能
 
-**状态**：M6 手动总结已完成，当前进入 M7 错误处理与安全边界验证。
+**状态**：M1-M7 已完成，当前进入 V1.3 收尾判断。
 
 **目标**：在不扩展到知识库能力的前提下，先完成白名单目录内文本文件的手动总结闭环。
 
 **已完成内容**：
 
+- `POST /files/preview`
 - `POST /files/summarize`
 - Files / Tools 页面“生成总结”按钮
 - `/api/files/summarize` 前端代理链路
+- 白名单目录内只读文本文件预览
 - 手动触发的文件总结闭环
 - `ENABLE_FILE_SUMMARY` 独立开关，默认 `false`
 - DeepSeek 未启用或无 Key 时返回 `SUMMARY_MODEL_DISABLED`
 - 真实 DeepSeek 文件总结链路验证
+- M7 错误处理与安全边界验证
 
 **已验证返回**：
 
@@ -197,10 +200,27 @@ AI Hub 当前阶段优先做个人可用版，但代码不能写死为只能在�
 - 总结必须由用户手动点击触发。
 - 读取预览不会自动调用 AI。
 - 当前不做 ChromaDB / RAG / 长期记忆 / 多文件知识库。
+- 当前不做文件上传、自动扫描全盘、文件修改 / 删除 / 移动。
+- 当前 V1.3 是只读文本文件预览 + 手动总结，不是知识库。
+
+**M7 已验证内容**：
+
+- `/files/preview` 已验证 `.txt` / `.md` / `.log` / `.csv` 正常。
+- `/files/preview` 已验证：`FILE_NOT_FOUND`、`PATH_NOT_ALLOWED`、`PATH_IS_NOT_FILE`、`UNSUPPORTED_FILE_TYPE`、`FILE_TOO_LARGE`、`BINARY_FILE_REJECTED`。
+- `/files/summarize` 已验证默认关闭返回 `SUMMARY_MODEL_DISABLED`。
+- `/files/summarize` 已验证文件不存在、不支持后缀、路径越界能返回对应错误。
+- 回归验证已完成：`/chat hello` 返回 Echo，`/health`、`/version`、`/skills` 正常。
+- `npm run build` 已通过。
+- 相关后端文件 `py_compile` 已通过。
+
+**环境注意事项**：
+
+- 当前项目后端应使用 `ai_hub` 环境 / Python 3.11+。
+- 默认 Python 3.9 会因新语法无法启动后端。
 
 **后续待做**：
 
-- 错误处理与安全边界验证（V1.3-M7）
+- V1.3 收尾判断，准备合并或打 tag
 - 文件上传
 - 根据文件问答
 - 文件处理结果导出
