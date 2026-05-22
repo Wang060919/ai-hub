@@ -25,7 +25,7 @@ V1.0 / V1.0.1 已基本完成：
 | V1.0 / V1.0.1 | 桌面端基础骨架与启动体验优化 | 基本完成 |
 | V1.1 | 高适配性底层框架 | 待开始 |
 | V1.2 | 基础 AI 对话功能 | M8 收尾验证与文档同步中 |
-| V1.3 | 文件处理功能 | 待开始 |
+| V1.3 | 文件处理功能 | M6 手动总结已完成，M7 待开始 |
 | V1.4 | 知识库与记忆系统 | 待开始 |
 | V1.5 | 屏幕感知工具组与学习辅助模式 | 待开始 |
 | V1.6 | 技能网关 / 插件系统 | 待开始 |
@@ -121,3 +121,5 @@ AI Hub 当前优先服务个人使用，但所有新增功能都应避免写死�
 V1.2-M1 到 M7 已完成，当前进入 M8 轻量验证与文档同步。当前能力包括：基础聊天窗口 UI、Enter 发送 / Shift + Enter 换行、loading / error / 空输入禁用、DeepSeek adapter、`DeepSeekChatSkill`、`/chat` 最小接入 DeepSeek、默认关闭 DeepSeek 并 fallback Echo、短上下文管理、内存 `chatHistory`、基础 Markdown 渲染，以及不使用 `innerHTML` 直接渲染模型输出的安全渲染路径。
 
 V1.2 仍不包含历史会话列表、多会话切换、持久化保存、文件上传、知识库、截图搜索、语音、桌宠形态、本地模型管理或 SSE 流式输出。DeepSeek 短上下文复测属于可选验证，建议避免重复消耗额度。
+
+V1.3 当前已完成 M6 手动文件总结闭环：后端已提供 `POST /files/summarize`，Files / Tools 页面已提供“生成总结”按钮，且总结只能由用户手动触发，读取预览不会自动调用 AI。当前只支持白名单目录内 `.txt` / `.md` / `.log` / `.csv` 文本类文件，不支持 PDF / Word / Excel；`ENABLE_FILE_SUMMARY=false` 为默认值，DeepSeek 未启用或无 Key 时返回 `SUMMARY_MODEL_DISABLED`。这还不是 V1.4 知识库能力，当前不做 ChromaDB、RAG、长期记忆或多文件知识库。

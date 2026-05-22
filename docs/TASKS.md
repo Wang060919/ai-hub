@@ -229,20 +229,45 @@ M8 边界：
 
 ### V1.3：文件处理功能
 
-**状态**：`TODO`
+**状态**：`DOING`（M6 手动总结已完成，M7 错误处理与安全边界验证待开始）
 
 任务清单：
 
 - [ ] 文件上传接口
 - [ ] PDF 基础解析
 - [ ] Word 基础解析
-- [ ] TXT 基础解析
-- [ ] Markdown 基础解析
-- [ ] 文件内容提取 API
-- [ ] 文件总结功能
+- [x] TXT 基础解析（白名单目录内文本类文件）
+- [x] Markdown 基础解析（白名单目录内文本类文件）
+- [x] 文件内容提取 API（当前 `/files/summarize` 手动总结链路已接入）
+- [x] 文件总结功能（当前仅支持手动触发总结）
 - [ ] 根据文件问答
 - [ ] 文件处理结果导出
 - [ ] 为知识库预留数据结构
+
+V1.3-M6 文档同步：
+
+- [x] M6a：`POST /files/summarize` 已完成并用于手动文件总结。
+- [x] M6b：Files / Tools 页面已新增“生成总结”按钮。
+- [x] M6c：前端总结必须由用户手动点击触发，读取预览不会自动调用 AI。
+- [x] M6d：新增 `ENABLE_FILE_SUMMARY` 独立开关，默认 `false`。
+- [x] M6e：DeepSeek 未启用或无 Key 时返回 `SUMMARY_MODEL_DISABLED`。
+- [x] M6f：已真实验证 DeepSeek 文件总结链路。
+
+M6 已验证返回：
+
+- `model: deepseek-v4-flash`
+- `input_chars: 33`
+- `source_chars: 33`
+- `truncated: false`
+
+M6 边界：
+
+- 当前只支持白名单目录内 `.txt` / `.md` / `.log` / `.csv` 文本类文件。
+- 当前不支持 PDF / Word / Excel。
+- 当前不做自动总结，必须手动点击“生成总结”。
+- 当前不做读取预览自动调用 AI。
+- 当前不做 ChromaDB / RAG / 长期记忆 / 多文件知识库。
+- 下一步是 V1.3-M7：错误处理与安全边界验证。
 
 ---
 
