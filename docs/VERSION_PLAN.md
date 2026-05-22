@@ -237,9 +237,9 @@ AI Hub 当前阶段优先做个人可用版，但代码不能写死为只能在�
 
 ### V1.4：知识库与记忆系统
 
-**状态**：M8-M11 已完成，当前进入 M12 或 V1.4 收尾方向确认。
+**状态**：M8-M12 已完成，当前进入 V1.4 收尾验证 / tag 或 V1.5 规划。
 
-**目标**：先完成本地文本知识库第一版最小闭环，再决定前端入口或错误处理验证的下一步。
+**目标**：已完成本地文本知识库第一版最小闭环与前端 Knowledge 最小入口，当前进入收尾验证与版本整理。
 
 **已完成内容**：
 
@@ -248,7 +248,7 @@ AI Hub 当前阶段优先做个人可用版，但代码不能写死为只能在�
 - `POST /knowledge/search`
 - `POST /knowledge/query`
 - 本地文本知识库切片入库
-- 基于 SQLite FTS / LIKE fallback 的纯检索
+- 基于 SQLite FTS5 / LIKE fallback 的全文检索
 - 基于检索 hits 的 DeepSeek 增强回答
 - hits 为空时直接返回 `grounded=false`，不调用 DeepSeek
 - 第一版 `citations` 由 hits 直接映射生成
@@ -298,7 +298,8 @@ AI Hub 当前阶段优先做个人可用版，但代码不能写死为只能在�
 - 当前不支持自动长期记忆。
 - 当前不支持自动监听聊天入库。
 - 当前不支持自动接入 `/chat`。
-- 当前不支持前端知识库页面。
+- 当前已支持前端 Knowledge 最小入口。
+- 当前前端 Knowledge 入口只支持手动操作，不自动触发 query / 入库。
 - 当前不支持 PDF / Word / Excel 知识入库。
 - 当前不做 GraphRAG。
 - 当前不做知识图谱可视化。
@@ -306,12 +307,14 @@ AI Hub 当前阶段优先做个人可用版，但代码不能写死为只能在�
 
 **下一步待确认**：
 
-- V1.4-M12：前端 Knowledge 最小入口
-- 或 V1.4 收尾验证与 tag
+- V1.4 收尾验证与 tag
+- 或进入 V1.5 规划
 
 ---
 
 ### V1.5：屏幕感知工具组与学习辅助模式
+
+V1.4-M13 文档修正补充：上方 V1.4 节若仍保留旧表述，以本补充为准。V1.4 当前应视为 M8-M12 已完成，已支持前端 Knowledge 最小入口；该入口仅支持手动刷新 `GET /knowledge/status`、手动调用 `POST /knowledge/index-file`、手动调用 `POST /knowledge/search`、手动调用 `POST /knowledge/query`，页面加载只自动刷新 status，不自动入库，不自动 search，不自动 query。当前知识库实现为本地文本知识库第一版，检索方式为 SQLite FTS5 + LIKE fallback 的全文检索，而不是 embedding / 向量检索；ChromaDB 不属于 V1.4 已实现范围。V1.4 下一步应为收尾验证 / tag，或进入 V1.5 规划。
 
 **目标**：提供屏幕内容识别与学习辅助工具。
 
