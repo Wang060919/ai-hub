@@ -339,7 +339,7 @@ function createSetKnowledgeStatusLoading(dom, state, updateKnowledgeButtonState)
     state.knowledgeStatusLoading = isLoading;
     setButtonLoading(dom.refreshKnowledgeStatusButton, isLoading, {
       loading: "刷新中...",
-      idle: "刷新知识库状态",
+      idle: "刷新状态",
     });
     updateKnowledgeButtonState();
   };
@@ -350,7 +350,7 @@ function createSetKnowledgeIndexLoading(dom, state, updateKnowledgeButtonState) 
     state.knowledgeIndexLoading = isLoading;
     setButtonLoading(dom.knowledgeIndexSubmitButton, isLoading, {
       loading: "接入中...",
-      idle: "接入 Markdown 笔记",
+      idle: "接入笔记",
     });
     updateKnowledgeButtonState();
   };
@@ -361,7 +361,7 @@ function createSetKnowledgeSearchLoading(dom, state, updateKnowledgeButtonState)
     state.knowledgeSearchLoading = isLoading;
     setButtonLoading(dom.knowledgeSearchSubmitButton, isLoading, {
       loading: "搜索中...",
-      idle: "搜索知识库",
+      idle: "搜索",
     });
     updateKnowledgeButtonState();
   };
@@ -375,7 +375,7 @@ function createSetKnowledgeDirectoryIndexLoading(dom, state, updateKnowledgeButt
     if (button) {
       setButtonLoading(button, isLoading, {
         loading: "批量接入中...",
-        idle: "批量接入 Markdown 目录",
+        idle: "批量接入",
       });
     }
     updateKnowledgeButtonState();
@@ -387,7 +387,7 @@ function createSetKnowledgeQueryLoading(dom, state, updateKnowledgeButtonState) 
     state.knowledgeQueryLoading = isLoading;
     setButtonLoading(dom.knowledgeQuerySubmitButton, isLoading, {
       loading: "问答中...",
-      idle: "知识库问答",
+      idle: "提问",
     });
     updateKnowledgeButtonState();
   };
@@ -433,12 +433,12 @@ export function createKnowledgeModule(deps) {
     setKnowledgeStatusLoading(true);
     dom.knowledgeStatusResult.classList.add("hidden");
     dom.knowledgeStatusResult.innerHTML = "";
-    setTextStatus(dom.knowledgeStatusMessage, "正在加载 /api/knowledge/status ...", "idle");
+    setTextStatus(dom.knowledgeStatusMessage, "正在获取知识库状态...", "idle");
 
     try {
       const payload = await requestKnowledgeStatus(backendUrl);
       renderKnowledgeStatus(dom, payload);
-      setTextStatus(dom.knowledgeStatusMessage, "知识库状态已从 /api/knowledge/status 加载", "success");
+      setTextStatus(dom.knowledgeStatusMessage, "知识库状态已更新。", "success");
       return payload;
     } catch (error) {
       renderErrorBox(dom.knowledgeStatusResult, error, "知识库请求失败");
@@ -474,7 +474,7 @@ export function createKnowledgeModule(deps) {
     dom.knowledgeIndexResult.innerHTML = "";
     setTextStatus(
       dom.knowledgeIndexStatus,
-      "正在调用 /api/knowledge/index-file 接入单篇 Markdown 笔记...",
+      "正在接入 Markdown 笔记...",
       "idle"
     );
 
@@ -483,7 +483,7 @@ export function createKnowledgeModule(deps) {
       renderKnowledgeIndexResult(dom, payload);
       setTextStatus(
         dom.knowledgeIndexStatus,
-        "单篇 Markdown 笔记已通过 /api/knowledge/index-file 手动入库。",
+        "Markdown 笔记已成功入库。",
         "success"
       );
       void refreshKnowledgeStatus();

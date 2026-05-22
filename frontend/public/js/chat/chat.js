@@ -72,7 +72,7 @@ export function createChatModule(deps) {
     if (!grounded) {
       const warning = document.createElement("div");
       warning.className = "chat-knowledge-warning";
-      warning.textContent = "未找到可靠知识片段，以下回答可能不准确。";
+      warning.textContent = "未在知识库中找到可靠匹配，以下回答仅供参考。";
       bubble.append(warning);
     }
 
@@ -88,8 +88,19 @@ export function createChatModule(deps) {
     return { grounded };
   }
 
-  function buildCitationsBlock(citations) {
-    if (!Array.isArray(citations) || citations.length === 0) {
+  function buildSourcesBlock(citations, hits) {
+    const sources = [];
+    if (Array.isArray(citations)) {
+      citations.forEach((c) => {
+        sources.push({ path: c.relative_path || "-", chunk: c.chunk_index ?? "-", index: c.index });
+      });
+    }
+    if (sources.length === 0 && Array.isArray(hits)) {
+      hits.forEach((h) => {
+        sources.push({ path: h.relative_path || "-", chunk: h.chunk_index ?? "-" });
+      });
+    }
+    if (sources.length === 0) {
       return null;
     }
 
@@ -97,42 +108,16 @@ export function createChatModule(deps) {
     container.className = "chat-knowledge-details";
 
     const summary = document.createElement("summary");
-    summary.textContent = `引用来源（${citations.length}）`;
+    summary.textContent = `参考来源（${sources.length}）`;
     container.append(summary);
 
     const list = document.createElement("ol");
     list.className = "chat-citation-list";
-    citations.forEach((citation) => {
+    sources.forEach((s) => {
       const item = document.createElement("li");
       item.className = "chat-citation-item";
-      item.textContent = `[${citation.index ?? "-"}] ${citation.relative_path || "-"} (chunk ${citation.chunk_index ?? "-"})`;
-      list.append(item);
-    });
-    container.append(list);
-
-    return container;
-  }
-
-  function buildHitsBlock(hits) {
-    if (!Array.isArray(hits) || hits.length === 0) {
-      return null;
-    }
-
-    const container = document.createElement("details");
-    container.className = "chat-knowledge-details";
-
-    const summary = document.createElement("summary");
-    summary.textContent = `命中文件（${hits.length}）`;
-    container.append(summary);
-
-    const list = document.createElement("ol");
-    list.className = "chat-citation-list";
-    hits.forEach((hit) => {
-      const item = document.createElement("li");
-      item.className = "chat-citation-item";
-      const path = hit.relative_path || "-";
-      const score = hit.score != null ? ` | score=${hit.score}` : "";
-      item.innerHTML = `<strong>${escapeHtml(path)}</strong> chunk_index=${escapeHtml(hit.chunk_index ?? "-")}${escapeHtml(score)}`;
+      const label = s.index != null ? `[${s.index}] ` : "";
+      item.textContent = `${label}${s.path}（第 ${s.chunk} 段）`;
       list.append(item);
     });
     container.append(list);
@@ -157,21 +142,16 @@ export function createChatModule(deps) {
 
     const { grounded } = buildAnswerBubble(bubble, answer);
 
-    const citationsBlock = buildCitationsBlock(citations);
-    if (citationsBlock) {
-      bubble.append(citationsBlock);
-    }
-
-    const hitsBlock = buildHitsBlock(hits);
-    if (hitsBlock) {
-      bubble.append(hitsBlock);
+    const sourcesBlock = buildSourcesBlock(citations, hits);
+    if (sourcesBlock) {
+      bubble.append(sourcesBlock);
     }
 
     messageItem.append(label, bubble);
 
     const meta = document.createElement("div");
     meta.className = "chat-message-meta";
-    meta.textContent = `model: ${answer.model || "-"} | grounded: ${String(grounded)}`;
+    meta.textContent = answer.model ? `模型：${answer.model}` : "";
     messageItem.append(meta);
 
     clearChatEmptyState();
@@ -195,18 +175,13 @@ export function createChatModule(deps) {
     const errorDiv = document.createElement("div");
     errorDiv.className = "chat-knowledge-warning";
     if (isModelDisabled) {
-      errorDiv.textContent = "KNOWLEDGE_MODEL_DISABLED：后端环境未启用 DeepSeek，无法回答知识库问题。";
+      errorDiv.textContent = "知识库问答功能未启用：后端环境尚未配置 AI 模型，请联系管理员开启 DeepSeek。";
     } else {
-      errorDiv.textContent = message || "知识库问答请求失败";
+      errorDiv.textContent = message || "知识库问答请求失败，请稍后重试。";
     }
     bubble.append(errorDiv);
 
     messageItem.append(label, bubble);
-
-    const meta = document.createElement("div");
-    meta.className = "chat-message-meta";
-    meta.textContent = `status: error${code ? ` | code: ${code}` : ""}`;
-    messageItem.append(meta);
 
     clearChatEmptyState();
     dom.chatMessages.append(messageItem);
@@ -215,7 +190,7 @@ export function createChatModule(deps) {
 
   function resetChatResult() {
     dom.chatMessages.innerHTML =
-      '<div class="chat-empty-state">发送消息以启动 Echo 聊天循环。</div>';
+      '<div class="chat-empty-state">发送消息开始对话。</div>';
     state.chatHistory = [];
   }
 
@@ -365,7 +340,7 @@ export function createChatModule(deps) {
     dom.chatMessageInput.value = "";
     updateSendChatButtonState();
     setChatLoading(true);
-    setTextStatus(dom.chatStatus, "正在发送 /api/knowledge/query ...", "idle");
+    setTextStatus(dom.chatStatus, "正在查询知识库...", "idle");
     const loadingMessage = renderChatLoading();
 
     try {
@@ -380,7 +355,7 @@ export function createChatModule(deps) {
       renderKnowledgeChatResult(payload);
       setTextStatus(
         dom.chatStatus,
-        "知识库回答已从 /api/knowledge/query 加载",
+        "已基于知识库内容生成回答。",
         "success"
       );
     } catch (error) {
@@ -392,7 +367,7 @@ export function createChatModule(deps) {
       if (error.code === "KNOWLEDGE_MODEL_DISABLED") {
         setTextStatus(
           dom.chatStatus,
-          "KNOWLEDGE_MODEL_DISABLED：后端环境未启用 DeepSeek。",
+          "知识库问答功能未启用，请检查后端 AI 模型配置。",
           "error"
         );
       } else {
@@ -431,7 +406,7 @@ export function createChatModule(deps) {
     dom.chatMessageInput.value = "";
     updateSendChatButtonState();
     setChatLoading(true);
-    setTextStatus(dom.chatStatus, "正在发送 /chat 请求 ...", "idle");
+    setTextStatus(dom.chatStatus, "正在发送消息...", "idle");
     const loadingMessage = renderChatLoading();
 
     try {
@@ -447,7 +422,7 @@ export function createChatModule(deps) {
       }
       setTextStatus(
         dom.chatStatus,
-        `聊天响应来自 ${payload.backendUrl}`,
+        "已收到回复。",
         "success"
       );
     } catch (error) {

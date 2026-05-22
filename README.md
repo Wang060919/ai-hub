@@ -32,7 +32,7 @@ V1.0 / V1.0.1 已基本完成：
 | V1.7 | 本地 Markdown 笔记接入 / Obsidian Bridge 第一版 | M3-M6 已完成，等待 M7 |
 | V1.8 | Tauri 桌面体验增强 + Panel 轻量优化 | M2-M6 已完成，等待 M7 |
 | V1.9 | Chat 与 Knowledge 手动联动第一版 | M1/M2/M3 已完成，等待收尾验证 |
-| V2.0 | 个人 AI Agent 工作站完全体 | 远期 |
+| V2.0 | AI Hub 桌面工作台产品化界面第一版 | M1-M6 已基本完成，M7 收尾中 |
 
 详见 [docs/VERSION_PLAN.md](docs/VERSION_PLAN.md)。
 
@@ -163,6 +163,29 @@ V1.8 当前主题已改为“Tauri 桌面体验增强 + Panel 轻量优化”。
 V1.8 当前暂不做：系统托盘、全局快捷键、置顶窗口、透明窗口、无边框窗口、Live2D / 3D、复杂动画、真正桌宠 / 悬浮窗、手机端 / 局域网 / 室友测试、自动启动后端、自动读文件、自动接入 `/chat`。手机端 / 局域网 / 室友测试可在后续另开版本单独规划，不作为当前 V1.8 主线。
 
 V1.9 当前主题为"Chat 与 Knowledge 手动联动第一版"，M1/M2/M3 已完成。Chat 页面新增模式切换按钮组（普通聊天 / 知识库问答），知识库问答模式复用现有 `/api/knowledge/query`，支持展示 answer、citations、hits、grounded 状态与 KNOWLEDGE_MODEL_DISABLED 错误处理。普通聊天默认行为保持不变，`/chat` 仍未自动接入知识库。Panel 新增"基于知识库提问"轻量跳转入口。当前不改后端、不新增 API、不新增依赖。仍不支持：自动记忆、自动读取文件、embedding / ChromaDB、自动入库。
+
+## V2.0 当前状态
+
+V2.0 主题为"AI Hub 桌面工作台产品化界面第一版"，M1-M6 已基本完成：
+
+- M1：UI 现状审查与产品化改版方案（分析报告）
+- M2：设计 Token 与基础样式统一（CSS 变量体系、圆角/间距/阴影/表面色统一）
+- M3：Panel 主入口改版（移除开发文字、卡片文案产品化）
+- M4：Chat 页面体验优化（去除"Echo"等技术细节、简化知识库问答结果展示、中文友好错误提示）
+- M5：Knowledge 页面信息架构整理（折叠式分组、单篇/批量入库归入"Markdown 接入"、搜索与问答视觉区分）
+- M6：Files / Tools 页面统一（卡片样式与 Panel/Knowledge 对齐）
+
+本轮仅修改前端 CSS、HTML 和 JS 展示文案，未新增后端能力、API、依赖，未改变功能逻辑。
+
+仍不支持：
+- 新后端能力 / API
+- PDF / Word / Excel
+- React / Vue 重构
+- 暗色模式
+- 系统托盘 / 快捷键 / 悬浮窗
+- 真正桌宠
+- 自动 Agent
+- 自动 chat / summarize / query / 入库
 
 ## V1.5 当前状态
 

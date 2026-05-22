@@ -71,25 +71,18 @@
         <section class="panel panel-overview-shell">
           <div class="section-heading">
             <div>
-              <h2>桌面小面板</h2>
-              <p>将现有能力整理为更适合桌面端使用的快捷入口。</p>
+              <h2>工作台</h2>
+              <p>集中查看后端状态、知识库摘要，并快速发起对话或跳转到完整功能页。</p>
             </div>
-          </div>
-          <div class="inline-note panel-overview-note">
-            <p>
-              当前为 V1.6-M2 静态壳层。这里不自动调用
-              <code>/chat</code>、<code>/files/*</code>、<code>/knowledge/query</code>，
-              也不自动入库、不自动扫描文件。
-            </p>
           </div>
           <section class="panel-cards-grid" aria-label="Panel quick entry cards">
             <article class="panel-card">
               <div class="panel-card-header">
-                <p class="panel-card-kicker">概览</p>
-                <h3>后端状态卡</h3>
+                <p class="panel-card-kicker">系统</p>
+                <h3>后端状态</h3>
               </div>
               <p class="panel-card-description">
-                查看后端是否在线、版本信息与能力入口位置。
+                查看 AI Hub 后端是否在线，以及当前版本和可用能力概况。
               </p>
               <div class="panel-card-placeholder panel-summary-block">
                 <span class="panel-card-label">摘要信息</span>
@@ -126,11 +119,11 @@
 
             <article class="panel-card">
               <div class="panel-card-header">
-                <p class="panel-card-kicker">快捷入口</p>
-                <h3>快速聊天卡</h3>
+                <p class="panel-card-kicker">对话</p>
+                <h3>快速聊天</h3>
               </div>
               <p class="panel-card-description">
-                在面板里手动发起一条简短聊天请求，不改变完整聊天页行为。
+                直接在面板中发送一条消息，快速获得 AI 回复。
               </p>
               <div class="panel-card-placeholder panel-chat-block">
                 <span class="panel-card-label">快速输入</span>
@@ -152,7 +145,7 @@
                   </button>
                 </div>
                 <p id="panel-chat-status" class="panel-card-status">
-                  不会自动发送；只有手动点击才会调用 `/api/chat`。
+                  点击发送后调用 AI 对话，仅手动触发。
                 </p>
                 <div id="panel-chat-result" class="panel-chat-result">
                   最近一次回答摘要会显示在这里。
@@ -179,15 +172,15 @@
 
             <article class="panel-card">
               <div class="panel-card-header">
-                <p class="panel-card-kicker">只读工具</p>
-                <h3>文件工具卡</h3>
+                <p class="panel-card-kicker">工具</p>
+                <h3>文件工具</h3>
               </div>
               <p class="panel-card-description">
-                跳转到现有文件工具页，使用预览与手动总结入口。
+                预览白名单目录内的文本文件，支持手动生成 AI 总结。
               </p>
               <div class="panel-card-placeholder">
-                <span class="panel-card-label">占位信息</span>
-                <p>本轮不在面板内读取文件，不自动触发 summarize。</p>
+                <span class="panel-card-label">使用方式</span>
+                <p>在文件工具页输入文件路径，点击预览后可手动生成 AI 总结。</p>
               </div>
               <button
                 class="check-button panel-entry-button"
@@ -195,17 +188,17 @@
                 data-panel-target-tab="files-tools"
                 data-panel-target-section="file-preview-panel"
               >
-                去文件工具
+                打开文件工具
               </button>
             </article>
 
             <article class="panel-card">
               <div class="panel-card-header">
-                <p class="panel-card-kicker">手动知识库</p>
-                <h3>知识库卡</h3>
+                <p class="panel-card-kicker">知识库</p>
+                <h3>知识库</h3>
               </div>
               <p class="panel-card-description">
-                进入现有知识库区域，保留手动刷新、搜索与问答边界。
+                管理本地文本知识库，支持 Markdown 笔记接入、全文检索与智能问答。
               </p>
               <div class="panel-card-placeholder panel-summary-block panel-markdown-summary-block">
                 <span class="panel-card-label">Markdown 接入摘要</span>
@@ -236,7 +229,7 @@
                   </div>
                 </div>
                 <p class="panel-card-caption">
-                  这里只展示桌面入口摘要；完整接入与批量操作仍在 Knowledge 页面手动触发。
+                  完整入库与批量操作请在知识库页面手动触发。
                 </p>
                 <p id="panel-knowledge-status" class="panel-card-status">
                   刷新知识库状态后，这里会同步显示最新摘要。
@@ -249,7 +242,7 @@
                   data-panel-target-tab="files-tools"
                   data-panel-target-section="knowledge-section"
                 >
-                  查看知识库
+                  打开知识库
                 </button>
                 <button
                   class="check-button panel-entry-button"
@@ -369,7 +362,7 @@
             aria-label="Chat messages"
           >
             <div class="chat-empty-state">
-              发送消息以启动 Echo 聊天循环。
+              发送消息开始对话。
             </div>
           </div>
 
@@ -515,25 +508,23 @@
 
         <section id="knowledge-section" class="panel knowledge-panel">
           <div class="section-heading">
-            <h2>知识库</h2>
-            <p>
-              <code>/knowledge/*</code> 手动操作入口。页面加载时可能自动刷新状态，
-              但不会自动索引、搜索或问答。
-            </p>
+            <div>
+              <h2>知识库</h2>
+              <p>管理本地文本知识库：接入 Markdown 笔记、全文检索、智能问答。所有操作均需手动触发。</p>
+            </div>
           </div>
 
           <section class="knowledge-section">
             <div class="section-heading">
               <h3>知识库状态</h3>
-              <p>仅调用 <code>GET /knowledge/status</code> 刷新状态。</p>
             </div>
             <div class="control-row">
               <button id="refresh-knowledge-status" class="check-button" type="button">
-                刷新知识库状态
+                刷新状态
               </button>
             </div>
             <p id="knowledge-status-message" class="request-status idle">
-              等待知识库状态刷新。
+              点击刷新获取知识库当前状态。
             </p>
             <div
               id="knowledge-status-result"
@@ -542,231 +533,234 @@
             ></div>
           </section>
 
-          <section id="panel-markdown-note-entry" class="knowledge-section">
-            <div class="section-heading">
-              <h3>Markdown / Obsidian 笔记手动入库（单篇）</h3>
-              <p>仅在手动点击按钮后调用现有 <code>POST /knowledge/index-file</code>。</p>
-            </div>
-            <div class="inline-note knowledge-boundary-note">
-              <p>当前入口只复用现有单文件入库能力，不新增 Markdown / Obsidian 专用后端。</p>
-              <ul class="knowledge-boundary-list">
-                <li>路径必须位于当前白名单目录内。</li>
-                <li>第一版只支持单篇 Markdown 笔记手动入库。</li>
-                <li>不会自动扫描 Vault。</li>
-                <li>不会自动读取整个 Obsidian 库。</li>
-              </ul>
-            </div>
-            <label class="field-label" for="knowledge-index-path">Markdown 相对路径</label>
-            <div class="control-row">
-              <input
-                id="knowledge-index-path"
-                class="backend-input"
-                type="text"
-                placeholder="data\\scan_sandbox\\notes\\daily-note.md"
-                autocomplete="off"
-              />
-            </div>
-            <label class="field-label" for="knowledge-index-kb-id">知识库 ID</label>
-            <div class="control-row">
-              <input
-                id="knowledge-index-kb-id"
-                class="backend-input"
-                type="text"
-                value="default"
-                autocomplete="off"
-              />
-              <button id="knowledge-index-submit" class="check-button" type="button">
-                接入 Markdown 笔记
-              </button>
-            </div>
-            <p id="knowledge-index-status" class="request-status idle">
-              输入单篇 Markdown 相对路径后手动接入；不会自动扫描、不会自动入库。
-            </p>
-            <div
-              id="knowledge-index-result"
-              class="file-preview-result hidden"
-              aria-live="polite"
-            ></div>
-          </section>
+          <details class="knowledge-collapsible" id="knowledge-markdown-group">
+            <summary>Markdown 笔记接入 <span class="section-badge index">接入</span></summary>
+            <div class="knowledge-collapsible-body">
 
-          <section id="knowledge-markdown-directory-section" class="knowledge-section">
-            <div class="section-heading">
-              <h3>Markdown 目录手动批量入库</h3>
-              <p>仅在手动点击按钮后调用 <code>POST /knowledge/index-markdown-directory</code>。</p>
-            </div>
-            <div class="inline-note knowledge-boundary-note">
-              <p>当前只支持白名单根目录内的相对目录，且仍保持手动触发边界。</p>
-              <ul class="knowledge-boundary-list">
-                <li>目录必须位于当前受控白名单根目录内。</li>
-                <li>只处理 <code>.md</code> 文件。</li>
-                <li>自动忽略 <code>.obsidian</code>、隐藏项、<code>attachments</code>、<code>assets</code>、<code>images</code>。</li>
-                <li>不会自动扫描全盘，不会自动入库。</li>
-              </ul>
-            </div>
-            <label class="field-label" for="knowledge-directory-index-path">Markdown 相对目录</label>
-            <div class="control-row">
-              <input
-                id="knowledge-directory-index-path"
-                class="backend-input"
-                type="text"
-                placeholder="notes"
-                autocomplete="off"
-              />
-            </div>
-            <div class="knowledge-inline-fields knowledge-inline-fields-triple">
-              <div>
-                <label class="field-label" for="knowledge-directory-index-kb-id">知识库 ID</label>
-                <input
-                  id="knowledge-directory-index-kb-id"
-                  class="backend-input"
-                  type="text"
-                  value="default"
-                  autocomplete="off"
-                />
-              </div>
-              <div>
-                <label class="field-label" for="knowledge-directory-index-max-files">Max Files</label>
-                <input
-                  id="knowledge-directory-index-max-files"
-                  class="backend-input"
-                  type="number"
-                  min="1"
-                  max="200"
-                  value="50"
-                  autocomplete="off"
-                />
-              </div>
-              <div class="knowledge-option-stack">
-                <label class="knowledge-option-item" for="knowledge-directory-index-recursive">
-                  <input id="knowledge-directory-index-recursive" type="checkbox" checked />
-                  <span>递归扫描子目录</span>
-                </label>
-                <label class="knowledge-option-item" for="knowledge-directory-index-force-reindex">
-                  <input id="knowledge-directory-index-force-reindex" type="checkbox" />
-                  <span>强制重建已存在条目</span>
-                </label>
-              </div>
-            </div>
-            <div class="control-row">
-              <button id="knowledge-directory-index-submit" class="check-button" type="button">
-                批量接入 Markdown 目录
-              </button>
-            </div>
-            <p id="knowledge-directory-index-status" class="request-status idle">
-              输入相对目录后手动批量接入；不会自动扫描、不会自动入库。
-            </p>
-            <div
-              id="knowledge-directory-index-result"
-              class="file-preview-result hidden"
-              aria-live="polite"
-            ></div>
-          </section>
+              <section id="panel-markdown-note-entry" class="knowledge-section">
+                <div class="section-heading">
+                  <h3>单篇笔记入库</h3>
+                  <p>手动指定一篇 Markdown 文件入库。</p>
+                </div>
+                <label class="field-label" for="knowledge-index-path">文件路径</label>
+                <div class="control-row">
+                  <input
+                    id="knowledge-index-path"
+                    class="backend-input"
+                    type="text"
+                    placeholder="data/notes/daily-note.md"
+                    autocomplete="off"
+                  />
+                </div>
+                <div class="knowledge-inline-fields">
+                  <div>
+                    <label class="field-label" for="knowledge-index-kb-id">知识库 ID</label>
+                    <input
+                      id="knowledge-index-kb-id"
+                      class="backend-input"
+                      type="text"
+                      value="default"
+                      autocomplete="off"
+                    />
+                  </div>
+                  <div class="control-row" style="align-items:end;">
+                    <button id="knowledge-index-submit" class="check-button" type="button">
+                      接入笔记
+                    </button>
+                  </div>
+                </div>
+                <p id="knowledge-index-status" class="request-status idle">
+                  输入单篇 Markdown 文件路径后手动接入。
+                </p>
+                <div
+                  id="knowledge-index-result"
+                  class="file-preview-result hidden"
+                  aria-live="polite"
+                ></div>
+              </section>
 
-          <section class="knowledge-section">
-            <div class="section-heading">
-              <h3>知识库搜索</h3>
-              <p>搜索使用 <code>POST /knowledge/search</code>，不调用模型。</p>
-            </div>
-            <label class="field-label" for="knowledge-search-query">查询</label>
-            <div class="control-row">
-              <input
-                id="knowledge-search-query"
-                class="backend-input"
-                type="text"
-                placeholder="What does this file mention?"
-                autocomplete="off"
-              />
-            </div>
-            <div class="knowledge-inline-fields">
-              <div>
-                <label class="field-label" for="knowledge-search-kb-id">知识库 ID</label>
-                <input
-                  id="knowledge-search-kb-id"
-                  class="backend-input"
-                  type="text"
-                  value="default"
-                  autocomplete="off"
-                />
-              </div>
-              <div>
-                <label class="field-label" for="knowledge-search-top-k">Top K</label>
-                <input
-                  id="knowledge-search-top-k"
-                  class="backend-input"
-                  type="number"
-                  min="1"
-                  value="4"
-                  autocomplete="off"
-                />
-              </div>
-            </div>
-            <div class="control-row">
-              <button id="knowledge-search-submit" class="check-button" type="button">
-                搜索知识库
-              </button>
-            </div>
-            <p id="knowledge-search-status" class="request-status idle">
-              输入查询并点击搜索知识库。此操作不会调用模型。
-            </p>
-            <div
-              id="knowledge-search-result"
-              class="file-preview-result hidden"
-              aria-live="polite"
-            ></div>
-          </section>
+              <section id="knowledge-markdown-directory-section" class="knowledge-section">
+                <div class="section-heading">
+                  <h3>目录批量入库</h3>
+                  <p>将指定目录内的所有 Markdown 文件批量接入知识库。</p>
+                </div>
+                <label class="field-label" for="knowledge-directory-index-path">目录路径</label>
+                <div class="control-row">
+                  <input
+                    id="knowledge-directory-index-path"
+                    class="backend-input"
+                    type="text"
+                    placeholder="notes"
+                    autocomplete="off"
+                  />
+                </div>
+                <div class="knowledge-inline-fields knowledge-inline-fields-triple">
+                  <div>
+                    <label class="field-label" for="knowledge-directory-index-kb-id">知识库 ID</label>
+                    <input
+                      id="knowledge-directory-index-kb-id"
+                      class="backend-input"
+                      type="text"
+                      value="default"
+                      autocomplete="off"
+                    />
+                  </div>
+                  <div>
+                    <label class="field-label" for="knowledge-directory-index-max-files">数量上限</label>
+                    <input
+                      id="knowledge-directory-index-max-files"
+                      class="backend-input"
+                      type="number"
+                      min="1"
+                      max="200"
+                      value="50"
+                      autocomplete="off"
+                    />
+                  </div>
+                  <div class="knowledge-option-stack">
+                    <label class="knowledge-option-item" for="knowledge-directory-index-recursive">
+                      <input id="knowledge-directory-index-recursive" type="checkbox" checked />
+                      <span>包含子目录</span>
+                    </label>
+                    <label class="knowledge-option-item" for="knowledge-directory-index-force-reindex">
+                      <input id="knowledge-directory-index-force-reindex" type="checkbox" />
+                      <span>强制重建已有条目</span>
+                    </label>
+                  </div>
+                </div>
+                <div class="control-row">
+                  <button id="knowledge-directory-index-submit" class="check-button" type="button">
+                    批量接入
+                  </button>
+                </div>
+                <p id="knowledge-directory-index-status" class="request-status idle">
+                  输入目录路径后手动批量接入。
+                </p>
+                <div
+                  id="knowledge-directory-index-result"
+                  class="file-preview-result hidden"
+                  aria-live="polite"
+                ></div>
+              </section>
 
-          <section class="knowledge-section">
-            <div class="section-heading">
-              <h3>知识库问答</h3>
-              <p>仅点击按钮后调用 <code>POST /knowledge/query</code>。</p>
             </div>
-            <label class="field-label" for="knowledge-query-question">问题</label>
-            <div class="control-row">
-              <input
-                id="knowledge-query-question"
-                class="backend-input"
-                type="text"
-                placeholder="Summarize the matching evidence."
-                autocomplete="off"
-              />
+          </details>
+
+          <details class="knowledge-collapsible" id="knowledge-search-group">
+            <summary>知识库搜索 <span class="section-badge search">检索</span></summary>
+            <div class="knowledge-collapsible-body">
+              <section class="knowledge-section">
+                <div class="section-heading">
+                  <h3>全文搜索</h3>
+                  <p>在已入库的知识库中搜索相关内容，不调用 AI 模型。</p>
+                </div>
+                <label class="field-label" for="knowledge-search-query">搜索关键词</label>
+                <div class="control-row">
+                  <input
+                    id="knowledge-search-query"
+                    class="backend-input"
+                    type="text"
+                    placeholder="输入要搜索的内容..."
+                    autocomplete="off"
+                  />
+                </div>
+                <div class="knowledge-inline-fields">
+                  <div>
+                    <label class="field-label" for="knowledge-search-kb-id">知识库 ID</label>
+                    <input
+                      id="knowledge-search-kb-id"
+                      class="backend-input"
+                      type="text"
+                      value="default"
+                      autocomplete="off"
+                    />
+                  </div>
+                  <div>
+                    <label class="field-label" for="knowledge-search-top-k">结果数量</label>
+                    <input
+                      id="knowledge-search-top-k"
+                      class="backend-input"
+                      type="number"
+                      min="1"
+                      value="4"
+                      autocomplete="off"
+                    />
+                  </div>
+                </div>
+                <div class="control-row">
+                  <button id="knowledge-search-submit" class="check-button" type="button">
+                    搜索
+                  </button>
+                </div>
+                <p id="knowledge-search-status" class="request-status idle">
+                  输入关键词后点击搜索，不会调用 AI 模型。
+                </p>
+                <div
+                  id="knowledge-search-result"
+                  class="file-preview-result hidden"
+                  aria-live="polite"
+                ></div>
+              </section>
             </div>
-            <div class="knowledge-inline-fields">
-              <div>
-                <label class="field-label" for="knowledge-query-kb-id">知识库 ID</label>
-                <input
-                  id="knowledge-query-kb-id"
-                  class="backend-input"
-                  type="text"
-                  value="default"
-                  autocomplete="off"
-                />
-              </div>
-              <div>
-                <label class="field-label" for="knowledge-query-top-k">Top K</label>
-                <input
-                  id="knowledge-query-top-k"
-                  class="backend-input"
-                  type="number"
-                  min="1"
-                  value="4"
-                  autocomplete="off"
-                />
-              </div>
+          </details>
+
+          <details class="knowledge-collapsible" id="knowledge-query-group">
+            <summary>知识库问答 <span class="section-badge qa">AI 问答</span></summary>
+            <div class="knowledge-collapsible-body">
+              <section class="knowledge-section">
+                <div class="section-heading">
+                  <h3>智能问答</h3>
+                  <p>基于知识库内容生成回答，会调用 AI 模型。</p>
+                </div>
+                <label class="field-label" for="knowledge-query-question">问题</label>
+                <div class="control-row">
+                  <input
+                    id="knowledge-query-question"
+                    class="backend-input"
+                    type="text"
+                    placeholder="基于知识库内容提问..."
+                    autocomplete="off"
+                  />
+                </div>
+                <div class="knowledge-inline-fields">
+                  <div>
+                    <label class="field-label" for="knowledge-query-kb-id">知识库 ID</label>
+                    <input
+                      id="knowledge-query-kb-id"
+                      class="backend-input"
+                      type="text"
+                      value="default"
+                      autocomplete="off"
+                    />
+                  </div>
+                  <div>
+                    <label class="field-label" for="knowledge-query-top-k">结果数量</label>
+                    <input
+                      id="knowledge-query-top-k"
+                      class="backend-input"
+                      type="number"
+                      min="1"
+                      value="4"
+                      autocomplete="off"
+                    />
+                  </div>
+                </div>
+                <div class="control-row">
+                  <button id="knowledge-query-submit" class="check-button" type="button">
+                    提问
+                  </button>
+                </div>
+                <p id="knowledge-query-status" class="request-status idle">
+                  输入问题后点击提问，将调用 AI 模型基于知识库内容回答。
+                </p>
+                <div
+                  id="knowledge-query-result"
+                  class="file-preview-result hidden"
+                  aria-live="polite"
+                ></div>
+              </section>
             </div>
-            <div class="control-row">
-              <button id="knowledge-query-submit" class="check-button" type="button">
-                知识库问答
-              </button>
-            </div>
-            <p id="knowledge-query-status" class="request-status idle">
-              输入问题并点击知识库问答。仅在点击时调用模型。
-            </p>
-            <div
-              id="knowledge-query-result"
-              class="file-preview-result hidden"
-              aria-live="polite"
-            ></div>
-          </section>
+          </details>
         </section>
 
         <section

@@ -52,7 +52,7 @@ export function createPanelModule(deps) {
     dom.panelBackendSkills.textContent = "0";
     setTextStatus(
       dom.panelBackendStatus,
-      "点击“检查后端”后同步更新面板状态摘要。",
+      "点击「检查后端」获取最新系统状态。",
       "idle"
     );
   }
@@ -69,7 +69,7 @@ export function createPanelModule(deps) {
     dom.panelBackendSkills.textContent = String(skills.length);
     setTextStatus(
       dom.panelBackendStatus,
-      `状态摘要已复用 /api/metadata 结果，当前后端：${payload?.backendUrl || "-"}`,
+      `已连接后端：${payload?.backendUrl || "-"}`,
       "success"
     );
   }
@@ -121,7 +121,7 @@ export function createPanelModule(deps) {
     }
     setTextStatus(
       dom.panelKnowledgeStatus,
-      "Markdown 接入摘要已同步到桌面入口层，完整接入操作仍需手动进入 Knowledge 页面。",
+      "知识库摘要已同步，完整操作请在知识库页面进行。",
       "success"
     );
   }
@@ -147,7 +147,7 @@ export function createPanelModule(deps) {
     dom.panelChatResult.textContent = "最近一次回答摘要会显示在这里。";
     setTextStatus(
       dom.panelChatStatus,
-      "不会自动发送；只有手动点击才会调用 `/api/chat`。",
+      "输入消息后点击发送，手动调用 AI 对话。",
       "idle"
     );
     updateQuickChatButtonState();
@@ -168,7 +168,7 @@ export function createPanelModule(deps) {
     }
 
     setQuickChatLoading(true);
-    setTextStatus(dom.panelChatStatus, "正在发送 /api/chat ...", "idle");
+    setTextStatus(dom.panelChatStatus, "正在发送消息...", "idle");
 
     try {
       const payload = await requestChat(backendUrl, message, []);
@@ -181,7 +181,7 @@ export function createPanelModule(deps) {
       dom.panelChatMessageInput.value = "";
       setTextStatus(
         dom.panelChatStatus,
-        `快速聊天已收到响应，skill: ${payload?.chat?.skill || "-"}`,
+        "已收到回复。",
         "success"
       );
     } catch (error) {
