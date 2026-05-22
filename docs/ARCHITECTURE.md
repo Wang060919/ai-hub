@@ -87,7 +87,7 @@ Service 规则：
 - `screen/` — 屏幕工具功能模块
 - `voice/` — 语音功能模块
 - `sandbox/` — 沙盒功能模块
-- `skills/` — 技能网关模块
+- `skills/` — 技能/路由预留模块（当前仅保留结构位置，不是 V1.6 主线）
 
 Module 规则：
 
@@ -244,14 +244,14 @@ ai-hub/
 - `backend/modules/screen/` — 屏幕工具（V1.5 实现）
 - `backend/modules/voice/` — 语音（V1.7 实现）
 - `backend/modules/sandbox/` — 沙盒（V1.9 实现）
-- `backend/modules/skills/` — 技能网关（V1.6 实现）
+- `backend/modules/skills/` — 技能/路由预留目录（当前已预留，后续版本再定义主线）
 - `backend/adapters/chromadb/` — 向量数据库预留（V1.5+ 预留，当前未实现）
 - `backend/adapters/docker/` — Docker（V1.9 实现）
 - `backend/adapters/stt/` + `backend/adapters/tts/` — 语音（V1.7 实现）
 
 ## 九、V1.5 当前前端结构补充
 
-V1.5-M9 文档同步补充：当前前端桌面应用结构整理已完成核心目标，进入收尾。这里描述的是现有前端结构整理结果，不代表桌宠、悬浮窗、React / Vue 重构或 V1.6 插件系统已经完成。
+V1.5-M9 文档同步补充：当前前端桌面应用结构整理已完成核心目标，进入收尾。这里描述的是现有前端结构整理结果，不代表桌宠、悬浮窗、React / Vue 重构或 V1.6 面板能力已经完成。
 
 当前 `frontend/public/js/` 已形成如下分层：
 
@@ -297,6 +297,25 @@ frontend/public/js/
 - 不改后端知识库实现
 - 不把 `/chat` 自动接入知识库
 - 不扩展 Tauri 权限
+
+## 十、V1.6 当前规划补充
+
+V1.6 当前方向已统一为“桌面小面板 / 项目管家面板第一版”。这一阶段的重点是前端桌面入口重组，而不是后端插件化或技能网关扩张。
+
+当前建议理解为：
+
+- 复用现有单页桌面壳，在现有 `Backend Status`、`Chat`、`Files / Tools`、`Knowledge` 基础上增加更紧凑的 Panel 入口层
+- Panel 只做入口、摘要和快捷动作，不替代完整页面
+- 所有高成本或高风险动作仍保持手动触发
+- 第一版优先不修改 Tauri 权限，不扩大后端能力边界
+
+当前明确不应写成 V1.6 已完成的内容：
+
+- 完整桌宠形态
+- 技能网关 / 插件系统已落地
+- 新的后端能力阶段
+- `/chat` 自动接入知识库
+- 自动文件读取、自动入库、自动长期记忆
 
 # V1.1-M6 最新架构状态
 
