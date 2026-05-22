@@ -300,7 +300,7 @@ M7 说明：
 
 ### V1.4：知识库与记忆系统
 
-**状态**：`DOING`（M8-M10 已完成，M11 方向待确认）
+**状态**：`DOING`（M8-M11 已完成，M12 或 V1.4 收尾待确认）
 
 任务清单：
 
@@ -344,10 +344,43 @@ M10 当前边界：
 - 当前不做前端知识库页面。
 - 当前不支持 PDF / Word / Excel 知识入库。
 
+V1.4-M11 错误处理与安全边界验证：
+
+- [x] M11a：已验证 `/knowledge/index-file` 支持白名单内 `.txt` / `.md` 正常入库。
+- [x] M11b：已验证重复入库同文件返回 `reused_existing=true`。
+- [x] M11c：已验证修改文件后 `force_reindex=true` 返回 `replaced_existing=true`。
+- [x] M11d：已验证 `/knowledge/index-file` 错误码：`FILE_NOT_FOUND`、`PATH_NOT_ALLOWED`、`UNSUPPORTED_FILE_TYPE`、`INVALID_CHUNK_PARAMS`。
+- [x] M11e：已验证 `/knowledge/status` 返回 `files_count` / `chunks_count`、`fts_available=true`、`fts_enabled=true`、`index_method=sqlite_fts`。
+- [x] M11f：已验证 `/knowledge/search` 命中时 `hits` 非空、无关查询 `hits=[]`、空 `query` 返回 `INVALID_QUERY`、`top_k` 生效。
+- [x] M11g：已验证 `/knowledge/query` 无命中时不调用 DeepSeek，返回 `grounded=false`。
+- [x] M11h：已验证 `/knowledge/query` 有命中但模型未启用或无 Key 时返回 `KNOWLEDGE_MODEL_DISABLED`。
+- [x] M11i：已验证 `/knowledge/query` 不 fallback Echo，不走 `/chat`。
+- [x] M11j：已完成回归验证：`/chat hello` 返回 Echo、`/files/preview` 正常、`/files/summarize` 默认关闭返回 `SUMMARY_MODEL_DISABLED`、`/health` / `/version` / `/skills` 正常。
+- [x] M11k：已实际通过 `npm run build`。
+- [x] M11l：已实际通过 `conda run -n ai_hub python -m py_compile ...`。
+- [x] M11m：已删除临时测试文件，并已清理 `kb_id=m11-validation` 的 `knowledge_files` / `knowledge_chunks` / `knowledge_chunks_fts`，清理后计数为 `0 / 0 / 0`。
+
+M11 说明：
+
+- 本轮没有修改任何功能代码。
+- 本轮使用 `conda run -n ai_hub python ...` 完成 Python 验证，没有使用系统默认 Python。
+- 当前 Codex 执行环境读不到 `DEEPSEEK_API_KEY`，因此本轮没有把“真实 DeepSeek 命中回答”写成 Codex 已验证。
+- 真实 DeepSeek 命中回答验证仍以用户手动验证结果为准，不在本轮 M11 验证中重复声称。
+
+M11 后当前边界：
+
+- 当前仍不支持前端知识库页面。
+- 当前仍不支持 embedding。
+- 当前仍不支持 ChromaDB。
+- 当前仍不支持自动长期记忆。
+- 当前仍不支持自动监听聊天入库。
+- 当前仍不支持 `/chat` 自动接入知识库。
+- 当前仍不支持 PDF / Word / Excel 入库。
+
 V1.4 下一步待确认：
 
-- V1.4-M11：前端 Knowledge 最小入口
-- 或 V1.4-M11：错误处理与安全边界验证
+- V1.4-M12：前端 Knowledge 最小入口
+- 或 V1.4 收尾验证与 tag
 
 ---
 

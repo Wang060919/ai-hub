@@ -26,7 +26,7 @@ V1.0 / V1.0.1 已基本完成：
 | V1.1 | 高适配性底层框架 | 待开始 |
 | V1.2 | 基础 AI 对话功能 | M8 收尾验证与文档同步中 |
 | V1.3 | 文件处理功能 | M1-M7 已完成，进入收尾判断 |
-| V1.4 | 知识库与记忆系统 | M8-M10 已完成，M11 待确认 |
+| V1.4 | 知识库与记忆系统 | M8-M11 已完成，M12 或收尾待确认 |
 | V1.5 | 屏幕感知工具组与学习辅助模式 | 待开始 |
 | V1.6 | 技能网关 / 插件系统 | 待开始 |
 | V1.7 | 语音交互 | 待开始 |
@@ -126,8 +126,12 @@ V1.3 当前已完成到 M7：后端已提供 `POST /files/preview` 与 `POST /fi
 
 V1.3 仍只支持白名单目录内只读文本文件预览 + 手动总结，不支持文件上传、PDF / Word / Excel、ChromaDB、RAG、长期记忆、多文件知识库、自动扫描全盘或文件修改 / 删除 / 移动。这还不是 V1.4 知识库能力。环境上，当前后端应使用 `ai_hub` / Python 3.11+；这台机器默认 Python 3.9 会因新语法无法启动后端。
 
-V1.4 当前已完成到 M10：后端已提供独立知识库接口 `POST /knowledge/index-file`、`GET /knowledge/status`、`POST /knowledge/search`、`POST /knowledge/query`。其中 `/knowledge/search` 只做纯检索，`/knowledge/query` 是独立的检索增强回答接口，先检索知识片段，再基于 hits 调用 DeepSeek 生成中文回答；它当前没有自动接入 `/chat`。
+V1.4 当前已完成到 M11：后端已提供独立知识库接口 `POST /knowledge/index-file`、`GET /knowledge/status`、`POST /knowledge/search`、`POST /knowledge/query`。其中 `/knowledge/search` 只做纯检索，`/knowledge/query` 是独立的检索增强回答接口，先检索知识片段，再基于 hits 调用 DeepSeek 生成中文回答；它当前没有自动接入 `/chat`。
 
-V1.4 已完成真实 DeepSeek 知识库问答验证，返回结果已验证 `HTTP_STATUS 200`、`model: deepseek-v4-flash`、`grounded: true`、`hits` 非空、`citations` 非空，且 `answer.text` 中文正常。manual-test 测试知识库记录和测试文件已清理。
+V1.4 的 M11 已完成错误处理与安全边界验证：`/knowledge/index-file` 已验证 `.txt` / `.md` 正常入库、重复入库 `reused_existing=true`、`force_reindex` 后 `replaced_existing=true`，以及 `FILE_NOT_FOUND`、`PATH_NOT_ALLOWED`、`UNSUPPORTED_FILE_TYPE`、`INVALID_CHUNK_PARAMS`。`/knowledge/status` 已验证 `files_count` / `chunks_count`、`fts_available=true`、`fts_enabled=true`、`index_method=sqlite_fts`；`/knowledge/search` 已验证命中、空命中、`INVALID_QUERY` 和 `top_k`；`/knowledge/query` 已验证无命中时 `grounded=false`，有命中但模型未启用或无 Key 时返回 `KNOWLEDGE_MODEL_DISABLED`，且不 fallback Echo、不走 `/chat`。
 
-V1.4 当前仍是本地文本知识库第一版，不支持 embedding、ChromaDB、自动长期记忆、自动监听聊天入库、自动接入 `/chat`、前端知识库页面，也不支持 PDF / Word / Excel 知识入库。下一步是 V1.4-M11：前端 Knowledge 最小入口，或 V1.4-M11：错误处理与安全边界验证，二选一待确认。
+M11 回归中还已验证 `/chat hello` 返回 Echo、`/files/preview` 正常、`/files/summarize` 默认关闭返回 `SUMMARY_MODEL_DISABLED`、`/health` / `/version` / `/skills` 正常、`npm run build` 通过，以及 `conda run -n ai_hub python -m py_compile ...` 通过。临时测试文件已删除，`kb_id=m11-validation` 的知识库测试记录也已清理。
+
+用户此前已手动完成真实 DeepSeek 知识库问答验证，返回结果包括 `HTTP_STATUS 200`、`model: deepseek-v4-flash`、`grounded: true`、`hits` 非空、`citations` 非空，且 `answer.text` 中文正常；但当前 Codex 执行环境读不到 `DEEPSEEK_API_KEY`，因此这条不作为本轮 Codex 的 M11 实测结果重复声称。
+
+V1.4 当前仍是本地文本知识库第一版，不支持前端知识库页面、embedding、ChromaDB、自动长期记忆、自动监听聊天入库、`/chat` 自动接入知识库，也不支持 PDF / Word / Excel 入库。下一步待确认：V1.4-M12 前端 Knowledge 最小入口，或 V1.4 收尾验证与 tag。

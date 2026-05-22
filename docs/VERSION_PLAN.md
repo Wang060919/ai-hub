@@ -237,7 +237,7 @@ AI Hub 当前阶段优先做个人可用版，但代码不能写死为只能在�
 
 ### V1.4：知识库与记忆系统
 
-**状态**：M8-M10 已完成，当前进入 M11 方向确认。
+**状态**：M8-M11 已完成，当前进入 M12 或 V1.4 收尾方向确认。
 
 **目标**：先完成本地文本知识库第一版最小闭环，再决定前端入口或错误处理验证的下一步。
 
@@ -256,6 +256,7 @@ AI Hub 当前阶段优先做个人可用版，但代码不能写死为只能在�
 - `/knowledge/query` 为独立接口，未接入 `/chat`
 - 真实 DeepSeek 知识库问答验证已通过
 - manual-test 测试知识库记录和测试文件已清理
+- M11 错误处理与安全边界验证已完成
 
 **M10 已验证结果**：
 
@@ -265,6 +266,29 @@ AI Hub 当前阶段优先做个人可用版，但代码不能写死为只能在�
 - `hits` 非空
 - `citations` 非空
 - `answer.text` 中文正常
+
+**M11 已验证内容**：
+
+- `/knowledge/index-file` 已验证白名单内 `.txt` / `.md` 正常入库。
+- `/knowledge/index-file` 已验证重复入库返回 `reused_existing=true`。
+- `/knowledge/index-file` 已验证修改文件后 `force_reindex=true` 返回 `replaced_existing=true`。
+- `/knowledge/index-file` 已验证错误码：`FILE_NOT_FOUND`、`PATH_NOT_ALLOWED`、`UNSUPPORTED_FILE_TYPE`、`INVALID_CHUNK_PARAMS`。
+- `/knowledge/status` 已验证 `files_count` / `chunks_count`、`fts_available=true`、`fts_enabled=true`、`index_method=sqlite_fts`。
+- `/knowledge/search` 已验证命中时 `hits` 非空、无关查询 `hits=[]`、空 `query` 返回 `INVALID_QUERY`、`top_k` 生效。
+- `/knowledge/query` 已验证无命中时不调用 DeepSeek，返回 `grounded=false`。
+- `/knowledge/query` 已验证有命中但模型未启用或无 Key 时返回 `KNOWLEDGE_MODEL_DISABLED`。
+- `/knowledge/query` 已验证不 fallback Echo，不走 `/chat`。
+- 回归验证已完成：`/chat hello` 返回 Echo、`/files/preview` 正常、`/files/summarize` 默认关闭返回 `SUMMARY_MODEL_DISABLED`、`/health` / `/version` / `/skills` 正常。
+- `npm run build` 已通过。
+- `conda run -n ai_hub python -m py_compile ...` 已通过。
+- 临时测试文件已删除，`kb_id=m11-validation` 的 `knowledge_files` / `knowledge_chunks` / `knowledge_chunks_fts` 已清理，清理后计数为 `0 / 0 / 0`。
+
+**M11 说明**：
+
+- 本轮没有修改功能代码。
+- 本轮 Python 验证统一使用 `conda run -n ai_hub python ...`。
+- 当前 Codex 执行环境读不到 `DEEPSEEK_API_KEY`，因此本轮没有把真实 DeepSeek 命中回答写成 Codex 已验证。
+- 真实 DeepSeek 命中回答验证仍以用户手动验证结果为准。
 
 **当前边界**：
 
@@ -282,8 +306,8 @@ AI Hub 当前阶段优先做个人可用版，但代码不能写死为只能在�
 
 **下一步待确认**：
 
-- V1.4-M11：前端 Knowledge 最小入口
-- 或 V1.4-M11：错误处理与安全边界验证
+- V1.4-M12：前端 Knowledge 最小入口
+- 或 V1.4 收尾验证与 tag
 
 ---
 
