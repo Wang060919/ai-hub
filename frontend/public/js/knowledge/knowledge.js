@@ -212,8 +212,8 @@ function createSetKnowledgeStatusLoading(dom, state, updateKnowledgeButtonState)
   return function setKnowledgeStatusLoading(isLoading) {
     state.knowledgeStatusLoading = isLoading;
     setButtonLoading(dom.refreshKnowledgeStatusButton, isLoading, {
-      loading: "Refreshing...",
-      idle: "Refresh Knowledge Status",
+      loading: "刷新中...",
+      idle: "刷新知识库状态",
     });
     updateKnowledgeButtonState();
   };
@@ -223,8 +223,8 @@ function createSetKnowledgeIndexLoading(dom, state, updateKnowledgeButtonState) 
   return function setKnowledgeIndexLoading(isLoading) {
     state.knowledgeIndexLoading = isLoading;
     setButtonLoading(dom.knowledgeIndexSubmitButton, isLoading, {
-      loading: "Adding...",
-      idle: "Add To Knowledge",
+      loading: "加入中...",
+      idle: "加入知识库",
     });
     updateKnowledgeButtonState();
   };
@@ -234,8 +234,8 @@ function createSetKnowledgeSearchLoading(dom, state, updateKnowledgeButtonState)
   return function setKnowledgeSearchLoading(isLoading) {
     state.knowledgeSearchLoading = isLoading;
     setButtonLoading(dom.knowledgeSearchSubmitButton, isLoading, {
-      loading: "Searching...",
-      idle: "Search Knowledge",
+      loading: "搜索中...",
+      idle: "搜索知识库",
     });
     updateKnowledgeButtonState();
   };
@@ -245,8 +245,8 @@ function createSetKnowledgeQueryLoading(dom, state, updateKnowledgeButtonState) 
   return function setKnowledgeQueryLoading(isLoading) {
     state.knowledgeQueryLoading = isLoading;
     setButtonLoading(dom.knowledgeQuerySubmitButton, isLoading, {
-      loading: "Asking...",
-      idle: "Ask Knowledge",
+      loading: "问答中...",
+      idle: "知识库问答",
     });
     updateKnowledgeButtonState();
   };
@@ -270,18 +270,18 @@ export function createKnowledgeModule(deps) {
     setKnowledgeStatusLoading(true);
     dom.knowledgeStatusResult.classList.add("hidden");
     dom.knowledgeStatusResult.innerHTML = "";
-    setTextStatus(dom.knowledgeStatusMessage, "Loading /api/knowledge/status ...", "idle");
+    setTextStatus(dom.knowledgeStatusMessage, "正在加载 /api/knowledge/status ...", "idle");
 
     try {
       const payload = await requestKnowledgeStatus(backendUrl);
       renderKnowledgeStatus(dom, payload);
-      setTextStatus(dom.knowledgeStatusMessage, "Knowledge status loaded from /api/knowledge/status", "success");
+      setTextStatus(dom.knowledgeStatusMessage, "知识库状态已从 /api/knowledge/status 加载", "success");
     } catch (error) {
-      renderErrorBox(dom.knowledgeStatusResult, error, "Knowledge request failed");
+      renderErrorBox(dom.knowledgeStatusResult, error, "知识库请求失败");
       const code = error?.code ? `${error.code}: ` : "";
       setTextStatus(
         dom.knowledgeStatusMessage,
-        `${code}${error instanceof Error ? error.message : "Knowledge status failed"}`,
+        `${code}${error instanceof Error ? error.message : "知识库状态获取失败"}`,
         "error"
       );
     } finally {
@@ -299,7 +299,7 @@ export function createKnowledgeModule(deps) {
     const kbId = dom.knowledgeIndexKbIdInput.value.trim() || "default";
 
     if (!path) {
-      setTextStatus(dom.knowledgeIndexStatus, "File path cannot be empty", "error");
+      setTextStatus(dom.knowledgeIndexStatus, "文件路径不能为空", "error");
       updateKnowledgeButtonState();
       return;
     }
@@ -307,19 +307,19 @@ export function createKnowledgeModule(deps) {
     setKnowledgeIndexLoading(true);
     dom.knowledgeIndexResult.classList.add("hidden");
     dom.knowledgeIndexResult.innerHTML = "";
-    setTextStatus(dom.knowledgeIndexStatus, "Sending /api/knowledge/index-file ...", "idle");
+    setTextStatus(dom.knowledgeIndexStatus, "正在发送 /api/knowledge/index-file ...", "idle");
 
     try {
       const payload = await requestKnowledgeIndexFile(backendUrl, path, kbId);
       renderKnowledgeIndexResult(dom, payload);
-      setTextStatus(dom.knowledgeIndexStatus, "Knowledge file indexed via /api/knowledge/index-file", "success");
+      setTextStatus(dom.knowledgeIndexStatus, "知识库文件已通过 /api/knowledge/index-file 索引", "success");
       void refreshKnowledgeStatus();
     } catch (error) {
-      renderErrorBox(dom.knowledgeIndexResult, error, "Knowledge request failed");
+      renderErrorBox(dom.knowledgeIndexResult, error, "知识库请求失败");
       const code = error?.code ? `${error.code}: ` : "";
       setTextStatus(
         dom.knowledgeIndexStatus,
-        `${code}${error instanceof Error ? error.message : "Knowledge index failed"}`,
+        `${code}${error instanceof Error ? error.message : "知识库索引失败"}`,
         "error"
       );
     } finally {
@@ -338,7 +338,7 @@ export function createKnowledgeModule(deps) {
     const topK = normalizeTopK(dom.knowledgeSearchTopKInput);
 
     if (!query) {
-      setTextStatus(dom.knowledgeSearchStatus, "Query cannot be empty", "error");
+      setTextStatus(dom.knowledgeSearchStatus, "查询不能为空", "error");
       updateKnowledgeButtonState();
       return;
     }
@@ -346,18 +346,18 @@ export function createKnowledgeModule(deps) {
     setKnowledgeSearchLoading(true);
     dom.knowledgeSearchResult.classList.add("hidden");
     dom.knowledgeSearchResult.innerHTML = "";
-    setTextStatus(dom.knowledgeSearchStatus, "Sending /api/knowledge/search ...", "idle");
+    setTextStatus(dom.knowledgeSearchStatus, "正在发送 /api/knowledge/search ...", "idle");
 
     try {
       const payload = await requestKnowledgeSearch(backendUrl, query, kbId, topK);
       renderKnowledgeSearchResult(dom, payload);
-      setTextStatus(dom.knowledgeSearchStatus, "Knowledge hits loaded from /api/knowledge/search", "success");
+      setTextStatus(dom.knowledgeSearchStatus, "知识库搜索结果已从 /api/knowledge/search 加载", "success");
     } catch (error) {
-      renderErrorBox(dom.knowledgeSearchResult, error, "Knowledge request failed");
+      renderErrorBox(dom.knowledgeSearchResult, error, "知识库请求失败");
       const code = error?.code ? `${error.code}: ` : "";
       setTextStatus(
         dom.knowledgeSearchStatus,
-        `${code}${error instanceof Error ? error.message : "Knowledge search failed"}`,
+        `${code}${error instanceof Error ? error.message : "知识库搜索失败"}`,
         "error"
       );
     } finally {
@@ -376,7 +376,7 @@ export function createKnowledgeModule(deps) {
     const topK = normalizeTopK(dom.knowledgeQueryTopKInput);
 
     if (!question) {
-      setTextStatus(dom.knowledgeQueryStatus, "Question cannot be empty", "error");
+      setTextStatus(dom.knowledgeQueryStatus, "问题不能为空", "error");
       updateKnowledgeButtonState();
       return;
     }
@@ -384,25 +384,25 @@ export function createKnowledgeModule(deps) {
     setKnowledgeQueryLoading(true);
     dom.knowledgeQueryResult.classList.add("hidden");
     dom.knowledgeQueryResult.innerHTML = "";
-    setTextStatus(dom.knowledgeQueryStatus, "Sending /api/knowledge/query ...", "idle");
+    setTextStatus(dom.knowledgeQueryStatus, "正在发送 /api/knowledge/query ...", "idle");
 
     try {
       const payload = await requestKnowledgeQuery(backendUrl, question, kbId, topK);
       renderKnowledgeQueryResult(dom, payload);
-      setTextStatus(dom.knowledgeQueryStatus, "Knowledge answer loaded from /api/knowledge/query", "success");
+      setTextStatus(dom.knowledgeQueryStatus, "知识库答案已从 /api/knowledge/query 加载", "success");
     } catch (error) {
-      renderErrorBox(dom.knowledgeQueryResult, error, "Knowledge request failed");
+      renderErrorBox(dom.knowledgeQueryResult, error, "知识库请求失败");
       if (error?.code === "KNOWLEDGE_MODEL_DISABLED") {
         setTextStatus(
           dom.knowledgeQueryStatus,
-          "KNOWLEDGE_MODEL_DISABLED: DeepSeek is not enabled in the backend environment.",
+          "KNOWLEDGE_MODEL_DISABLED：后端环境未启用 DeepSeek。",
           "error"
         );
       } else {
         const code = error?.code ? `${error.code}: ` : "";
         setTextStatus(
           dom.knowledgeQueryStatus,
-          `${code}${error instanceof Error ? error.message : "Knowledge query failed"}`,
+          `${code}${error instanceof Error ? error.message : "知识库问答失败"}`,
           "error"
         );
       }

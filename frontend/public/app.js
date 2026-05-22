@@ -1,5 +1,5 @@
 import { escapeHtml } from "./js/core/utils.js";
-import { requestMetadata } from "./js/api/metadata.js";
+import { requestMetadata, backendUnavailableMessage } from "./js/api/metadata.js";
 import { createChatModule } from "./js/chat/chat.js";
 import { createFilesModule } from "./js/files/files.js";
 import { createKnowledgeModule } from "./js/knowledge/knowledge.js";
@@ -55,12 +55,8 @@ const knowledgeQuerySubmitButton = document.querySelector("#knowledge-query-subm
 const knowledgeQueryStatus = document.querySelector("#knowledge-query-status");
 const knowledgeQueryResult = document.querySelector("#knowledge-query-result");
 
-const startupCommand =
-  "python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000";
-const backendUnavailableMessage =
-  `无法连接后端。这通常是因为 FastAPI 还没有手动启动，不是桌面端坏了。请先在 PowerShell 中运行：${startupCommand}`;
 const loadSkillsHint =
-  "请先在 Backend Status 页面点击 Check Backend 读取能力列表。这个页面只展示能力和安全边界，不会上传文件，也不会执行文件操作。";
+  "请先在后端状态页面点击检查后端读取能力列表。这个页面只展示能力和安全边界，不会上传文件，也不会执行文件操作。";
 
 const fileToolsCatalog = [
   {
@@ -410,7 +406,7 @@ function renderEmptyRow(message) {
 
 function renderSkills(skills) {
   if (!Array.isArray(skills) || skills.length === 0) {
-    renderEmptyRow("No skills were returned by the backend");
+    renderEmptyRow("后端未返回任何技能");
     return;
   }
 
@@ -431,16 +427,16 @@ function renderSkills(skills) {
 
 function buildToolCard(tool, matchedSkill) {
   const found = Boolean(matchedSkill);
-  const stage = found ? matchedSkill.stage : "Not found in /skills";
-  const safetyLevel = found ? matchedSkill.safety_level : "Not found in /skills";
+  const stage = found ? matchedSkill.stage : "未在 /skills 中找到";
+  const safetyLevel = found ? matchedSkill.safety_level : "未在 /skills 中找到";
   const executableTag = found
     ? `<span class="tag ${matchedSkill.executable ? "true" : "false"}">${escapeHtml(
         matchedSkill.executable
       )}</span>`
     : '<span class="tag warning">Not found</span>';
   const statusText = found
-    ? "Loaded from backend /skills metadata."
-    : "This skill was not returned by the current backend.";
+    ? "已从后端 /skills 元数据加载。"
+    : "当前后端未返回此技能。";
 
   return `
     <article class="tool-card ${found ? "" : "missing"}">
@@ -547,7 +543,7 @@ function showTab(activeTab) {
 async function checkBackend() {
   const backendUrl = backendUrlInput.value.trim();
   checkButton.disabled = true;
-  setTextStatus(requestStatus, "Checking /health, /version, and /skills ...", "idle");
+  setTextStatus(requestStatus, "正在检查 /health、/version 和 /skills ...", "idle");
 
   try {
     const payload = await requestMetadata(backendUrl);
@@ -564,7 +560,7 @@ async function checkBackend() {
     skillsCount.textContent = String(skills.length || 0);
     renderSkills(skills);
     renderFilesTools();
-    setTextStatus(requestStatus, `Connected: ${payload.backendUrl}`, "success");
+    setTextStatus(requestStatus, `已连接：${payload.backendUrl}`, "success");
     void refreshKnowledgeStatus();
   } catch (error) {
     state.hasCheckedBackend = false;
@@ -574,7 +570,7 @@ async function checkBackend() {
     renderFilesTools();
     knowledgeStatusResult.classList.add("hidden");
     knowledgeStatusResult.innerHTML = "";
-    setTextStatus(knowledgeStatusMessage, "Knowledge status unavailable until backend is reachable.", "error");
+    setTextStatus(knowledgeStatusMessage, "后端不可达，无法获取知识库状态。", "error");
     setTextStatus(
       requestStatus,
       error instanceof Error ? error.message : backendUnavailableMessage,

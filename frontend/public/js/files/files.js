@@ -96,7 +96,7 @@ function createResetFileSummaryResult(dom, state) {
     dom.fileSummaryResult.innerHTML = "";
     setTextStatus(
       dom.fileSummaryStatus,
-      "Summary is available only after preview succeeds and only when you click the button.",
+      "仅预览成功后且点击按钮时才能生成总结。",
       "idle"
     );
   };
@@ -156,7 +156,7 @@ export function createFilesModule(deps) {
     const path = dom.filePreviewPathInput.value.trim();
 
     if (!path) {
-      setTextStatus(dom.filePreviewStatus, "File path cannot be empty", "error");
+      setTextStatus(dom.filePreviewStatus, "文件路径不能为空", "error");
       updateFilePreviewButtonState();
       return;
     }
@@ -167,20 +167,20 @@ export function createFilesModule(deps) {
     dom.filePreviewResult.classList.add("hidden");
     dom.filePreviewResult.innerHTML = "";
     resetFileSummaryResult();
-    setTextStatus(dom.filePreviewStatus, "Reading /files/preview ...", "idle");
+    setTextStatus(dom.filePreviewStatus, "正在读取 /files/preview ...", "idle");
 
     try {
       const payload = await requestFilePreview(backendUrl, path);
       renderFilePreview(dom, payload);
       state.hasPreviewResult = true;
       state.lastPreviewPath = path;
-      setTextStatus(dom.filePreviewStatus, "Preview loaded from /files/preview", "success");
+      setTextStatus(dom.filePreviewStatus, "预览已从 /files/preview 加载", "success");
     } catch (error) {
-      renderErrorBox(dom.filePreviewResult, error, "File preview failed");
+      renderErrorBox(dom.filePreviewResult, error, "文件预览失败");
       const code = error?.code ? `${error.code}: ` : "";
       setTextStatus(
         dom.filePreviewStatus,
-        `${code}${error instanceof Error ? error.message : "File preview failed"}`,
+        `${code}${error instanceof Error ? error.message : "文件预览失败"}`,
         "error"
       );
     } finally {
@@ -199,7 +199,7 @@ export function createFilesModule(deps) {
     if (!state.hasPreviewResult || state.lastPreviewPath !== path) {
       setTextStatus(
         dom.fileSummaryStatus,
-        "Please load a preview for the current path before summarizing.",
+        "请先加载当前路径的预览再生成总结。",
         "error"
       );
       updateFilePreviewButtonState();
@@ -209,18 +209,18 @@ export function createFilesModule(deps) {
     setFileSummaryLoading(true);
     dom.fileSummaryResult.classList.add("hidden");
     dom.fileSummaryResult.innerHTML = "";
-    setTextStatus(dom.fileSummaryStatus, "Sending /api/files/summarize ...", "idle");
+    setTextStatus(dom.fileSummaryStatus, "正在发送 /api/files/summarize ...", "idle");
 
     try {
       const payload = await requestFileSummary(backendUrl, path);
       renderFileSummary(dom, payload);
-      setTextStatus(dom.fileSummaryStatus, "Summary loaded from /api/files/summarize", "success");
+      setTextStatus(dom.fileSummaryStatus, "总结已从 /api/files/summarize 加载", "success");
     } catch (error) {
-      renderErrorBox(dom.fileSummaryResult, error, "File summary failed");
+      renderErrorBox(dom.fileSummaryResult, error, "文件总结失败");
       const code = error?.code ? `${error.code}: ` : "";
       setTextStatus(
         dom.fileSummaryStatus,
-        `${code}${error instanceof Error ? error.message : "File summary failed"}`,
+        `${code}${error instanceof Error ? error.message : "文件总结失败"}`,
         "error"
       );
     } finally {

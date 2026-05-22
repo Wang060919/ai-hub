@@ -5,9 +5,9 @@ import {
   getTauriInvokeDirect,
 } from "./client.js";
 
-const startupCommand =
+export const startupCommand =
   "python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000";
-const backendUnavailableMessage =
+export const backendUnavailableMessage =
   `无法连接后端。这通常是因为 FastAPI 还没有手动启动，不是桌面端坏了。请先在 PowerShell 中运行：${startupCommand}`;
 
 export async function requestMetadata(backendUrl) {

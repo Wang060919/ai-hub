@@ -46,7 +46,7 @@ export function createChatModule(deps) {
 
   function resetChatResult() {
     dom.chatMessages.innerHTML =
-      '<div class="chat-empty-state">Send a message to start the Echo chat loop.</div>';
+      '<div class="chat-empty-state">发送消息以启动 Echo 聊天循环。</div>';
     state.chatHistory = [];
   }
 
@@ -98,7 +98,7 @@ export function createChatModule(deps) {
 
     const label = document.createElement("div");
     label.className = "chat-message-label";
-    label.textContent = role === "user" ? "You" : "AI Hub";
+    label.textContent = role === "user" ? "你" : "AI Hub";
 
     const bubble = document.createElement("div");
     bubble.className = "chat-message-bubble";
@@ -140,7 +140,7 @@ export function createChatModule(deps) {
   function renderChatLoading() {
     return appendChatMessage(
       "assistant",
-      "Waiting for /chat response ...",
+      "等待 /chat 响应 ...",
       "status: sending",
       {
         loading: true,
@@ -189,7 +189,7 @@ export function createChatModule(deps) {
     const message = dom.chatMessageInput.value.trim();
 
     if (!message) {
-      setTextStatus(dom.chatStatus, "Message cannot be empty", "error");
+      setTextStatus(dom.chatStatus, "消息不能为空", "error");
       updateSendChatButtonState();
       return;
     }
@@ -199,7 +199,7 @@ export function createChatModule(deps) {
     dom.chatMessageInput.value = "";
     updateSendChatButtonState();
     setChatLoading(true);
-    setTextStatus(dom.chatStatus, "Sending /chat request ...", "idle");
+    setTextStatus(dom.chatStatus, "正在发送 /chat 请求 ...", "idle");
     const loadingMessage = renderChatLoading();
 
     try {
@@ -215,17 +215,17 @@ export function createChatModule(deps) {
       }
       setTextStatus(
         dom.chatStatus,
-        `Chat response received from ${payload.backendUrl}`,
+        `聊天响应来自 ${payload.backendUrl}`,
         "success"
       );
     } catch (error) {
       removeChatLoading(loadingMessage);
       renderChatError(
-        error instanceof Error ? error.message : "Chat request failed"
+        error instanceof Error ? error.message : "聊天请求失败"
       );
       setTextStatus(
         dom.chatStatus,
-        error instanceof Error ? error.message : "Chat request failed",
+        error instanceof Error ? error.message : "聊天请求失败",
         "error"
       );
     } finally {

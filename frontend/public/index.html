@@ -10,11 +10,10 @@
     <main class="app-shell">
       <section class="hero-card">
         <p class="eyebrow">AI Hub</p>
-        <h1>Desktop Startup Guide</h1>
+        <h1>桌面启动指南</h1>
         <p class="subtitle">
-          Tauri desktop wrapper only. The app does not auto-start FastAPI,
-          does not auto-call /chat, and keeps file-related abilities in
-          display-only mode.
+          Tauri 桌面封装。应用不会自动启动 FastAPI，不会自动调用 /chat，
+          文件相关能力仅处于展示模式。
         </p>
       </section>
 
@@ -28,7 +27,7 @@
             aria-selected="true"
             aria-controls="panel-status"
           >
-            Backend Status
+            后端状态
           </button>
           <button
             id="tab-chat"
@@ -38,7 +37,7 @@
             aria-selected="false"
             aria-controls="panel-chat"
           >
-            Chat
+            聊天
           </button>
           <button
             id="tab-files-tools"
@@ -48,7 +47,7 @@
             aria-selected="false"
             aria-controls="panel-files-tools"
           >
-            Files / Tools
+            文件工具
           </button>
         </div>
       </section>
@@ -70,7 +69,7 @@
         </section>
 
         <section class="panel">
-          <label class="field-label" for="backend-url">Backend URL</label>
+          <label class="field-label" for="backend-url">后端地址</label>
           <div class="control-row">
             <input
               id="backend-url"
@@ -79,11 +78,11 @@
               value="http://127.0.0.1:8000"
             />
             <button id="check-backend" class="check-button" type="button">
-              Check Backend
+              检查后端
             </button>
           </div>
           <p id="request-status" class="request-status idle">
-            Waiting to check backend
+            等待检查后端
           </p>
         </section>
 
@@ -97,15 +96,15 @@
             <strong id="app-version">-</strong>
           </div>
           <div class="summary-item">
-            <span class="summary-label">skills count</span>
+            <span class="summary-label">技能数量</span>
             <strong id="skills-count">0</strong>
           </div>
         </section>
 
         <section class="panel">
           <div class="section-heading">
-            <h2>Skills</h2>
-            <p>Current capability list returned by the backend</p>
+            <h2>技能列表</h2>
+            <p>后端返回的当前能力列表</p>
           </div>
           <div class="table-wrap">
             <table class="skills-table">
@@ -121,7 +120,7 @@
               <tbody id="skills-body">
                 <tr>
                   <td colspan="5" class="empty-state">
-                    Click "Check Backend" to load the skills list
+                    点击"检查后端"加载技能列表
                   </td>
                 </tr>
               </tbody>
@@ -138,14 +137,14 @@
       >
         <section class="panel chat-panel">
           <div class="section-heading">
-            <h2>Chat</h2>
-            <p>Text only. No file upload and no real file operation.</p>
+            <h2>聊天</h2>
+            <p>纯文本。不上传文件，不执行真实文件操作。</p>
           </div>
           <div class="inline-note">
             <p>
-              Only clicking <strong>Send</strong> will call <code>/chat</code>.
-              Inputs that hit <code>DifyEnglishSkill</code> may consume Dify
-              quota. Low-risk test: <code>hello ai hub</code>.
+              仅点击<strong>发送</strong>才会调用 <code>/chat</code>。
+              命中 <code>DifyEnglishSkill</code> 的输入可能消耗 Dify
+              额度。低风险测试：<code>hello ai hub</code>。
             </p>
           </div>
 
@@ -157,25 +156,25 @@
             aria-label="Chat messages"
           >
             <div class="chat-empty-state">
-              Send a message to start the Echo chat loop.
+              发送消息以启动 Echo 聊天循环。
             </div>
           </div>
 
           <div class="chat-composer">
-            <label class="field-label" for="chat-message">Message</label>
+            <label class="field-label" for="chat-message">消息</label>
             <textarea
               id="chat-message"
               class="chat-input"
               rows="4"
-              placeholder="Try: hello ai hub"
+              placeholder="试试：hello ai hub"
             ></textarea>
             <div class="chat-actions">
               <button id="send-chat" class="check-button" type="button" disabled>
-                Send
+                发送
               </button>
             </div>
             <p id="chat-status" class="request-status idle">
-              Waiting to send chat request
+              等待发送聊天请求
             </p>
           </div>
         </section>
@@ -189,10 +188,9 @@
       >
         <section class="panel">
           <div class="section-heading">
-            <h2>Files / Tools</h2>
+            <h2>文件工具</h2>
             <p>
-              Read-only preview for whitelisted text files. No file upload, no
-              file operation, and no automatic /chat request.
+              白名单文本文件只读预览。不上传文件，不执行文件操作，不自动发起 /chat 请求。
             </p>
           </div>
           <div class="inline-note">
@@ -201,14 +199,14 @@
             </p>
           </div>
           <p id="files-tools-status" class="request-status idle">
-            请先在 Backend Status 页面点击 Check Backend 读取能力列表。
+            请先在后端状态页面点击检查后端读取能力列表。
           </p>
         </section>
 
         <section class="panel file-preview-panel">
           <div class="section-heading">
             <h2>文件预览</h2>
-            <p>Calls <code>POST /files/preview</code> only after clicking the button.</p>
+            <p>仅点击按钮后调用 <code>POST /files/preview</code>。</p>
           </div>
 
           <label class="field-label" for="file-preview-path">文件路径</label>
@@ -254,26 +252,25 @@
 
         <section class="panel knowledge-panel">
           <div class="section-heading">
-            <h2>Knowledge</h2>
+            <h2>知识库</h2>
             <p>
-              Minimal manual entry for <code>/knowledge/*</code>. The page may
-              auto refresh status on load, but never auto indexes, searches, or
-              queries.
+              <code>/knowledge/*</code> 手动操作入口。页面加载时可能自动刷新状态，
+              但不会自动索引、搜索或问答。
             </p>
           </div>
 
           <section class="knowledge-section">
             <div class="section-heading">
-              <h3>Knowledge Status</h3>
-              <p>Calls <code>GET /knowledge/status</code> only for status refresh.</p>
+              <h3>知识库状态</h3>
+              <p>仅调用 <code>GET /knowledge/status</code> 刷新状态。</p>
             </div>
             <div class="control-row">
               <button id="refresh-knowledge-status" class="check-button" type="button">
-                Refresh Knowledge Status
+                刷新知识库状态
               </button>
             </div>
             <p id="knowledge-status-message" class="request-status idle">
-              Waiting for knowledge status refresh.
+              等待知识库状态刷新。
             </p>
             <div
               id="knowledge-status-result"
@@ -284,10 +281,10 @@
 
           <section class="knowledge-section">
             <div class="section-heading">
-              <h3>Add To Knowledge</h3>
-              <p>Calls <code>POST /knowledge/index-file</code> only after clicking the button.</p>
+              <h3>加入知识库</h3>
+              <p>仅点击按钮后调用 <code>POST /knowledge/index-file</code>。</p>
             </div>
-            <label class="field-label" for="knowledge-index-path">File Path</label>
+            <label class="field-label" for="knowledge-index-path">文件路径</label>
             <div class="control-row">
               <input
                 id="knowledge-index-path"
@@ -297,7 +294,7 @@
                 autocomplete="off"
               />
             </div>
-            <label class="field-label" for="knowledge-index-kb-id">KB ID</label>
+            <label class="field-label" for="knowledge-index-kb-id">知识库 ID</label>
             <div class="control-row">
               <input
                 id="knowledge-index-kb-id"
@@ -307,11 +304,11 @@
                 autocomplete="off"
               />
               <button id="knowledge-index-submit" class="check-button" type="button">
-                Add To Knowledge
+                加入知识库
               </button>
             </div>
             <p id="knowledge-index-status" class="request-status idle">
-              Enter a file path, then click the button to index it into the knowledge base.
+              输入文件路径，然后点击按钮将其索引到知识库。
             </p>
             <div
               id="knowledge-index-result"
@@ -322,10 +319,10 @@
 
           <section class="knowledge-section">
             <div class="section-heading">
-              <h3>Knowledge Search</h3>
-              <p>Search uses <code>POST /knowledge/search</code> and does not call the model.</p>
+              <h3>知识库搜索</h3>
+              <p>搜索使用 <code>POST /knowledge/search</code>，不调用模型。</p>
             </div>
-            <label class="field-label" for="knowledge-search-query">Query</label>
+            <label class="field-label" for="knowledge-search-query">查询</label>
             <div class="control-row">
               <input
                 id="knowledge-search-query"
@@ -337,7 +334,7 @@
             </div>
             <div class="knowledge-inline-fields">
               <div>
-                <label class="field-label" for="knowledge-search-kb-id">KB ID</label>
+                <label class="field-label" for="knowledge-search-kb-id">知识库 ID</label>
                 <input
                   id="knowledge-search-kb-id"
                   class="backend-input"
@@ -360,11 +357,11 @@
             </div>
             <div class="control-row">
               <button id="knowledge-search-submit" class="check-button" type="button">
-                Search Knowledge
+                搜索知识库
               </button>
             </div>
             <p id="knowledge-search-status" class="request-status idle">
-              Enter a query and click Search Knowledge. This action never calls the model.
+              输入查询并点击搜索知识库。此操作不会调用模型。
             </p>
             <div
               id="knowledge-search-result"
@@ -375,10 +372,10 @@
 
           <section class="knowledge-section">
             <div class="section-heading">
-              <h3>Knowledge Query</h3>
-              <p>Calls <code>POST /knowledge/query</code> only after clicking the button.</p>
+              <h3>知识库问答</h3>
+              <p>仅点击按钮后调用 <code>POST /knowledge/query</code>。</p>
             </div>
-            <label class="field-label" for="knowledge-query-question">Question</label>
+            <label class="field-label" for="knowledge-query-question">问题</label>
             <div class="control-row">
               <input
                 id="knowledge-query-question"
@@ -390,7 +387,7 @@
             </div>
             <div class="knowledge-inline-fields">
               <div>
-                <label class="field-label" for="knowledge-query-kb-id">KB ID</label>
+                <label class="field-label" for="knowledge-query-kb-id">知识库 ID</label>
                 <input
                   id="knowledge-query-kb-id"
                   class="backend-input"
@@ -413,11 +410,11 @@
             </div>
             <div class="control-row">
               <button id="knowledge-query-submit" class="check-button" type="button">
-                Ask Knowledge
+                知识库问答
               </button>
             </div>
             <p id="knowledge-query-status" class="request-status idle">
-              Enter a question and click Ask Knowledge. Model use happens only on click.
+              输入问题并点击知识库问答。仅在点击时调用模型。
             </p>
             <div
               id="knowledge-query-result"
