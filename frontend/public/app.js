@@ -5,6 +5,7 @@ import { requestMetadata, backendUnavailableMessage } from "./js/api/metadata.js
 import { createChatModule } from "./js/chat/chat.js";
 import { createFilesModule } from "./js/files/files.js";
 import { createKnowledgeModule } from "./js/knowledge/knowledge.js";
+import { createPanelModule } from "./js/panel/panel.js";
 import { setTextStatus } from "./js/ui/status.js";
 
 const backendUrlInput = document.querySelector("#backend-url");
@@ -24,6 +25,21 @@ const statusPanel = document.querySelector("#panel-status");
 const chatPanel = document.querySelector("#panel-chat");
 const filesToolsPanel = document.querySelector("#panel-files-tools");
 const panelEntryButtons = document.querySelectorAll("[data-panel-target-tab]");
+const panelBackendOnline = document.querySelector("#panel-backend-online");
+const panelBackendApp = document.querySelector("#panel-backend-app");
+const panelBackendVersion = document.querySelector("#panel-backend-version");
+const panelBackendSkills = document.querySelector("#panel-backend-skills");
+const panelBackendStatus = document.querySelector("#panel-backend-status");
+const panelKnowledgeFiles = document.querySelector("#panel-knowledge-files");
+const panelKnowledgeChunks = document.querySelector("#panel-knowledge-chunks");
+const panelKnowledgeIndexMethod = document.querySelector("#panel-knowledge-index-method");
+const panelKnowledgeFtsEnabled = document.querySelector("#panel-knowledge-fts-enabled");
+const panelKnowledgeFtsAvailable = document.querySelector("#panel-knowledge-fts-available");
+const panelKnowledgeStatus = document.querySelector("#panel-knowledge-status");
+const panelChatMessageInput = document.querySelector("#panel-chat-message");
+const panelSendChatButton = document.querySelector("#panel-send-chat");
+const panelChatStatus = document.querySelector("#panel-chat-status");
+const panelChatResult = document.querySelector("#panel-chat-result");
 
 const chatMessageInput = document.querySelector("#chat-message");
 const sendChatButton = document.querySelector("#send-chat");
@@ -146,6 +162,37 @@ const {
     fileSummaryResult,
   },
   state,
+});
+
+const {
+  updateQuickChatButtonState,
+  resetBackendSummary: resetPanelBackendSummary,
+  updateBackendSummary: updatePanelBackendSummary,
+  setBackendUnavailable: setPanelBackendUnavailable,
+  resetKnowledgeSummary: resetPanelKnowledgeSummary,
+  updateKnowledgeSummary: updatePanelKnowledgeSummary,
+  setKnowledgeUnavailable: setPanelKnowledgeUnavailable,
+  resetQuickChat,
+  sendQuickChat,
+} = createPanelModule({
+  dom: {
+    backendUrlInput,
+    panelBackendOnline,
+    panelBackendApp,
+    panelBackendVersion,
+    panelBackendSkills,
+    panelBackendStatus,
+    panelKnowledgeFiles,
+    panelKnowledgeChunks,
+    panelKnowledgeIndexMethod,
+    panelKnowledgeFtsEnabled,
+    panelKnowledgeFtsAvailable,
+    panelKnowledgeStatus,
+    panelChatMessageInput,
+    panelSendChatButton,
+    panelChatStatus,
+    panelChatResult,
+  },
 });
 
 function resetSummary() {
@@ -311,6 +358,19 @@ function openTabTarget(tabName, sectionId) {
   }
 }
 
+async function refreshKnowledgeStatusWithPanel() {
+  const payload = await refreshKnowledgeStatus();
+  if (payload) {
+    updatePanelKnowledgeSummary(payload);
+  } else {
+    setPanelKnowledgeUnavailable(
+      state.hasCheckedBackend
+        ? "暂无知识库状态。"
+        : "后端未确认可用前，知识库摘要暂不可用。"
+    );
+  }
+}
+
 async function checkBackend() {
   const backendUrl = backendUrlInput.value.trim();
   checkButton.disabled = true;
@@ -329,14 +389,19 @@ async function checkBackend() {
     healthStatus.textContent = payload.health.status || "-";
     appVersion.textContent = payload.version.version || "-";
     skillsCount.textContent = String(skills.length || 0);
+    updatePanelBackendSummary(payload);
     renderSkills(skills);
     renderFilesTools();
     setTextStatus(requestStatus, `已连接：${payload.backendUrl}`, "success");
-    void refreshKnowledgeStatus();
+    void refreshKnowledgeStatusWithPanel();
   } catch (error) {
     state.hasCheckedBackend = false;
     state.skills = [];
     resetSummary();
+    setPanelBackendUnavailable(
+      error instanceof Error ? error.message : backendUnavailableMessage
+    );
+    setPanelKnowledgeUnavailable("暂无知识库状态。");
     renderEmptyRow(backendUnavailableMessage);
     renderFilesTools();
     knowledgeStatusResult.classList.add("hidden");
@@ -378,10 +443,16 @@ checkButton.addEventListener("click", checkBackend);
 sendChatButton.addEventListener("click", sendChat);
 chatMessageInput.addEventListener("input", updateSendChatButtonState);
 chatMessageInput.addEventListener("keydown", handleChatInputKeydown);
+panelSendChatButton.addEventListener("click", () => {
+  void sendQuickChat();
+});
+panelChatMessageInput.addEventListener("input", updateQuickChatButtonState);
 readFilePreviewButton.addEventListener("click", readFilePreview);
 summarizeFilePreviewButton.addEventListener("click", summarizeFilePreview);
 filePreviewPathInput.addEventListener("input", handleFilePreviewPathInput);
-refreshKnowledgeStatusButton.addEventListener("click", refreshKnowledgeStatus);
+refreshKnowledgeStatusButton.addEventListener("click", () => {
+  void refreshKnowledgeStatusWithPanel();
+});
 knowledgeIndexSubmitButton.addEventListener("click", addToKnowledge);
 knowledgeSearchSubmitButton.addEventListener("click", searchKnowledge);
 knowledgeQuerySubmitButton.addEventListener("click", queryKnowledge);
@@ -414,9 +485,13 @@ panelEntryButtons.forEach((button) => {
 });
 
 renderFilesTools();
+resetPanelBackendSummary();
+resetPanelKnowledgeSummary();
 resetChatResult();
+resetQuickChat();
 resetFileSummaryResult();
 updateSendChatButtonState();
+updateQuickChatButtonState();
 updateFilePreviewButtonState();
 updateKnowledgeButtonState();
-void refreshKnowledgeStatus();
+void refreshKnowledgeStatusWithPanel();

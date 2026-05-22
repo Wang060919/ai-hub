@@ -91,9 +91,29 @@
               <p class="panel-card-description">
                 查看后端是否在线、版本信息与能力入口位置。
               </p>
-              <div class="panel-card-placeholder">
-                <span class="panel-card-label">占位信息</span>
-                <p>本轮先展示静态摘要，不在这里接入真实状态数据。</p>
+              <div class="panel-card-placeholder panel-summary-block">
+                <span class="panel-card-label">摘要信息</span>
+                <div class="panel-summary-grid">
+                  <div class="panel-summary-item">
+                    <span>后端状态</span>
+                    <strong id="panel-backend-online">等待检查</strong>
+                  </div>
+                  <div class="panel-summary-item">
+                    <span>app</span>
+                    <strong id="panel-backend-app">-</strong>
+                  </div>
+                  <div class="panel-summary-item">
+                    <span>version</span>
+                    <strong id="panel-backend-version">-</strong>
+                  </div>
+                  <div class="panel-summary-item">
+                    <span>skills</span>
+                    <strong id="panel-backend-skills">0</strong>
+                  </div>
+                </div>
+                <p id="panel-backend-status" class="panel-card-status">
+                  点击“检查后端”后同步更新面板状态摘要。
+                </p>
               </div>
               <button
                 class="check-button panel-entry-button"
@@ -110,11 +130,33 @@
                 <h3>快速聊天卡</h3>
               </div>
               <p class="panel-card-description">
-                进入现有聊天页面，继续使用原有手动发送流程。
+                在面板里手动发起一条简短聊天请求，不改变完整聊天页行为。
               </p>
-              <div class="panel-card-placeholder">
-                <span class="panel-card-label">占位信息</span>
-                <p>这里先不放输入框，也不在本轮发起任何 `/chat` 请求。</p>
+              <div class="panel-card-placeholder panel-chat-block">
+                <span class="panel-card-label">快速输入</span>
+                <label class="sr-only" for="panel-chat-message">快速聊天消息</label>
+                <textarea
+                  id="panel-chat-message"
+                  class="panel-chat-input"
+                  rows="3"
+                  placeholder="输入一条简短消息，点击发送"
+                ></textarea>
+                <div class="panel-chat-actions">
+                  <button
+                    id="panel-send-chat"
+                    class="check-button"
+                    type="button"
+                    disabled
+                  >
+                    发送
+                  </button>
+                </div>
+                <p id="panel-chat-status" class="panel-card-status">
+                  不会自动发送；只有手动点击才会调用 `/api/chat`。
+                </p>
+                <div id="panel-chat-result" class="panel-chat-result">
+                  最近一次回答摘要会显示在这里。
+                </div>
               </div>
               <button
                 class="check-button panel-entry-button"
@@ -155,9 +197,33 @@
               <p class="panel-card-description">
                 进入现有知识库区域，保留手动刷新、搜索与问答边界。
               </p>
-              <div class="panel-card-placeholder">
-                <span class="panel-card-label">占位信息</span>
-                <p>本轮不自动触发 query，不自动入库，也不改知识库逻辑。</p>
+              <div class="panel-card-placeholder panel-summary-block">
+                <span class="panel-card-label">知识库状态摘要</span>
+                <div class="panel-summary-grid">
+                  <div class="panel-summary-item">
+                    <span>files_count</span>
+                    <strong id="panel-knowledge-files">-</strong>
+                  </div>
+                  <div class="panel-summary-item">
+                    <span>chunks_count</span>
+                    <strong id="panel-knowledge-chunks">-</strong>
+                  </div>
+                  <div class="panel-summary-item">
+                    <span>index_method</span>
+                    <strong id="panel-knowledge-index-method">-</strong>
+                  </div>
+                  <div class="panel-summary-item">
+                    <span>fts_enabled</span>
+                    <strong id="panel-knowledge-fts-enabled">-</strong>
+                  </div>
+                  <div class="panel-summary-item">
+                    <span>fts_available</span>
+                    <strong id="panel-knowledge-fts-available">-</strong>
+                  </div>
+                </div>
+                <p id="panel-knowledge-status" class="panel-card-status">
+                  刷新知识库状态后，这里会同步显示最新摘要。
+                </p>
               </div>
               <button
                 class="check-button panel-entry-button"

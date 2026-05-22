@@ -263,7 +263,7 @@ export function createKnowledgeModule(deps) {
 
   async function refreshKnowledgeStatus() {
     if (state.knowledgeStatusLoading) {
-      return;
+      return null;
     }
 
     const backendUrl = dom.backendUrlInput.value.trim();
@@ -276,6 +276,7 @@ export function createKnowledgeModule(deps) {
       const payload = await requestKnowledgeStatus(backendUrl);
       renderKnowledgeStatus(dom, payload);
       setTextStatus(dom.knowledgeStatusMessage, "知识库状态已从 /api/knowledge/status 加载", "success");
+      return payload;
     } catch (error) {
       renderErrorBox(dom.knowledgeStatusResult, error, "知识库请求失败");
       const code = error?.code ? `${error.code}: ` : "";
@@ -284,6 +285,7 @@ export function createKnowledgeModule(deps) {
         `${code}${error instanceof Error ? error.message : "知识库状态获取失败"}`,
         "error"
       );
+      return null;
     } finally {
       setKnowledgeStatusLoading(false);
     }
