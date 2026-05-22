@@ -300,23 +300,93 @@ M7 说明：
 
 ### V1.4：知识库与记忆系统
 
-**状态**：`TODO`
+**状态**：`DOING`（M8-M12 已完成，当前进入 V1.4 收尾验证 / tag 或 V1.5 规划）
 
 任务清单：
 
+- [x] 本地文本知识库状态接口：`GET /knowledge/status`
+- [x] 本地文本知识库入库接口：`POST /knowledge/index-file`
+- [x] 本地文本知识库纯检索接口：`POST /knowledge/search`
+- [x] 本地文本知识库检索增强回答接口：`POST /knowledge/query`
 - [ ] ChromaDB 接入
-- [ ] 文档切片服务
 - [ ] 向量化服务
-- [ ] 本地知识库 CRUD
-- [ ] RAG 问答流程
 - [ ] 长期记忆存储
 - [ ] 学习资料沉淀
 - [ ] 错题/薄弱点存储接口
 - [ ] 个性化知识图谱接口预留
 
+V1.4-M10 检索增强回答同步：
+
+- [x] M10a：已完成独立 `POST /knowledge/query`，不接入 `/chat`。
+- [x] M10b：已实现知识库第一版最小闭环：`/knowledge/index-file` 入库、`/knowledge/status`、`/knowledge/search` 纯检索、`/knowledge/query` 检索增强回答。
+- [x] M10c：`/knowledge/query` 先检索 chunks，再基于 hits 调用 DeepSeek 生成回答。
+- [x] M10d：hits 为空时不调用 DeepSeek，直接返回 `grounded=false`、空 `hits`、空 `citations`。
+- [x] M10e：`/knowledge/query` 不走 `/chat`，不自动接入聊天，不做 Echo fallback。
+- [x] M10f：第一版 `citations` 已由 hits 直接映射生成，未做模型真实引用抽取。
+- [x] M10g：已加入模型上下文长度控制，避免无界传入知识片段。
+- [x] M10h：真实 DeepSeek 知识库问答验证已通过。
+- [x] M10i：manual-test 测试知识库记录和测试文件已清理。
+
+M10 已验证结果：
+
+- `HTTP_STATUS: 200`
+- `model: deepseek-v4-flash`
+- `grounded: true`
+- `hits` 非空
+- `citations` 非空
+- `answer.text` 中文正常
+
+M10 当前边界：
+
+- `/knowledge/query` 是独立接口，当前不自动接入 `/chat`。
+- 当前知识库仍是本地文本知识库第一版，不做 embedding，不做 ChromaDB。
+- 当前不做自动长期记忆，不做自动监听聊天入库，不做自动知识增强聊天。
+- 当前已支持前端 Knowledge 最小入口，但保持手动操作边界。
+- 当前不支持 PDF / Word / Excel 知识入库。
+
+V1.4-M11 错误处理与安全边界验证：
+
+- [x] M11a：已验证 `/knowledge/index-file` 支持白名单内 `.txt` / `.md` 正常入库。
+- [x] M11b：已验证重复入库同文件返回 `reused_existing=true`。
+- [x] M11c：已验证修改文件后 `force_reindex=true` 返回 `replaced_existing=true`。
+- [x] M11d：已验证 `/knowledge/index-file` 错误码：`FILE_NOT_FOUND`、`PATH_NOT_ALLOWED`、`UNSUPPORTED_FILE_TYPE`、`INVALID_CHUNK_PARAMS`。
+- [x] M11e：已验证 `/knowledge/status` 返回 `files_count` / `chunks_count`、`fts_available=true`、`fts_enabled=true`、`index_method=sqlite_fts`。
+- [x] M11f：已验证 `/knowledge/search` 命中时 `hits` 非空、无关查询 `hits=[]`、空 `query` 返回 `INVALID_QUERY`、`top_k` 生效。
+- [x] M11g：已验证 `/knowledge/query` 无命中时不调用 DeepSeek，返回 `grounded=false`。
+- [x] M11h：已验证 `/knowledge/query` 有命中但模型未启用或无 Key 时返回 `KNOWLEDGE_MODEL_DISABLED`。
+- [x] M11i：已验证 `/knowledge/query` 不 fallback Echo，不走 `/chat`。
+- [x] M11j：已完成回归验证：`/chat hello` 返回 Echo、`/files/preview` 正常、`/files/summarize` 默认关闭返回 `SUMMARY_MODEL_DISABLED`、`/health` / `/version` / `/skills` 正常。
+- [x] M11k：已实际通过 `npm run build`。
+- [x] M11l：已实际通过 `conda run -n ai_hub python -m py_compile ...`。
+- [x] M11m：已删除临时测试文件，并已清理 `kb_id=m11-validation` 的 `knowledge_files` / `knowledge_chunks` / `knowledge_chunks_fts`，清理后计数为 `0 / 0 / 0`。
+
+M11 说明：
+
+- 本轮没有修改任何功能代码。
+- 本轮使用 `conda run -n ai_hub python ...` 完成 Python 验证，没有使用系统默认 Python。
+- 当前 Codex 执行环境读不到 `DEEPSEEK_API_KEY`，因此本轮没有把“真实 DeepSeek 命中回答”写成 Codex 已验证。
+- 真实 DeepSeek 命中回答验证仍以用户手动验证结果为准，不在本轮 M11 验证中重复声称。
+
+M11 后当前边界：
+
+- 当前仍不支持前端知识库页面。
+- 当前仍不支持 embedding。
+- 当前仍不支持 ChromaDB。
+- 当前仍不支持自动长期记忆。
+- 当前仍不支持自动监听聊天入库。
+- 当前仍不支持 `/chat` 自动接入知识库。
+- 当前仍不支持 PDF / Word / Excel 入库。
+
+V1.4 下一步待确认：
+
+- V1.4 收尾验证与 tag
+- 或进入 V1.5 规划
+
 ---
 
 ### V1.5：屏幕感知工具组与学习辅助模式
+
+V1.4-M13 文档同步补充：上方 V1.4 任务节若仍显示 “M12 或收尾待确认” 或 “当前不做前端知识库页面”，以本补充为准。V1.4 当前状态应视为 M8-M12 已完成，已进入收尾验证 / tag 或 V1.5 规划；M12 前端 Knowledge 最小入口已完成，但仍保持手动操作边界，不自动入库，不自动 search，不自动 query，也不自动把 `/chat` 接入知识库。
 
 **状态**：`TODO`
 

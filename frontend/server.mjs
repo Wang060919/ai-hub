@@ -135,6 +135,29 @@ async function postJsonWithStatus(baseUrl, path, payload) {
   };
 }
 
+async function fetchJsonWithStatus(baseUrl, path) {
+  const response = await fetch(`${baseUrl}${path}`, {
+    method: "GET",
+    headers: { Accept: "application/json" },
+  });
+
+  const rawText = await response.text();
+  let jsonPayload = null;
+
+  if (rawText) {
+    try {
+      jsonPayload = JSON.parse(rawText);
+    } catch {
+      throw new Error(`${path} returned a non-JSON response`);
+    }
+  }
+
+  return {
+    statusCode: response.status,
+    payload: jsonPayload ?? {},
+  };
+}
+
 async function handleMetadataProxy(request, response) {
   try {
     const rawBody = await readRequestBody(request);
@@ -311,6 +334,167 @@ async function handleFileSummarizeProxy(request, response) {
   }
 }
 
+async function handleKnowledgeStatusProxy(request, response, requestUrl) {
+  try {
+    const baseUrl = normalizeBackendUrl(requestUrl.searchParams.get("backendUrl"));
+    const result = await fetchJsonWithStatus(baseUrl, "/knowledge/status");
+
+    sendJson(response, result.statusCode, {
+      ok: result.statusCode >= 200 && result.statusCode < 300,
+      backendUrl: baseUrl,
+      ...result.payload,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : backendUnavailableMessage;
+
+    sendJson(response, 502, {
+      ok: false,
+      error: {
+        code: "REQUEST_FAILED",
+        message,
+      },
+      details: message,
+    });
+  }
+}
+
+async function handleKnowledgeIndexFileProxy(request, response) {
+  try {
+    const rawBody = await readRequestBody(request);
+    const payload = rawBody ? JSON.parse(rawBody) : {};
+    const baseUrl = normalizeBackendUrl(payload.backendUrl);
+    const path = String(payload.path || "").trim();
+    const kbId = String(payload.kb_id || "default").trim() || "default";
+
+    if (!path) {
+      sendJson(response, 400, {
+        ok: false,
+        error: {
+          code: "PATH_NOT_ALLOWED",
+          message: "File path cannot be empty",
+        },
+      });
+      return;
+    }
+
+    const result = await postJsonWithStatus(baseUrl, "/knowledge/index-file", {
+      path,
+      kb_id: kbId,
+    });
+
+    sendJson(response, result.statusCode, {
+      ok: result.statusCode >= 200 && result.statusCode < 300,
+      backendUrl: baseUrl,
+      ...result.payload,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : backendUnavailableMessage;
+
+    sendJson(response, 502, {
+      ok: false,
+      error: {
+        code: "REQUEST_FAILED",
+        message,
+      },
+      details: message,
+    });
+  }
+}
+
+async function handleKnowledgeSearchProxy(request, response) {
+  try {
+    const rawBody = await readRequestBody(request);
+    const payload = rawBody ? JSON.parse(rawBody) : {};
+    const baseUrl = normalizeBackendUrl(payload.backendUrl);
+    const query = String(payload.query || "").trim();
+    const kbId = String(payload.kb_id || "default").trim() || "default";
+    const topK = Number(payload.top_k);
+
+    if (!query) {
+      sendJson(response, 400, {
+        ok: false,
+        error: {
+          code: "INVALID_QUERY",
+          message: "Query cannot be empty",
+        },
+      });
+      return;
+    }
+
+    const result = await postJsonWithStatus(baseUrl, "/knowledge/search", {
+      query,
+      kb_id: kbId,
+      top_k: Number.isFinite(topK) && topK >= 1 ? Math.floor(topK) : 4,
+    });
+
+    sendJson(response, result.statusCode, {
+      ok: result.statusCode >= 200 && result.statusCode < 300,
+      backendUrl: baseUrl,
+      ...result.payload,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : backendUnavailableMessage;
+
+    sendJson(response, 502, {
+      ok: false,
+      error: {
+        code: "REQUEST_FAILED",
+        message,
+      },
+      details: message,
+    });
+  }
+}
+
+async function handleKnowledgeQueryProxy(request, response) {
+  try {
+    const rawBody = await readRequestBody(request);
+    const payload = rawBody ? JSON.parse(rawBody) : {};
+    const baseUrl = normalizeBackendUrl(payload.backendUrl);
+    const question = String(payload.question || "").trim();
+    const kbId = String(payload.kb_id || "default").trim() || "default";
+    const topK = Number(payload.top_k);
+
+    if (!question) {
+      sendJson(response, 400, {
+        ok: false,
+        error: {
+          code: "INVALID_QUESTION",
+          message: "Question cannot be empty",
+        },
+      });
+      return;
+    }
+
+    const result = await postJsonWithStatus(baseUrl, "/knowledge/query", {
+      question,
+      kb_id: kbId,
+      top_k: Number.isFinite(topK) && topK >= 1 ? Math.floor(topK) : 4,
+    });
+
+    sendJson(response, result.statusCode, {
+      ok: result.statusCode >= 200 && result.statusCode < 300,
+      backendUrl: baseUrl,
+      ...result.payload,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : backendUnavailableMessage;
+
+    sendJson(response, 502, {
+      ok: false,
+      error: {
+        code: "REQUEST_FAILED",
+        message,
+      },
+      details: message,
+    });
+  }
+}
+
 function serveStaticFile(requestPath, response) {
   const safePath = requestPath === "/" ? "/index.html" : requestPath;
   const resolvedPath = resolve(preferredRoot, `.${normalize(safePath)}`);
@@ -349,6 +533,26 @@ const server = http.createServer(async (request, response) => {
 
   if (request.method === "POST" && requestUrl.pathname === "/api/files/summarize") {
     await handleFileSummarizeProxy(request, response);
+    return;
+  }
+
+  if (request.method === "GET" && requestUrl.pathname === "/api/knowledge/status") {
+    await handleKnowledgeStatusProxy(request, response, requestUrl);
+    return;
+  }
+
+  if (request.method === "POST" && requestUrl.pathname === "/api/knowledge/index-file") {
+    await handleKnowledgeIndexFileProxy(request, response);
+    return;
+  }
+
+  if (request.method === "POST" && requestUrl.pathname === "/api/knowledge/search") {
+    await handleKnowledgeSearchProxy(request, response);
+    return;
+  }
+
+  if (request.method === "POST" && requestUrl.pathname === "/api/knowledge/query") {
+    await handleKnowledgeQueryProxy(request, response);
     return;
   }
 

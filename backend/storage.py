@@ -30,6 +30,9 @@ def initialize_database() -> None:
             )
             """
         )
+        from backend.services.knowledge.repository import initialize_knowledge_schema
+
+        initialize_knowledge_schema(connection)
         connection.commit()
 
 

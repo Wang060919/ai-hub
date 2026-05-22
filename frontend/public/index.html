@@ -252,6 +252,181 @@
           </div>
         </section>
 
+        <section class="panel knowledge-panel">
+          <div class="section-heading">
+            <h2>Knowledge</h2>
+            <p>
+              Minimal manual entry for <code>/knowledge/*</code>. The page may
+              auto refresh status on load, but never auto indexes, searches, or
+              queries.
+            </p>
+          </div>
+
+          <section class="knowledge-section">
+            <div class="section-heading">
+              <h3>Knowledge Status</h3>
+              <p>Calls <code>GET /knowledge/status</code> only for status refresh.</p>
+            </div>
+            <div class="control-row">
+              <button id="refresh-knowledge-status" class="check-button" type="button">
+                Refresh Knowledge Status
+              </button>
+            </div>
+            <p id="knowledge-status-message" class="request-status idle">
+              Waiting for knowledge status refresh.
+            </p>
+            <div
+              id="knowledge-status-result"
+              class="file-preview-result hidden"
+              aria-live="polite"
+            ></div>
+          </section>
+
+          <section class="knowledge-section">
+            <div class="section-heading">
+              <h3>Add To Knowledge</h3>
+              <p>Calls <code>POST /knowledge/index-file</code> only after clicking the button.</p>
+            </div>
+            <label class="field-label" for="knowledge-index-path">File Path</label>
+            <div class="control-row">
+              <input
+                id="knowledge-index-path"
+                class="backend-input"
+                type="text"
+                placeholder="data\\scan_sandbox\\notes.md"
+                autocomplete="off"
+              />
+            </div>
+            <label class="field-label" for="knowledge-index-kb-id">KB ID</label>
+            <div class="control-row">
+              <input
+                id="knowledge-index-kb-id"
+                class="backend-input"
+                type="text"
+                value="default"
+                autocomplete="off"
+              />
+              <button id="knowledge-index-submit" class="check-button" type="button">
+                Add To Knowledge
+              </button>
+            </div>
+            <p id="knowledge-index-status" class="request-status idle">
+              Enter a file path, then click the button to index it into the knowledge base.
+            </p>
+            <div
+              id="knowledge-index-result"
+              class="file-preview-result hidden"
+              aria-live="polite"
+            ></div>
+          </section>
+
+          <section class="knowledge-section">
+            <div class="section-heading">
+              <h3>Knowledge Search</h3>
+              <p>Search uses <code>POST /knowledge/search</code> and does not call the model.</p>
+            </div>
+            <label class="field-label" for="knowledge-search-query">Query</label>
+            <div class="control-row">
+              <input
+                id="knowledge-search-query"
+                class="backend-input"
+                type="text"
+                placeholder="What does this file mention?"
+                autocomplete="off"
+              />
+            </div>
+            <div class="knowledge-inline-fields">
+              <div>
+                <label class="field-label" for="knowledge-search-kb-id">KB ID</label>
+                <input
+                  id="knowledge-search-kb-id"
+                  class="backend-input"
+                  type="text"
+                  value="default"
+                  autocomplete="off"
+                />
+              </div>
+              <div>
+                <label class="field-label" for="knowledge-search-top-k">Top K</label>
+                <input
+                  id="knowledge-search-top-k"
+                  class="backend-input"
+                  type="number"
+                  min="1"
+                  value="4"
+                  autocomplete="off"
+                />
+              </div>
+            </div>
+            <div class="control-row">
+              <button id="knowledge-search-submit" class="check-button" type="button">
+                Search Knowledge
+              </button>
+            </div>
+            <p id="knowledge-search-status" class="request-status idle">
+              Enter a query and click Search Knowledge. This action never calls the model.
+            </p>
+            <div
+              id="knowledge-search-result"
+              class="file-preview-result hidden"
+              aria-live="polite"
+            ></div>
+          </section>
+
+          <section class="knowledge-section">
+            <div class="section-heading">
+              <h3>Knowledge Query</h3>
+              <p>Calls <code>POST /knowledge/query</code> only after clicking the button.</p>
+            </div>
+            <label class="field-label" for="knowledge-query-question">Question</label>
+            <div class="control-row">
+              <input
+                id="knowledge-query-question"
+                class="backend-input"
+                type="text"
+                placeholder="Summarize the matching evidence."
+                autocomplete="off"
+              />
+            </div>
+            <div class="knowledge-inline-fields">
+              <div>
+                <label class="field-label" for="knowledge-query-kb-id">KB ID</label>
+                <input
+                  id="knowledge-query-kb-id"
+                  class="backend-input"
+                  type="text"
+                  value="default"
+                  autocomplete="off"
+                />
+              </div>
+              <div>
+                <label class="field-label" for="knowledge-query-top-k">Top K</label>
+                <input
+                  id="knowledge-query-top-k"
+                  class="backend-input"
+                  type="number"
+                  min="1"
+                  value="4"
+                  autocomplete="off"
+                />
+              </div>
+            </div>
+            <div class="control-row">
+              <button id="knowledge-query-submit" class="check-button" type="button">
+                Ask Knowledge
+              </button>
+            </div>
+            <p id="knowledge-query-status" class="request-status idle">
+              Enter a question and click Ask Knowledge. Model use happens only on click.
+            </p>
+            <div
+              id="knowledge-query-result"
+              class="file-preview-result hidden"
+              aria-live="polite"
+            ></div>
+          </section>
+        </section>
+
         <section
           class="files-tools-grid"
           id="files-tools-grid"

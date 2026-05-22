@@ -17,7 +17,7 @@
 │           / voice / sandbox / skills    │
 ├─────────────────────────────────────────┤
 │            Services 层                  │
-│  业务逻辑：对话管理 / 文件解析 / 向量检索 │
+│  业务逻辑：对话管理 / 文件解析 / 全文检索 │
 │           / 语音处理 / 沙盒执行          │
 ├─────────────────────────────────────────┤
 │            Adapters 层                  │
@@ -48,7 +48,7 @@
 外部系统适配，每个 adapter 封装一个外部依赖：
 
 - `llm/` — 大模型适配（OpenAI / Ollama / DeepSeek 等）
-- `chromadb/` — ChromaDB 向量数据库适配
+- `chromadb/` — ChromaDB 适配预留（V1.5+ 预留，当前未落地）
 - `docker/` — Docker 沙盒适配
 - `stt/` — 语音转文字适配
 - `tts/` — 文字转语音适配
@@ -66,7 +66,7 @@ Adapter 规则：
 
 - `chat/` — 对话管理、会话上下文、消息流控
 - `file/` — 文件解析、内容提取、格式转换
-- `knowledge/` — 文档切片、向量检索、RAG 问答
+- `knowledge/` — 文档切片、全文检索、检索增强问答
 - `screen/` — 屏幕识别、区域感知、监控调度
 - `voice/` — 语音对话编排、VAD 调度
 - `sandbox/` — 沙盒任务编排、安全策略
@@ -240,16 +240,18 @@ ai-hub/
 以下模块在 V1.1 阶段只预留目录和接口定义，不实现具体功能：
 
 - `backend/modules/files/` — 文件处理（V1.3 实现）
-- `backend/modules/knowledge/` — 知识库（V1.4 实现）
+- `backend/modules/knowledge/` — 知识库（V1.4 当前为本地文本知识库第一版）
 - `backend/modules/screen/` — 屏幕工具（V1.5 实现）
 - `backend/modules/voice/` — 语音（V1.7 实现）
 - `backend/modules/sandbox/` — 沙盒（V1.9 实现）
 - `backend/modules/skills/` — 技能网关（V1.6 实现）
-- `backend/adapters/chromadb/` — 向量数据库（V1.4 实现）
+- `backend/adapters/chromadb/` — 向量数据库预留（V1.5+ 预留，当前未实现）
 - `backend/adapters/docker/` — Docker（V1.9 实现）
 - `backend/adapters/stt/` + `backend/adapters/tts/` — 语音（V1.7 实现）
 
 # V1.1-M6 最新架构状态
+
+V1.4-M13 文档修正补充：当前知识库服务的实际实现应理解为“本地文本切片 + SQLite FTS5 全文检索 + LIKE fallback + 独立 query 增强回答”，不是 embedding、向量检索或 ChromaDB 已落地。文中若出现“向量检索”或“ChromaDB 在 V1.4 实现”的旧表述，应视为历史预留描述；ChromaDB 目前仅属于 V1.5+ 预留方向，不属于 V1.4 已实现能力。
 
 截至 V1.1-M6，架构落地状态如下：
 
