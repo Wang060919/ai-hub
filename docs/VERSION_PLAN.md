@@ -316,6 +316,49 @@ AI Hub 当前阶段优先做个人可用版，但代码不能写死为只能在�
 
 V1.4-M13 文档修正补充：上方 V1.4 节若仍保留旧表述，以本补充为准。V1.4 当前应视为 M8-M12 已完成，已支持前端 Knowledge 最小入口；该入口仅支持手动刷新 `GET /knowledge/status`、手动调用 `POST /knowledge/index-file`、手动调用 `POST /knowledge/search`、手动调用 `POST /knowledge/query`，页面加载只自动刷新 status，不自动入库，不自动 search，不自动 query。当前知识库实现为本地文本知识库第一版，检索方式为 SQLite FTS5 + LIKE fallback 的全文检索，而不是 embedding / 向量检索；ChromaDB 不属于 V1.4 已实现范围。V1.4 下一步应为收尾验证 / tag，或进入 V1.5 规划。
 
+**状态**：V1.5-M1 到 M9 已完成前端结构整理核心目标，当前进入收尾与文档同步。
+
+**当前已完成内容**：
+
+- API 调用层抽取到 `frontend/public/js/api/`
+- 通用 UI 工具抽取到 `frontend/public/js/ui/`
+- 通用 core 工具抽取到 `frontend/public/js/core/`
+- `fileToolsCatalog` 提取到 `frontend/public/js/catalog/`
+- Knowledge 业务模块拆分到 `frontend/public/js/knowledge/`
+- Files 业务模块拆分到 `frontend/public/js/files/`
+- Chat 业务模块拆分到 `frontend/public/js/chat/`
+- 中文 UI 文案统一
+- Markdown 渲染器提取
+- 前端结构最终复核通过
+
+**当前 `app.js` 职责**：
+
+- DOM 引用
+- state 组装
+- 模块初始化
+- 事件绑定
+- Tab 切换
+- backend metadata 检查
+- 少量页面级展示逻辑
+
+**当前验证结论**：
+
+- 全量前端 JS `node --check` 已通过
+- `npm run build` 已通过
+- 前端结构复核已通过
+- `git status` clean
+
+**当前仍不做**：
+
+- 桌宠 / 悬浮窗
+- React / Vue
+- 新依赖
+- 后端知识库改造
+- embedding / ChromaDB
+- `/chat` 自动接入知识库
+- 文件上传
+- Tauri 权限扩展
+
 **目标**：提供屏幕内容识别与学习辅助工具。
 
 **内容**：
@@ -340,6 +383,12 @@ V1.4-M13 文档修正补充：上方 V1.4 节若仍保留旧表述，以本补�
 - 不做 Always-On 常驻监控
 - 不做自动截屏上传
 - 不做隐私数据分析
+
+**下一步建议**：
+
+- 先完成 V1.5 收尾验证与 tag
+- 然后进入 V1.6 桌宠 / 桌面面板第一版规划
+- 或在 V1.5 tag 后安装并试用 Superpowers
 
 ---
 

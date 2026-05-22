@@ -27,7 +27,7 @@ V1.0 / V1.0.1 已基本完成：
 | V1.2 | 基础 AI 对话功能 | M8 收尾验证与文档同步中 |
 | V1.3 | 文件处理功能 | M1-M7 已完成，进入收尾判断 |
 | V1.4 | 知识库与记忆系统 | M8-M12 已完成，进入收尾审查 / 收尾验证 |
-| V1.5 | 屏幕感知工具组与学习辅助模式 | 待开始 |
+| V1.5 | 屏幕感知工具组与学习辅助模式 | M1-M9 已完成前端结构整理核心目标，进入收尾 |
 | V1.6 | 技能网关 / 插件系统 | 待开始 |
 | V1.7 | 语音交互 | 待开始 |
 | V1.8 | 手机端 / 局域网 / 室友测试 | 待开始 |
@@ -137,3 +137,38 @@ M11 回归中还已验证 `/chat hello` 返回 Echo、`/files/preview` 正常、
 V1.4 当前仍是本地文本知识库第一版，已支持前端 Knowledge 最小入口，但该入口只支持手动刷新 status、手动入库、手动 search、手动 query；页面加载不会自动入库，也不会自动触发 query。当前仍不支持 embedding、ChromaDB、自动长期记忆、自动监听聊天入库、`/chat` 自动接入知识库，也不支持 PDF / Word / Excel 入库。下一步进入 V1.4 收尾审查 / 收尾验证与 tag，或转入 V1.5 规划。
 
 V1.4-M13 文档修正补充：以上 V1.4 旧表述如与本段冲突，以本段为准。V1.4 当前状态应视为 M8-M12 已完成，已进入收尾审查 / 收尾验证。当前知识库能力仍是本地文本知识库第一版，已支持前端 Knowledge 最小入口；该入口只支持手动刷新 status、手动入库、手动 search、手动 query，页面加载不会自动入库，也不会自动触发 query。当前仍不支持 embedding、ChromaDB、PDF / Word / Excel 入库、自动长期记忆、自动监听聊天入库，且 `/chat` 仍未自动接入知识库。下一步为 V1.4 收尾验证 / tag，或转入 V1.5 规划。
+
+## V1.5 当前状态
+
+V1.5 当前已完成前端桌面应用结构整理的核心目标，进入收尾。当前 `frontend/public/js/` 已形成 `api/`、`ui/`、`core/`、`catalog/`、`chat/`、`files/`、`knowledge/` 分层，`app.js` 当前约 388 行，职责已经收敛到 DOM 引用、state 组装、模块初始化、事件绑定、Tab 切换、backend metadata 检查，以及少量页面级展示逻辑。
+
+已完成内容包括：
+
+- API 调用层抽取到 `frontend/public/js/api/`
+- 通用 UI 工具抽取到 `frontend/public/js/ui/`
+- 通用 core 工具抽取到 `frontend/public/js/core/`
+- `fileToolsCatalog` 提取到 `frontend/public/js/catalog/`
+- Knowledge 业务模块拆分到 `frontend/public/js/knowledge/`
+- Files 业务模块拆分到 `frontend/public/js/files/`
+- Chat 业务模块拆分到 `frontend/public/js/chat/`
+- 中文 UI 文案统一
+- Markdown 渲染器提取
+
+本轮前端结构复核已通过，已实际完成全量前端 JS 的 `node --check`，`npm run build` 也已通过，且工作区 `git status` 为 clean。
+
+V1.5 当前仍不做：
+
+- 桌宠 / 悬浮窗
+- React / Vue 重构
+- 新依赖
+- 后端知识库改造
+- embedding / ChromaDB
+- `/chat` 自动接入知识库
+- 文件上传
+- Tauri 权限扩展
+
+下一步建议：
+
+- 先完成 V1.5 收尾验证与 tag
+- 然后进入 V1.6 桌宠 / 桌面面板第一版规划
+- 或在 V1.5 tag 后安装并试用 Superpowers

@@ -249,6 +249,55 @@ ai-hub/
 - `backend/adapters/docker/` — Docker（V1.9 实现）
 - `backend/adapters/stt/` + `backend/adapters/tts/` — 语音（V1.7 实现）
 
+## 九、V1.5 当前前端结构补充
+
+V1.5-M9 文档同步补充：当前前端桌面应用结构整理已完成核心目标，进入收尾。这里描述的是现有前端结构整理结果，不代表桌宠、悬浮窗、React / Vue 重构或 V1.6 插件系统已经完成。
+
+当前 `frontend/public/js/` 已形成如下分层：
+
+```text
+frontend/public/js/
+  api/
+    chat.js
+    client.js
+    files.js
+    knowledge.js
+    metadata.js
+  ui/
+    error.js
+    loading.js
+    status.js
+  core/
+    markdown.js
+    utils.js
+  catalog/
+    file-tools-catalog.js
+  chat/
+    chat.js
+  files/
+    files.js
+  knowledge/
+    knowledge.js
+```
+
+当前职责边界：
+
+- `api/`：前端 API 请求封装
+- `ui/`：通用状态、按钮 loading、错误盒子等 UI 工具
+- `core/`：通用纯函数，例如 `escapeHtml` 与 assistant Markdown 渲染
+- `catalog/`：纯数据目录，例如 `fileToolsCatalog`
+- `chat/`、`files/`、`knowledge/`：各自页面的业务模块
+- `frontend/public/app.js`：入口编排，负责 DOM 引用、state 组装、模块初始化、事件绑定、Tab 切换、backend metadata 检查，以及少量页面级展示逻辑
+
+当前边界保持不变：
+
+- 不新增桌宠 / 悬浮窗
+- 不引入 React / Vue
+- 不新增依赖
+- 不改后端知识库实现
+- 不把 `/chat` 自动接入知识库
+- 不扩展 Tauri 权限
+
 # V1.1-M6 最新架构状态
 
 V1.4-M13 文档修正补充：当前知识库服务的实际实现应理解为“本地文本切片 + SQLite FTS5 全文检索 + LIKE fallback + 独立 query 增强回答”，不是 embedding、向量检索或 ChromaDB 已落地。文中若出现“向量检索”或“ChromaDB 在 V1.4 实现”的旧表述，应视为历史预留描述；ChromaDB 目前仅属于 V1.5+ 预留方向，不属于 V1.4 已实现能力。
