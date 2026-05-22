@@ -34,6 +34,7 @@ class KnowledgeRepository:
         self,
         file_draft: KnowledgeFileDraft,
         chunks: list[KnowledgeChunkDraft],
+        force_reindex: bool = False,
     ) -> KnowledgeIndexResult:
         with self._connection_factory() as connection:
             initialize_knowledge_schema(connection)
@@ -44,7 +45,7 @@ class KnowledgeRepository:
                 relative_path=file_draft.relative_path,
                 file_hash=file_draft.file_hash,
             )
-            if existing_same_version is not None:
+            if existing_same_version is not None and not force_reindex:
                 return KnowledgeIndexResult(
                     file_id=int(existing_same_version["id"]),
                     kb_id=str(existing_same_version["kb_id"]),
