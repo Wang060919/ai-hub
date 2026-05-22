@@ -1,3 +1,12 @@
+import { escapeHtml } from "./js/core/utils.js";
+import { requestMetadata } from "./js/api/metadata.js";
+import { requestChat } from "./js/api/chat.js";
+import { requestFilePreview, requestFileSummary } from "./js/api/files.js";
+import { requestKnowledgeStatus, requestKnowledgeIndexFile, requestKnowledgeSearch, requestKnowledgeQuery } from "./js/api/knowledge.js";
+import { setTextStatus } from "./js/ui/status.js";
+import { setButtonLoading } from "./js/ui/loading.js";
+import { renderErrorBox } from "./js/ui/error.js";
+
 const backendUrlInput = document.querySelector("#backend-url");
 const checkButton = document.querySelector("#check-backend");
 const requestStatus = document.querySelector("#request-status");
@@ -47,7 +56,7 @@ const knowledgeQueryTopKInput = document.querySelector("#knowledge-query-top-k")
 const knowledgeQuerySubmitButton = document.querySelector("#knowledge-query-submit");
 const knowledgeQueryStatus = document.querySelector("#knowledge-query-status");
 const knowledgeQueryResult = document.querySelector("#knowledge-query-result");
-const tauriInvoke = window.__TAURI__?.core?.invoke;
+
 const MAX_CHAT_HISTORY_TURNS = 4;
 const MAX_CHAT_HISTORY_MESSAGES = MAX_CHAT_HISTORY_TURNS * 2;
 const MAX_CHAT_CONTEXT_MESSAGES = MAX_CHAT_HISTORY_MESSAGES + 1;
@@ -158,60 +167,6 @@ const state = {
   skills: [],
 };
 
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
-
-function setRequestState(type, message) {
-  requestStatus.className = `request-status ${type}`;
-  requestStatus.textContent = message;
-}
-
-function setChatState(type, message) {
-  chatStatus.className = `request-status ${type}`;
-  chatStatus.textContent = message;
-}
-
-function setFilesToolsState(type, message) {
-  filesToolsStatus.className = `request-status ${type}`;
-  filesToolsStatus.textContent = message;
-}
-
-function setFilePreviewState(type, message) {
-  filePreviewStatus.className = `request-status ${type}`;
-  filePreviewStatus.textContent = message;
-}
-
-function setFileSummaryState(type, message) {
-  fileSummaryStatus.className = `request-status ${type}`;
-  fileSummaryStatus.textContent = message;
-}
-
-function setKnowledgeStatusState(type, message) {
-  knowledgeStatusMessage.className = `request-status ${type}`;
-  knowledgeStatusMessage.textContent = message;
-}
-
-function setKnowledgeIndexState(type, message) {
-  knowledgeIndexStatus.className = `request-status ${type}`;
-  knowledgeIndexStatus.textContent = message;
-}
-
-function setKnowledgeSearchState(type, message) {
-  knowledgeSearchStatus.className = `request-status ${type}`;
-  knowledgeSearchStatus.textContent = message;
-}
-
-function setKnowledgeQueryState(type, message) {
-  knowledgeQueryStatus.className = `request-status ${type}`;
-  knowledgeQueryStatus.textContent = message;
-}
-
 function resetSummary() {
   healthStatus.textContent = "-";
   appVersion.textContent = "-";
@@ -224,9 +179,10 @@ function resetFileSummaryResult() {
   state.lastPreviewPath = "";
   fileSummaryResult.classList.add("hidden");
   fileSummaryResult.innerHTML = "";
-  setFileSummaryState(
-    "idle",
-    "Summary is available only after preview succeeds and only when you click the button."
+  setTextStatus(
+    fileSummaryStatus,
+    "Summary is available only after preview succeeds and only when you click the button.",
+    "idle"
   );
 }
 
@@ -570,7 +526,7 @@ function buildToolCard(tool, matchedSkill) {
 function renderFilesTools() {
   if (!state.hasCheckedBackend) {
     filesToolsGrid.innerHTML = "";
-    setFilesToolsState("idle", loadSkillsHint);
+    setTextStatus(filesToolsStatus, loadSkillsHint, "idle");
     return;
   }
 
@@ -584,9 +540,10 @@ function renderFilesTools() {
     skillsByName.has(tool.name)
   ).length;
 
-  setFilesToolsState(
-    matchedCount === fileToolsCatalog.length ? "success" : "idle",
-    `已复用 /skills 的 ${matchedCount}/${fileToolsCatalog.length} 个文件相关能力。当前页面只展示能力和安全边界，不会上传文件，也不会执行文件操作。`
+  setTextStatus(
+    filesToolsStatus,
+    `已复用 /skills 的 ${matchedCount}/${fileToolsCatalog.length} 个文件相关能力。当前页面只展示能力和安全边界，不会上传文件，也不会执行文件操作。`,
+    matchedCount === fileToolsCatalog.length ? "success" : "idle"
   );
 }
 
@@ -606,255 +563,6 @@ function showTab(activeTab) {
   statusPanel.classList.toggle("hidden", !isStatus);
   chatPanel.classList.toggle("hidden", !isChat);
   filesToolsPanel.classList.toggle("hidden", !isFilesTools);
-}
-
-async function readJsonResponse(response) {
-  const rawText = await response.text();
-  if (!rawText) {
-    return {};
-  }
-
-  try {
-    return JSON.parse(rawText);
-  } catch {
-    throw new Error("Proxy returned a non-JSON response");
-  }
-}
-
-function isTauriRuntime() {
-  return typeof tauriInvoke === "function";
-}
-
-function normalizeErrorMessage(error, fallbackMessage) {
-  if (typeof error === "string" && error.trim()) {
-    return error;
-  }
-
-  if (error instanceof Error && error.message.trim()) {
-    return error.message;
-  }
-
-  return fallbackMessage;
-}
-
-async function requestMetadata(backendUrl) {
-  if (isTauriRuntime()) {
-    try {
-      return await tauriInvoke("fetch_backend_metadata", { backendUrl });
-    } catch (error) {
-      const details = normalizeErrorMessage(error, backendUnavailableMessage);
-      return {
-        ok: false,
-        error: details.includes("Backend URL")
-          ? details
-          : backendUnavailableMessage,
-        details,
-      };
-    }
-  }
-
-  const response = await fetch("/api/metadata", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ backendUrl }),
-  });
-
-  return readJsonResponse(response);
-}
-
-async function requestChat(backendUrl, message, messages = []) {
-  if (isTauriRuntime()) {
-    try {
-      return await tauriInvoke("send_chat_message", { backendUrl, message });
-    } catch (error) {
-      const details = normalizeErrorMessage(error, "Chat request failed");
-      const isInputError =
-        details.includes("Backend URL") ||
-        details.includes("Message cannot be empty");
-
-      return {
-        ok: false,
-        error: isInputError ? details : "Chat request failed",
-        details,
-      };
-    }
-  }
-
-  const response = await fetch("/api/chat", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ backendUrl, message, messages }),
-  });
-
-  return readJsonResponse(response);
-}
-
-async function requestFilePreview(backendUrl, path) {
-  const response = await fetch("/api/files/preview", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ backendUrl, path }),
-  });
-
-  const payload = await readJsonResponse(response);
-  if (!response.ok) {
-    const code =
-      payload?.error?.code ||
-      payload?.preview?.error?.code ||
-      `HTTP_${response.status}`;
-    const message =
-      payload?.error?.message ||
-      payload?.preview?.error?.message ||
-      `${code}: /files/preview failed`;
-    const error = new Error(message);
-    error.code = code;
-    throw error;
-  }
-
-  return payload.preview;
-}
-
-async function requestFileSummary(backendUrl, path) {
-  const response = await fetch("/api/files/summarize", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ backendUrl, path }),
-  });
-
-  const payload = await readJsonResponse(response);
-  if (!response.ok) {
-    const code =
-      payload?.error?.code ||
-      payload?.summary?.error?.code ||
-      `HTTP_${response.status}`;
-    const message =
-      payload?.error?.message ||
-      payload?.summary?.error?.message ||
-      `${code}: /api/files/summarize failed`;
-    const error = new Error(message);
-    error.code = code;
-    throw error;
-  }
-
-  return payload.summary;
-}
-
-async function requestKnowledgeStatus(backendUrl) {
-  const response = await fetch(
-    `/api/knowledge/status?backendUrl=${encodeURIComponent(backendUrl)}`,
-    {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-      },
-    }
-  );
-
-  const payload = await readJsonResponse(response);
-  if (!response.ok) {
-    const code = payload?.error?.code || `HTTP_${response.status}`;
-    const message =
-      payload?.error?.message || payload?.details || `${code}: /api/knowledge/status failed`;
-    const error = new Error(message);
-    error.code = code;
-    throw error;
-  }
-
-  return payload.knowledge;
-}
-
-async function requestKnowledgeIndexFile(backendUrl, path, kbId) {
-  const response = await fetch("/api/knowledge/index-file", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ backendUrl, path, kb_id: kbId }),
-  });
-
-  const payload = await readJsonResponse(response);
-  if (!response.ok) {
-    const code =
-      payload?.error?.code ||
-      payload?.index?.error?.code ||
-      `HTTP_${response.status}`;
-    const message =
-      payload?.error?.message ||
-      payload?.index?.error?.message ||
-      `${code}: /api/knowledge/index-file failed`;
-    const error = new Error(message);
-    error.code = code;
-    throw error;
-  }
-
-  return payload;
-}
-
-async function requestKnowledgeSearch(backendUrl, query, kbId, topK) {
-  const response = await fetch("/api/knowledge/search", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ backendUrl, query, kb_id: kbId, top_k: topK }),
-  });
-
-  const payload = await readJsonResponse(response);
-  if (!response.ok) {
-    const code =
-      payload?.error?.code ||
-      payload?.search?.error?.code ||
-      `HTTP_${response.status}`;
-    const message =
-      payload?.error?.message ||
-      payload?.search?.error?.message ||
-      `${code}: /api/knowledge/search failed`;
-    const error = new Error(message);
-    error.code = code;
-    throw error;
-  }
-
-  return payload;
-}
-
-async function requestKnowledgeQuery(backendUrl, question, kbId, topK) {
-  const response = await fetch("/api/knowledge/query", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ backendUrl, question, kb_id: kbId, top_k: topK }),
-  });
-
-  const payload = await readJsonResponse(response);
-  if (!response.ok) {
-    const code =
-      payload?.error?.code ||
-      payload?.answer?.error?.code ||
-      `HTTP_${response.status}`;
-    const message =
-      payload?.error?.message ||
-      payload?.answer?.error?.message ||
-      `${code}: /api/knowledge/query failed`;
-    const error = new Error(message);
-    error.code = code;
-    throw error;
-  }
-
-  return payload;
 }
 
 function renderFilePreview(payload) {
@@ -924,45 +632,6 @@ function renderFileSummary(payload) {
       </div>
     </div>
     <div class="file-summary-text">${escapeHtml(summary.text || "")}</div>
-  `;
-}
-
-function renderFilePreviewError(error) {
-  const code = error?.code || "REQUEST_FAILED";
-  const message = error instanceof Error ? error.message : "File preview failed";
-
-  filePreviewResult.classList.remove("hidden");
-  filePreviewResult.innerHTML = `
-    <div class="file-preview-error">
-      <strong>${escapeHtml(code)}</strong>
-      <p>${escapeHtml(message)}</p>
-    </div>
-  `;
-}
-
-function renderFileSummaryError(error) {
-  const code = error?.code || "REQUEST_FAILED";
-  const message = error instanceof Error ? error.message : "File summary failed";
-
-  fileSummaryResult.classList.remove("hidden");
-  fileSummaryResult.innerHTML = `
-    <div class="file-preview-error">
-      <strong>${escapeHtml(code)}</strong>
-      <p>${escapeHtml(message)}</p>
-    </div>
-  `;
-}
-
-function renderKnowledgeError(container, error) {
-  const code = error?.code || "REQUEST_FAILED";
-  const message = error instanceof Error ? error.message : "Knowledge request failed";
-
-  container.classList.remove("hidden");
-  container.innerHTML = `
-    <div class="file-preview-error">
-      <strong>${escapeHtml(code)}</strong>
-      <p>${escapeHtml(message)}</p>
-    </div>
   `;
 }
 
@@ -1166,15 +835,19 @@ function updateFilePreviewButtonState() {
 
 function setFilePreviewLoading(isLoading) {
   state.filePreviewLoading = isLoading;
-  readFilePreviewButton.classList.toggle("sending", isLoading);
-  readFilePreviewButton.textContent = isLoading ? "读取中..." : "读取预览";
+  setButtonLoading(readFilePreviewButton, isLoading, {
+    loading: "读取中...",
+    idle: "读取预览",
+  });
   updateFilePreviewButtonState();
 }
 
 function setFileSummaryLoading(isLoading) {
   state.fileSummaryLoading = isLoading;
-  summarizeFilePreviewButton.classList.toggle("sending", isLoading);
-  summarizeFilePreviewButton.textContent = isLoading ? "总结中..." : "生成总结";
+  setButtonLoading(summarizeFilePreviewButton, isLoading, {
+    loading: "总结中...",
+    idle: "生成总结",
+  });
   updateFilePreviewButtonState();
 }
 
@@ -1197,31 +870,37 @@ function updateKnowledgeButtonState() {
 
 function setKnowledgeStatusLoading(isLoading) {
   state.knowledgeStatusLoading = isLoading;
-  refreshKnowledgeStatusButton.classList.toggle("sending", isLoading);
-  refreshKnowledgeStatusButton.textContent = isLoading
-    ? "Refreshing..."
-    : "Refresh Knowledge Status";
+  setButtonLoading(refreshKnowledgeStatusButton, isLoading, {
+    loading: "Refreshing...",
+    idle: "Refresh Knowledge Status",
+  });
   updateKnowledgeButtonState();
 }
 
 function setKnowledgeIndexLoading(isLoading) {
   state.knowledgeIndexLoading = isLoading;
-  knowledgeIndexSubmitButton.classList.toggle("sending", isLoading);
-  knowledgeIndexSubmitButton.textContent = isLoading ? "Adding..." : "Add To Knowledge";
+  setButtonLoading(knowledgeIndexSubmitButton, isLoading, {
+    loading: "Adding...",
+    idle: "Add To Knowledge",
+  });
   updateKnowledgeButtonState();
 }
 
 function setKnowledgeSearchLoading(isLoading) {
   state.knowledgeSearchLoading = isLoading;
-  knowledgeSearchSubmitButton.classList.toggle("sending", isLoading);
-  knowledgeSearchSubmitButton.textContent = isLoading ? "Searching..." : "Search Knowledge";
+  setButtonLoading(knowledgeSearchSubmitButton, isLoading, {
+    loading: "Searching...",
+    idle: "Search Knowledge",
+  });
   updateKnowledgeButtonState();
 }
 
 function setKnowledgeQueryLoading(isLoading) {
   state.knowledgeQueryLoading = isLoading;
-  knowledgeQuerySubmitButton.classList.toggle("sending", isLoading);
-  knowledgeQuerySubmitButton.textContent = isLoading ? "Asking..." : "Ask Knowledge";
+  setButtonLoading(knowledgeQuerySubmitButton, isLoading, {
+    loading: "Asking...",
+    idle: "Ask Knowledge",
+  });
   updateKnowledgeButtonState();
 }
 
@@ -1234,7 +913,7 @@ async function readFilePreview() {
   const path = filePreviewPathInput.value.trim();
 
   if (!path) {
-    setFilePreviewState("error", "File path cannot be empty");
+    setTextStatus(filePreviewStatus, "File path cannot be empty", "error");
     updateFilePreviewButtonState();
     return;
   }
@@ -1245,20 +924,21 @@ async function readFilePreview() {
   filePreviewResult.classList.add("hidden");
   filePreviewResult.innerHTML = "";
   resetFileSummaryResult();
-  setFilePreviewState("idle", "Reading /files/preview ...");
+  setTextStatus(filePreviewStatus, "Reading /files/preview ...", "idle");
 
   try {
     const payload = await requestFilePreview(backendUrl, path);
     renderFilePreview(payload);
     state.hasPreviewResult = true;
     state.lastPreviewPath = path;
-    setFilePreviewState("success", "Preview loaded from /files/preview");
+    setTextStatus(filePreviewStatus, "Preview loaded from /files/preview", "success");
   } catch (error) {
-    renderFilePreviewError(error);
+    renderErrorBox(filePreviewResult, error, "File preview failed");
     const code = error?.code ? `${error.code}: ` : "";
-    setFilePreviewState(
-      "error",
-      `${code}${error instanceof Error ? error.message : "File preview failed"}`
+    setTextStatus(
+      filePreviewStatus,
+      `${code}${error instanceof Error ? error.message : "File preview failed"}`,
+      "error"
     );
   } finally {
     setFilePreviewLoading(false);
@@ -1274,9 +954,10 @@ async function summarizeFilePreview() {
   const path = filePreviewPathInput.value.trim();
 
   if (!state.hasPreviewResult || state.lastPreviewPath !== path) {
-    setFileSummaryState(
-      "error",
-      "Please load a preview for the current path before summarizing."
+    setTextStatus(
+      fileSummaryStatus,
+      "Please load a preview for the current path before summarizing.",
+      "error"
     );
     updateFilePreviewButtonState();
     return;
@@ -1285,18 +966,19 @@ async function summarizeFilePreview() {
   setFileSummaryLoading(true);
   fileSummaryResult.classList.add("hidden");
   fileSummaryResult.innerHTML = "";
-  setFileSummaryState("idle", "Sending /api/files/summarize ...");
+  setTextStatus(fileSummaryStatus, "Sending /api/files/summarize ...", "idle");
 
   try {
     const payload = await requestFileSummary(backendUrl, path);
     renderFileSummary(payload);
-    setFileSummaryState("success", "Summary loaded from /api/files/summarize");
+    setTextStatus(fileSummaryStatus, "Summary loaded from /api/files/summarize", "success");
   } catch (error) {
-    renderFileSummaryError(error);
+    renderErrorBox(fileSummaryResult, error, "File summary failed");
     const code = error?.code ? `${error.code}: ` : "";
-    setFileSummaryState(
-      "error",
-      `${code}${error instanceof Error ? error.message : "File summary failed"}`
+    setTextStatus(
+      fileSummaryStatus,
+      `${code}${error instanceof Error ? error.message : "File summary failed"}`,
+      "error"
     );
   } finally {
     setFileSummaryLoading(false);
@@ -1312,18 +994,19 @@ async function refreshKnowledgeStatus() {
   setKnowledgeStatusLoading(true);
   knowledgeStatusResult.classList.add("hidden");
   knowledgeStatusResult.innerHTML = "";
-  setKnowledgeStatusState("idle", "Loading /api/knowledge/status ...");
+  setTextStatus(knowledgeStatusMessage, "Loading /api/knowledge/status ...", "idle");
 
   try {
     const payload = await requestKnowledgeStatus(backendUrl);
     renderKnowledgeStatus(payload);
-    setKnowledgeStatusState("success", "Knowledge status loaded from /api/knowledge/status");
+    setTextStatus(knowledgeStatusMessage, "Knowledge status loaded from /api/knowledge/status", "success");
   } catch (error) {
-    renderKnowledgeError(knowledgeStatusResult, error);
+    renderErrorBox(knowledgeStatusResult, error, "Knowledge request failed");
     const code = error?.code ? `${error.code}: ` : "";
-    setKnowledgeStatusState(
-      "error",
-      `${code}${error instanceof Error ? error.message : "Knowledge status failed"}`
+    setTextStatus(
+      knowledgeStatusMessage,
+      `${code}${error instanceof Error ? error.message : "Knowledge status failed"}`,
+      "error"
     );
   } finally {
     setKnowledgeStatusLoading(false);
@@ -1340,7 +1023,7 @@ async function addToKnowledge() {
   const kbId = knowledgeIndexKbIdInput.value.trim() || "default";
 
   if (!path) {
-    setKnowledgeIndexState("error", "File path cannot be empty");
+    setTextStatus(knowledgeIndexStatus, "File path cannot be empty", "error");
     updateKnowledgeButtonState();
     return;
   }
@@ -1348,19 +1031,20 @@ async function addToKnowledge() {
   setKnowledgeIndexLoading(true);
   knowledgeIndexResult.classList.add("hidden");
   knowledgeIndexResult.innerHTML = "";
-  setKnowledgeIndexState("idle", "Sending /api/knowledge/index-file ...");
+  setTextStatus(knowledgeIndexStatus, "Sending /api/knowledge/index-file ...", "idle");
 
   try {
     const payload = await requestKnowledgeIndexFile(backendUrl, path, kbId);
     renderKnowledgeIndexResult(payload);
-    setKnowledgeIndexState("success", "Knowledge file indexed via /api/knowledge/index-file");
+    setTextStatus(knowledgeIndexStatus, "Knowledge file indexed via /api/knowledge/index-file", "success");
     void refreshKnowledgeStatus();
   } catch (error) {
-    renderKnowledgeError(knowledgeIndexResult, error);
+    renderErrorBox(knowledgeIndexResult, error, "Knowledge request failed");
     const code = error?.code ? `${error.code}: ` : "";
-    setKnowledgeIndexState(
-      "error",
-      `${code}${error instanceof Error ? error.message : "Knowledge index failed"}`
+    setTextStatus(
+      knowledgeIndexStatus,
+      `${code}${error instanceof Error ? error.message : "Knowledge index failed"}`,
+      "error"
     );
   } finally {
     setKnowledgeIndexLoading(false);
@@ -1378,7 +1062,7 @@ async function searchKnowledge() {
   const topK = normalizeTopK(knowledgeSearchTopKInput);
 
   if (!query) {
-    setKnowledgeSearchState("error", "Query cannot be empty");
+    setTextStatus(knowledgeSearchStatus, "Query cannot be empty", "error");
     updateKnowledgeButtonState();
     return;
   }
@@ -1386,18 +1070,19 @@ async function searchKnowledge() {
   setKnowledgeSearchLoading(true);
   knowledgeSearchResult.classList.add("hidden");
   knowledgeSearchResult.innerHTML = "";
-  setKnowledgeSearchState("idle", "Sending /api/knowledge/search ...");
+  setTextStatus(knowledgeSearchStatus, "Sending /api/knowledge/search ...", "idle");
 
   try {
     const payload = await requestKnowledgeSearch(backendUrl, query, kbId, topK);
     renderKnowledgeSearchResult(payload);
-    setKnowledgeSearchState("success", "Knowledge hits loaded from /api/knowledge/search");
+    setTextStatus(knowledgeSearchStatus, "Knowledge hits loaded from /api/knowledge/search", "success");
   } catch (error) {
-    renderKnowledgeError(knowledgeSearchResult, error);
+    renderErrorBox(knowledgeSearchResult, error, "Knowledge request failed");
     const code = error?.code ? `${error.code}: ` : "";
-    setKnowledgeSearchState(
-      "error",
-      `${code}${error instanceof Error ? error.message : "Knowledge search failed"}`
+    setTextStatus(
+      knowledgeSearchStatus,
+      `${code}${error instanceof Error ? error.message : "Knowledge search failed"}`,
+      "error"
     );
   } finally {
     setKnowledgeSearchLoading(false);
@@ -1415,7 +1100,7 @@ async function queryKnowledge() {
   const topK = normalizeTopK(knowledgeQueryTopKInput);
 
   if (!question) {
-    setKnowledgeQueryState("error", "Question cannot be empty");
+    setTextStatus(knowledgeQueryStatus, "Question cannot be empty", "error");
     updateKnowledgeButtonState();
     return;
   }
@@ -1423,24 +1108,26 @@ async function queryKnowledge() {
   setKnowledgeQueryLoading(true);
   knowledgeQueryResult.classList.add("hidden");
   knowledgeQueryResult.innerHTML = "";
-  setKnowledgeQueryState("idle", "Sending /api/knowledge/query ...");
+  setTextStatus(knowledgeQueryStatus, "Sending /api/knowledge/query ...", "idle");
 
   try {
     const payload = await requestKnowledgeQuery(backendUrl, question, kbId, topK);
     renderKnowledgeQueryResult(payload);
-    setKnowledgeQueryState("success", "Knowledge answer loaded from /api/knowledge/query");
+    setTextStatus(knowledgeQueryStatus, "Knowledge answer loaded from /api/knowledge/query", "success");
   } catch (error) {
-    renderKnowledgeError(knowledgeQueryResult, error);
+    renderErrorBox(knowledgeQueryResult, error, "Knowledge request failed");
     if (error?.code === "KNOWLEDGE_MODEL_DISABLED") {
-      setKnowledgeQueryState(
-        "error",
-        "KNOWLEDGE_MODEL_DISABLED: DeepSeek is not enabled in the backend environment."
+      setTextStatus(
+        knowledgeQueryStatus,
+        "KNOWLEDGE_MODEL_DISABLED: DeepSeek is not enabled in the backend environment.",
+        "error"
       );
     } else {
       const code = error?.code ? `${error.code}: ` : "";
-      setKnowledgeQueryState(
-        "error",
-        `${code}${error instanceof Error ? error.message : "Knowledge query failed"}`
+      setTextStatus(
+        knowledgeQueryStatus,
+        `${code}${error instanceof Error ? error.message : "Knowledge query failed"}`,
+        "error"
       );
     }
   } finally {
@@ -1451,7 +1138,7 @@ async function queryKnowledge() {
 async function checkBackend() {
   const backendUrl = backendUrlInput.value.trim();
   checkButton.disabled = true;
-  setRequestState("idle", "Checking /health, /version, and /skills ...");
+  setTextStatus(requestStatus, "Checking /health, /version, and /skills ...", "idle");
 
   try {
     const payload = await requestMetadata(backendUrl);
@@ -1468,7 +1155,7 @@ async function checkBackend() {
     skillsCount.textContent = String(skills.length || 0);
     renderSkills(skills);
     renderFilesTools();
-    setRequestState("success", `Connected: ${payload.backendUrl}`);
+    setTextStatus(requestStatus, `Connected: ${payload.backendUrl}`, "success");
     void refreshKnowledgeStatus();
   } catch (error) {
     state.hasCheckedBackend = false;
@@ -1478,10 +1165,11 @@ async function checkBackend() {
     renderFilesTools();
     knowledgeStatusResult.classList.add("hidden");
     knowledgeStatusResult.innerHTML = "";
-    setKnowledgeStatusState("error", "Knowledge status unavailable until backend is reachable.");
-    setRequestState(
-      "error",
-      error instanceof Error ? error.message : backendUnavailableMessage
+    setTextStatus(knowledgeStatusMessage, "Knowledge status unavailable until backend is reachable.", "error");
+    setTextStatus(
+      requestStatus,
+      error instanceof Error ? error.message : backendUnavailableMessage,
+      "error"
     );
   } finally {
     checkButton.disabled = false;
@@ -1592,7 +1280,7 @@ async function sendChat() {
   const message = chatMessageInput.value.trim();
 
   if (!message) {
-    setChatState("error", "Message cannot be empty");
+    setTextStatus(chatStatus, "Message cannot be empty", "error");
     updateSendChatButtonState();
     return;
   }
@@ -1602,7 +1290,7 @@ async function sendChat() {
   chatMessageInput.value = "";
   updateSendChatButtonState();
   setChatSending(true);
-  setChatState("idle", "Sending /chat request ...");
+  setTextStatus(chatStatus, "Sending /chat request ...", "idle");
   const loadingMessage = renderChatLoading();
 
   try {
@@ -1616,15 +1304,16 @@ async function sendChat() {
     if (payload.chat?.status === "success") {
       recordSuccessfulChatTurn(message, payload.chat.reply || "");
     }
-    setChatState("success", `Chat response received from ${payload.backendUrl}`);
+    setTextStatus(chatStatus, `Chat response received from ${payload.backendUrl}`, "success");
   } catch (error) {
     removeChatLoading(loadingMessage);
     renderChatError(
       error instanceof Error ? error.message : "Chat request failed"
     );
-    setChatState(
-      "error",
-      error instanceof Error ? error.message : "Chat request failed"
+    setTextStatus(
+      chatStatus,
+      error instanceof Error ? error.message : "Chat request failed",
+      "error"
     );
   } finally {
     setChatSending(false);
@@ -1633,18 +1322,19 @@ async function sendChat() {
 
 async function copyExample(example) {
   if (!navigator.clipboard?.writeText) {
-    setFilesToolsState("error", "当前环境不支持剪贴板复制，请手动复制示例文本。");
+    setTextStatus(filesToolsStatus, "当前环境不支持剪贴板复制，请手动复制示例文本。", "error");
     return;
   }
 
   try {
     await navigator.clipboard.writeText(example);
-    setFilesToolsState(
-      "success",
-      `示例已复制：${example}。复制不会自动发送，也不会执行任何文件操作。`
+    setTextStatus(
+      filesToolsStatus,
+      `示例已复制：${example}。复制不会自动发送，也不会执行任何文件操作。`,
+      "success"
     );
   } catch {
-    setFilesToolsState("error", "复制失败，请手动复制示例文本。");
+    setTextStatus(filesToolsStatus, "复制失败，请手动复制示例文本。", "error");
   }
 }
 
