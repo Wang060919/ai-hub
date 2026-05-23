@@ -1,16 +1,16 @@
 import { backendUnavailableMessage } from "../api/metadata.js";
 
 function formatBackendLabel(isChecked) {
-  return isChecked ? "Checked" : "Not checked";
+  return isChecked ? "已检查" : "未检查";
 }
 
 function formatModeLabel(mode) {
-  return mode === "knowledge" ? "Knowledge" : "Chat";
+  return mode === "knowledge" ? "知识库" : "聊天";
 }
 
 function formatHistoryTurns(chatHistory) {
   const turns = Math.min(Math.floor((chatHistory?.length || 0) / 2), 4);
-  return `${turns}/4 turns`;
+  return `${turns}/4 轮`;
 }
 
 export function createChatFirstShell({ dom, state, actions }) {
@@ -19,8 +19,8 @@ export function createChatFirstShell({ dom, state, actions }) {
     dom.root.classList.toggle("cf-shell--drawer-open", state.drawerOpen);
     dom.drawerToggle.setAttribute("aria-expanded", String(state.drawerOpen));
     dom.drawerToggle.textContent = state.drawerOpen
-      ? "Hide Drawer"
-      : "Show Drawer";
+      ? "隐藏面板"
+      : "显示面板";
   }
 
   function getFilesToolsSummary() {
@@ -34,29 +34,29 @@ export function createChatFirstShell({ dom, state, actions }) {
       : 0;
 
     if (!state.hasCheckedBackend) {
-      return "Check backend to load tool availability.";
+      return "检查后端以加载工具可用性。";
     }
 
-    return `${matched}/${total} mapped from current /skills metadata.`;
+    return `${matched}/${total} 已从当前 /skills 元数据映射。`;
   }
 
   function syncTopbar() {
     dom.topbarBackendValue.textContent = state.backendUrl || "http://127.0.0.1:8000";
-    dom.topbarModelValue.textContent = "Route: Existing backend";
+    dom.topbarModelValue.textContent = "路由：现有后端";
     dom.topbarStatusValue.textContent = formatBackendLabel(state.hasCheckedBackend);
     dom.topbarStatusValue.dataset.tone = state.hasCheckedBackend ? "success" : "idle";
   }
 
   function syncContextBar() {
     const currentMode = actions.getChatMode();
-    dom.contextMode.textContent = `Mode: ${formatModeLabel(currentMode)}`;
-    dom.contextBackend.textContent = `Backend: ${formatBackendLabel(state.hasCheckedBackend)}`;
-    dom.contextHistory.textContent = `History: ${formatHistoryTurns(state.chatHistory)}`;
-    dom.contextSafety.textContent = "Manual only";
-    dom.contextUploads.textContent = "No auto file upload";
+    dom.contextMode.textContent = `模式：${formatModeLabel(currentMode)}`;
+    dom.contextBackend.textContent = `后端：${formatBackendLabel(state.hasCheckedBackend)}`;
+    dom.contextHistory.textContent = `历史：${formatHistoryTurns(state.chatHistory)}`;
+    dom.contextSafety.textContent = "仅手动操作";
+    dom.contextUploads.textContent = "无自动文件上传";
 
     dom.helperModeValue.textContent = formatModeLabel(currentMode);
-    dom.helperBackendValue.textContent = state.hasCheckedBackend ? "Checked" : "Pending";
+    dom.helperBackendValue.textContent = state.hasCheckedBackend ? "已检查" : "待检查";
   }
 
   function syncBackendPanel() {
@@ -72,15 +72,15 @@ export function createChatFirstShell({ dom, state, actions }) {
   }
 
   function syncHelperPanel() {
-    dom.helperClassicLink.href = "./index.html?tab=chat";
+    dom.helperClassicLink.href = "./index-classic.html?tab=chat";
   }
 
   function syncFooter() {
     if (state.hasCheckedBackend) {
-      dom.footerStatus.textContent = "Connected";
+      dom.footerStatus.textContent = "已连接";
       dom.footerDot.className = "cf-footer__dot cf-footer__dot--connected";
     } else {
-      dom.footerStatus.textContent = "Idle";
+      dom.footerStatus.textContent = "空闲";
       dom.footerDot.className = "cf-footer__dot cf-footer__dot--idle";
     }
   }

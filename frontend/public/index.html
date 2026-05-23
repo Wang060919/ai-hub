@@ -3,774 +3,283 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AI Hub Desktop</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <title>AI Hub | 聊天优先</title>
+    <link rel="stylesheet" href="./styles/chat-first.css" />
   </head>
-  <body>
-    <main class="app-shell">
-      <section class="hero-card">
-        <p class="eyebrow">AI Hub</p>
-        <h1>桌面启动指南</h1>
-        <p class="subtitle">
-          Tauri 桌面封装。应用不会自动启动 FastAPI，不会自动调用 /chat，
-          文件相关能力仅处于展示模式。
-        </p>
-      </section>
-
-      <section class="panel tab-panel">
-        <div class="tab-list" role="tablist" aria-label="Desktop sections">
-          <button
-            id="tab-panel"
-            class="tab-button active"
-            type="button"
-            role="tab"
-            aria-selected="true"
-            aria-controls="panel-overview"
-          >
-            面板
-          </button>
-          <button
-            id="tab-status"
-            class="tab-button"
-            type="button"
-            role="tab"
-            aria-selected="false"
-            aria-controls="panel-status"
-          >
-            后端状态
-          </button>
-          <button
-            id="tab-chat"
-            class="tab-button"
-            type="button"
-            role="tab"
-            aria-selected="false"
-            aria-controls="panel-chat"
-          >
-            聊天
-          </button>
-          <button
-            id="tab-files-tools"
-            class="tab-button"
-            type="button"
-            role="tab"
-            aria-selected="false"
-            aria-controls="panel-files-tools"
-          >
-            文件工具
-          </button>
-        </div>
-      </section>
-
-      <section
-        id="panel-overview"
-        class="tab-section"
-        role="tabpanel"
-        aria-labelledby="tab-panel"
-      >
-        <section class="panel panel-overview-shell">
-          <div class="section-heading">
+  <body class="aihub-chat-first">
+    <main id="chat-first-root" class="cf-shell">
+      <section class="cf-window">
+        <header class="cf-topbar">
+          <div class="cf-topbar__brand">
+            <div id="orbit-app-icon" class="cf-topbar__icon" aria-hidden="true"></div>
             <div>
-              <h2>工作台</h2>
-              <p>集中查看后端状态、知识库摘要，并快速发起对话或跳转到完整功能页。</p>
+              <div class="cf-topbar__title">AI Hub</div>
+              <div class="cf-topbar__subtitle">聊天优先核心候选版</div>
             </div>
           </div>
-          <section class="panel-cards-grid" aria-label="Panel quick entry cards">
-            <article class="panel-card">
-              <div class="panel-card-header">
-                <p class="panel-card-kicker">系统</p>
-                <h3>后端状态</h3>
-              </div>
-              <p class="panel-card-description">
-                查看 AI Hub 后端是否在线，以及当前版本和可用能力概况。
-              </p>
-              <div class="panel-card-placeholder panel-summary-block">
-                <span class="panel-card-label">摘要信息</span>
-                <div class="panel-summary-grid">
-                  <div class="panel-summary-item">
-                    <span>后端状态</span>
-                    <strong id="panel-backend-online">等待检查</strong>
+
+          <div class="cf-topbar__controls">
+            <label class="cf-topbar__backend">
+              <span class="cf-topbar__label">后端地址</span>
+              <input
+                id="backend-url"
+                class="cf-topbar__input"
+                type="url"
+                value="http://127.0.0.1:8000"
+              />
+            </label>
+            <button id="check-backend" class="cf-topbar__button" type="button">
+              检查后端
+            </button>
+            <div class="cf-topbar__status-group" aria-label="后端路由状态">
+              <span class="cf-topbar__pill">
+                <span class="cf-topbar__pill-label">后端</span>
+                <strong id="cf-topbar-backend-value">http://127.0.0.1:8000</strong>
+              </span>
+              <span class="cf-topbar__pill">
+                <span class="cf-topbar__pill-label">模型</span>
+                <strong id="cf-topbar-model-value">路由：现有后端</strong>
+              </span>
+              <span class="cf-topbar__pill">
+                <span class="cf-topbar__pill-label">状态</span>
+                <strong id="cf-topbar-status-value" data-tone="idle">未检查</strong>
+              </span>
+            </div>
+            <a class="cf-topbar__link" href="./index-classic.html">经典首页</a>
+          </div>
+        </header>
+
+        <div class="cf-layout">
+          <aside class="cf-drawer" aria-label="数据源面板">
+            <div class="cf-drawer__inner">
+              <section class="cf-panel">
+                <div class="cf-panel__header">
+                  <h2>后端状态</h2>
+                  <button id="cf-panel-check-backend" class="cf-panel__link" type="button">检查后端</button>
+                </div>
+                <div class="cf-panel__summary-grid">
+                  <div class="cf-panel__summary-item">
+                    <span>在线状态</span>
+                    <strong id="panel-backend-online">等待中</strong>
                   </div>
-                  <div class="panel-summary-item">
-                    <span>app</span>
-                    <strong id="panel-backend-app">-</strong>
-                  </div>
-                  <div class="panel-summary-item">
-                    <span>version</span>
+                  <div class="cf-panel__summary-item">
+                    <span>版本</span>
                     <strong id="panel-backend-version">-</strong>
                   </div>
-                  <div class="panel-summary-item">
-                    <span>skills</span>
+                  <div class="cf-panel__summary-item">
+                    <span>应用</span>
+                    <strong id="panel-backend-app">-</strong>
+                  </div>
+                  <div class="cf-panel__summary-item">
+                    <span>技能数</span>
                     <strong id="panel-backend-skills">0</strong>
                   </div>
                 </div>
-                <p id="panel-backend-status" class="panel-card-status">
-                  点击“检查后端”后同步更新面板状态摘要。
-                </p>
-              </div>
-              <button
-                class="check-button panel-entry-button"
-                type="button"
-                data-panel-target-tab="status"
-              >
-                去后端状态
-              </button>
-            </article>
+                <p id="panel-backend-status" class="request-status idle">检查后端以加载摘要。</p>
+                <p id="cf-backend-message" class="cf-panel__hint">后端元数据尚未加载。</p>
+              </section>
 
-            <article class="panel-card">
-              <div class="panel-card-header">
-                <p class="panel-card-kicker">对话</p>
-                <h3>快速聊天</h3>
-              </div>
-              <p class="panel-card-description">
-                直接在面板中发送一条消息，快速获得 AI 回复。
-              </p>
-              <div class="panel-card-placeholder panel-chat-block">
-                <span class="panel-card-label">快速输入</span>
-                <label class="sr-only" for="panel-chat-message">快速聊天消息</label>
-                <textarea
-                  id="panel-chat-message"
-                  class="panel-chat-input"
-                  rows="3"
-                  placeholder="输入一条简短消息，点击发送"
-                ></textarea>
-                <div class="panel-chat-actions">
-                  <button
-                    id="panel-send-chat"
-                    class="check-button"
-                    type="button"
-                    disabled
-                  >
-                    发送
+              <section class="cf-panel">
+                <div class="cf-panel__header">
+                  <h2>知识库摘要</h2>
+                  <button id="cf-refresh-knowledge" class="cf-panel__button" type="button">
+                    刷新
                   </button>
                 </div>
-                <p id="panel-chat-status" class="panel-card-status">
-                  点击发送后调用 AI 对话，仅手动触发。
-                </p>
-                <div id="panel-chat-result" class="panel-chat-result">
-                  最近一次回答摘要会显示在这里。
-                </div>
-              </div>
-              <div class="panel-card-actions">
-                <button
-                  class="check-button panel-entry-button"
-                  type="button"
-                  data-panel-target-tab="chat"
-                >
-                  去聊天
-                </button>
-                <button
-                  class="check-button panel-entry-button"
-                  type="button"
-                  data-panel-target-tab="chat"
-                  data-panel-chat-mode="knowledge"
-                >
-                  基于知识库提问
-                </button>
-              </div>
-            </article>
-
-            <article class="panel-card">
-              <div class="panel-card-header">
-                <p class="panel-card-kicker">工具</p>
-                <h3>文件工具</h3>
-              </div>
-              <p class="panel-card-description">
-                预览白名单目录内的文本文件，支持手动生成 AI 总结。
-              </p>
-              <div class="panel-card-placeholder">
-                <span class="panel-card-label">使用方式</span>
-                <p>在文件工具页输入文件路径，点击预览后可手动生成 AI 总结。</p>
-              </div>
-              <button
-                class="check-button panel-entry-button"
-                type="button"
-                data-panel-target-tab="files-tools"
-                data-panel-target-section="file-preview-panel"
-              >
-                打开文件工具
-              </button>
-            </article>
-
-            <article class="panel-card">
-              <div class="panel-card-header">
-                <p class="panel-card-kicker">知识库</p>
-                <h3>知识库</h3>
-              </div>
-              <p class="panel-card-description">
-                管理本地文本知识库，支持 Markdown 笔记接入、全文检索与智能问答。
-              </p>
-              <div class="panel-card-placeholder panel-summary-block panel-markdown-summary-block">
-                <span class="panel-card-label">Markdown 接入摘要</span>
-                <div class="panel-summary-grid panel-markdown-summary-grid">
-                  <div class="panel-summary-item">
-                    <span>总文件数</span>
+                <div class="cf-panel__summary-grid">
+                  <div class="cf-panel__summary-item">
+                    <span>文件数</span>
                     <strong id="panel-knowledge-files">-</strong>
                   </div>
-                  <div class="panel-summary-item">
-                    <span>Markdown 笔记</span>
+                  <div class="cf-panel__summary-item">
+                    <span>Markdown</span>
                     <strong id="panel-knowledge-markdown-files">-</strong>
                   </div>
-                  <div class="panel-summary-item">
+                  <div class="cf-panel__summary-item">
                     <span>分片数</span>
                     <strong id="panel-knowledge-chunks">-</strong>
                   </div>
-                  <div class="panel-summary-item">
+                  <div class="cf-panel__summary-item">
                     <span>索引方式</span>
                     <strong id="panel-knowledge-index-method">-</strong>
                   </div>
-                  <div class="panel-summary-item">
-                    <span>FTS 状态</span>
+                  <div class="cf-panel__summary-item">
+                    <span>FTS 已启用</span>
                     <strong id="panel-knowledge-fts-enabled">-</strong>
                   </div>
-                  <div class="panel-summary-item">
+                  <div class="cf-panel__summary-item">
                     <span>FTS 可用</span>
                     <strong id="panel-knowledge-fts-available">-</strong>
                   </div>
                 </div>
-                <p class="panel-card-caption">
-                  完整入库与批量操作请在知识库页面手动触发。
-                </p>
-                <p id="panel-knowledge-status" class="panel-card-status">
-                  刷新知识库状态后，这里会同步显示最新摘要。
-                </p>
-              </div>
-              <div class="panel-card-actions">
-                <button
-                  class="check-button panel-entry-button"
-                  type="button"
-                  data-panel-target-tab="files-tools"
-                  data-panel-target-section="knowledge-section"
-                >
-                  打开知识库
-                </button>
-                <button
-                  class="check-button panel-entry-button"
-                  type="button"
-                  data-panel-target-tab="files-tools"
-                  data-panel-target-section="panel-markdown-note-entry"
-                >
-                  接入 Markdown 笔记
-                </button>
-              </div>
-            </article>
-          </section>
-        </section>
-      </section>
+                <p id="panel-knowledge-status" class="request-status idle">检查后端后知识库摘要才会更新。</p>
+                <p id="cf-knowledge-message" class="cf-panel__hint">检查后端后知识库摘要才会更新。</p>
+                <a class="cf-panel__link" href="./index-classic.html?tab=files-tools&section=knowledge-section">打开知识库</a>
+              </section>
 
-      <section
-        id="panel-status"
-        class="tab-section"
-        role="tabpanel"
-        aria-labelledby="tab-status"
-      >
-        <section class="panel note-panel">
-          <p class="note-kicker">启动提示</p>
-          <ul class="note-list">
-            <li>AI Hub Desktop 当前不会自动启动后端。</li>
-            <li>使用前请先手动启动 FastAPI 后端。</li>
-            <li>安全测试建议先用 <code>hello ai hub</code>。</li>
-            <li>Dify 相关输入可能消耗额度。</li>
-          </ul>
-        </section>
+              <section class="cf-panel">
+                <div class="cf-panel__header">
+                  <h2>文件 / 工具</h2>
+                  <a class="cf-panel__link" href="./index-classic.html?tab=files-tools">打开工具</a>
+                </div>
+                <p class="cf-panel__hint">仅手动操作。不支持拖拽上传。未挂载文件上下文。</p>
+                <div class="cf-panel__list">
+                  <div class="cf-panel__list-row">
+                    <span>当前阶段</span>
+                    <span>只读入口 + 摘要</span>
+                  </div>
+                  <div class="cf-panel__list-row">
+                    <span>源挂载</span>
+                    <span>未启用</span>
+                  </div>
+                  <div class="cf-panel__list-row">
+                    <span>上传</span>
+                    <span>未启用</span>
+                  </div>
+                </div>
+                <p id="cf-files-summary" class="cf-panel__hint">检查后端以加载工具可用性。</p>
+              </section>
 
-        <section class="panel">
-          <label class="field-label" for="backend-url">后端地址</label>
-          <div class="control-row">
-            <input
-              id="backend-url"
-              class="backend-input"
-              type="url"
-              value="http://127.0.0.1:8000"
-            />
-            <button id="check-backend" class="check-button" type="button">
-              检查后端
-            </button>
-          </div>
-          <p id="request-status" class="request-status idle">
-            等待检查后端
-          </p>
-        </section>
-
-        <section class="panel summary-panel">
-          <div class="summary-item">
-            <span class="summary-label">health.status</span>
-            <strong id="health-status">-</strong>
-          </div>
-          <div class="summary-item">
-            <span class="summary-label">version.version</span>
-            <strong id="app-version">-</strong>
-          </div>
-          <div class="summary-item">
-            <span class="summary-label">技能数量</span>
-            <strong id="skills-count">0</strong>
-          </div>
-        </section>
-
-        <section class="panel">
-          <div class="section-heading">
-            <h2>技能列表</h2>
-            <p>后端返回的当前能力列表</p>
-          </div>
-          <div class="table-wrap">
-            <table class="skills-table">
-              <thead>
-                <tr>
-                  <th>name</th>
-                  <th>description</th>
-                  <th>stage</th>
-                  <th>safety_level</th>
-                  <th>executable</th>
-                </tr>
-              </thead>
-              <tbody id="skills-body">
-                <tr>
-                  <td colspan="5" class="empty-state">
-                    点击"检查后端"加载技能列表
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </section>
-
-      <section
-        id="panel-chat"
-        class="tab-section hidden"
-        role="tabpanel"
-        aria-labelledby="tab-chat"
-      >
-        <section class="panel chat-panel">
-          <div class="section-heading">
-            <h2>聊天</h2>
-            <p>纯文本。不上传文件，不执行真实文件操作。</p>
-          </div>
-          <div class="inline-note">
-            <p>
-              仅点击<strong>发送</strong>才会调用 <code>/chat</code>。
-              命中 <code>DifyEnglishSkill</code> 的输入可能消耗 Dify
-              额度。低风险测试：<code>hello ai hub</code>。
-            </p>
-          </div>
-
-          <div
-            id="chat-messages"
-            class="chat-messages"
-            role="log"
-            aria-live="polite"
-            aria-label="Chat messages"
-          >
-            <div class="chat-empty-state">
-              发送消息开始对话。
+              <section class="cf-panel">
+                <div class="cf-panel__header">
+                  <h2>聊天工作区助手</h2>
+                  <a id="cf-helper-classic-link" class="cf-panel__link" href="./index-classic.html?tab=chat">在经典版中打开</a>
+                </div>
+                <div class="cf-panel__list">
+                  <div class="cf-panel__list-row">
+                    <span>当前模式</span>
+                    <span id="cf-helper-mode-value">聊天</span>
+                  </div>
+                  <div class="cf-panel__list-row">
+                    <span>后端已检查</span>
+                    <span id="cf-helper-backend-value">待检查</span>
+                  </div>
+                  <div class="cf-panel__list-row">
+                    <span>历史</span>
+                    <span>仅最近轮次</span>
+                  </div>
+                </div>
+                <div class="cf-panel__actions">
+                  <button id="cf-helper-mode-chat" class="cf-panel__button" type="button">模式：聊天</button>
+                  <button id="cf-helper-mode-knowledge" class="cf-panel__button" type="button">模式：知识库</button>
+                  <button id="cf-helper-clear-chat" class="cf-panel__button" type="button">清空会话</button>
+                </div>
+              </section>
             </div>
-          </div>
+          </aside>
 
-          <div class="chat-mode-bar">
-            <span class="chat-mode-label">模式</span>
-            <div class="chat-mode-toggle" role="radiogroup" aria-label="聊天模式">
-              <button
-                id="chat-mode-normal"
-                class="chat-mode-button active"
-                type="button"
-                role="radio"
-                aria-checked="true"
+          <section class="cf-chat">
+            <div class="cf-chat__header">
+              <button id="cf-drawer-toggle" class="cf-chat__drawer-toggle" type="button" aria-expanded="false">
+                显示面板
+              </button>
+              <div class="cf-chat__header-actions">
+                <button id="cf-header-status" class="cf-chat__header-link" type="button">状态</button>
+                <a class="cf-chat__header-link" href="./index-classic.html?tab=files-tools">文件 / 工具</a>
+              </div>
+            </div>
+
+            <div class="cf-chat__context">
+              <div class="cf-context__row">
+                <span id="cf-context-mode" class="cf-context__chip">模式：聊天</span>
+                <span id="cf-context-backend" class="cf-context__chip">后端：未检查</span>
+                <span id="cf-context-history" class="cf-context__chip">历史：0/4 轮</span>
+              </div>
+              <div class="cf-context__row">
+                <span id="cf-context-safety" class="cf-context__chip cf-context__chip--soft">仅手动操作</span>
+                <span id="cf-context-uploads" class="cf-context__chip cf-context__chip--soft">无自动文件上传</span>
+              </div>
+              <div class="cf-context__actions">
+                <button id="cf-context-mode-chat" class="cf-context__button" type="button">聊天</button>
+                <button id="cf-context-mode-knowledge" class="cf-context__button" type="button">知识库</button>
+                <button id="cf-clear-chat" class="cf-context__button" type="button">清空聊天</button>
+              </div>
+            </div>
+
+            <section class="cf-chat__workspace">
+              <div class="cf-chat__intro">
+                <div class="cf-chat__intro-badge">聊天优先首页</div>
+                <h1>AI Hub 主工作区，围绕对话重新设计。</h1>
+                <p>
+                  此页面复用现有 AI Hub 聊天和知识库功能。不会自动调用
+                  <code>/chat</code>，不会上传文件，不会挂载本地源。
+                </p>
+              </div>
+
+              <p id="request-status" class="request-status idle">尚未检查后端。</p>
+
+              <div
+                id="chat-messages"
+                class="cf-chat__messages"
+                role="log"
+                aria-live="polite"
+                aria-label="聊天消息"
               >
-                普通聊天
-              </button>
-              <button
-                id="chat-mode-knowledge"
-                class="chat-mode-button"
-                type="button"
-                role="radio"
-                aria-checked="false"
-              >
-                知识库问答
-              </button>
-            </div>
-          </div>
-
-          <div id="chat-knowledge-params" class="chat-knowledge-params hidden">
-            <div class="knowledge-inline-fields">
-              <div>
-                <label class="field-label" for="chat-kb-id">知识库 ID</label>
-                <input
-                  id="chat-kb-id"
-                  class="backend-input"
-                  type="text"
-                  value="default"
-                  autocomplete="off"
-                />
+                <div class="chat-empty-state">发送消息开始对话。</div>
               </div>
-              <div>
-                <label class="field-label" for="chat-top-k">Top K</label>
-                <input
-                  id="chat-top-k"
-                  class="backend-input"
-                  type="number"
-                  min="1"
-                  value="4"
-                  autocomplete="off"
-                />
+
+              <div class="cf-chat__mode-row">
+                <span class="cf-chat__mode-label">模式</span>
+                <div class="cf-chat__mode-toggle" role="radiogroup" aria-label="聊天模式">
+                  <button
+                    id="chat-mode-normal"
+                    class="cf-chat__mode-button active"
+                    type="button"
+                    role="radio"
+                    aria-checked="true"
+                  >
+                    聊天
+                  </button>
+                  <button
+                    id="chat-mode-knowledge"
+                    class="cf-chat__mode-button"
+                    type="button"
+                    role="radio"
+                    aria-checked="false"
+                  >
+                    知识库
+                  </button>
+                </div>
               </div>
-            </div>
-          </div>
 
-          <div class="chat-composer">
-            <label class="field-label" for="chat-message">消息</label>
-            <textarea
-              id="chat-message"
-              class="chat-input"
-              rows="4"
-              placeholder="试试：hello ai hub"
-            ></textarea>
-            <div class="chat-actions">
-              <button id="send-chat" class="check-button" type="button" disabled>
-                发送
-              </button>
-            </div>
-            <p id="chat-status" class="request-status idle">
-              等待发送聊天请求
-            </p>
-          </div>
-        </section>
-      </section>
+              <div id="chat-knowledge-params" class="cf-chat__knowledge-params hidden">
+                <label class="cf-chat__field">
+                  <span>知识库 ID</span>
+                  <input id="chat-kb-id" class="cf-chat__input" type="text" value="default" autocomplete="off" />
+                </label>
+                <label class="cf-chat__field">
+                  <span>Top K</span>
+                  <input id="chat-top-k" class="cf-chat__input" type="number" min="1" value="4" autocomplete="off" />
+                </label>
+              </div>
 
-      <section
-        id="panel-files-tools"
-        class="tab-section hidden"
-        role="tabpanel"
-        aria-labelledby="tab-files-tools"
-      >
-        <section class="panel">
-          <div class="section-heading">
-            <h2>文件工具</h2>
-            <p>
-              白名单文本文件只读预览。不上传文件，不执行文件操作，不自动发起 /chat 请求。
-            </p>
-          </div>
-          <div class="inline-note">
-            <p>
-              当前页面只展示能力和安全边界，不会上传文件，也不会执行文件操作。
-            </p>
-          </div>
-          <p id="files-tools-status" class="request-status idle">
-            请先在后端状态页面点击检查后端读取能力列表。
-          </p>
-        </section>
+              <div class="cf-chat__composer">
+                <label class="cf-chat__composer-label" for="chat-message">消息</label>
+                <textarea
+                  id="chat-message"
+                  class="cf-chat__textarea"
+                  rows="4"
+                  placeholder="试试：hello ai hub"
+                ></textarea>
+                <div class="cf-chat__composer-actions">
+                  <button id="send-chat" class="cf-chat__send-button" type="button" disabled>发送</button>
+                </div>
+                <p id="chat-status" class="request-status idle">等待手动发送聊天请求。</p>
+              </div>
+            </section>
 
-        <section id="file-preview-panel" class="panel file-preview-panel">
-          <div class="section-heading">
-            <h2>文件预览</h2>
-            <p>仅点击按钮后调用 <code>POST /files/preview</code>。</p>
-          </div>
-
-          <label class="field-label" for="file-preview-path">文件路径</label>
-          <div class="control-row">
-            <input
-              id="file-preview-path"
-              class="backend-input"
-              type="text"
-              placeholder="v13-test.txt"
-              autocomplete="off"
-            />
-            <button id="read-file-preview" class="check-button" type="button">
-              读取预览
-            </button>
-          </div>
-          <p id="file-preview-status" class="request-status idle">
-            请输入后端白名单范围内的文件路径。
-          </p>
-
-          <div
-            id="file-preview-result"
-            class="file-preview-result hidden"
-            aria-live="polite"
-          ></div>
-
-          <div class="summary-actions">
-            <button id="summarize-file-preview" class="check-button" type="button" disabled>
-              生成总结
-            </button>
-          </div>
-
-          <div class="summary-result-panel">
-            <p id="file-summary-status" class="request-status idle">
-              预览成功后，才可以手动生成总结。
-            </p>
-            <div
-              id="file-summary-result"
-              class="file-preview-result hidden"
-              aria-live="polite"
-            ></div>
-          </div>
-        </section>
-
-        <section id="knowledge-section" class="panel knowledge-panel">
-          <div class="section-heading">
-            <div>
-              <h2>知识库</h2>
-              <p>管理本地文本知识库：接入 Markdown 笔记、全文检索、智能问答。所有操作均需手动触发。</p>
-            </div>
-          </div>
-
-          <section class="knowledge-section">
-            <div class="section-heading">
-              <h3>知识库状态</h3>
-            </div>
-            <div class="control-row">
-              <button id="refresh-knowledge-status" class="check-button" type="button">
-                刷新状态
-              </button>
-            </div>
-            <p id="knowledge-status-message" class="request-status idle">
-              点击刷新获取知识库当前状态。
-            </p>
-            <div
-              id="knowledge-status-result"
-              class="file-preview-result hidden"
-              aria-live="polite"
-            ></div>
+            <footer class="cf-footer">
+              <span>本地隐私保护：数据不会上传。</span>
+              <span class="cf-footer__sep">|</span>
+              <span>状态：</span>
+              <span id="cf-footer-dot" class="cf-footer__dot" aria-hidden="true"></span>
+              <span id="cf-footer-status">空闲</span>
+            </footer>
           </section>
-
-          <details class="knowledge-collapsible" id="knowledge-markdown-group">
-            <summary>Markdown 笔记接入 <span class="section-badge index">接入</span></summary>
-            <div class="knowledge-collapsible-body">
-
-              <section id="panel-markdown-note-entry" class="knowledge-section">
-                <div class="section-heading">
-                  <h3>单篇笔记入库</h3>
-                  <p>手动指定一篇 Markdown 文件入库。</p>
-                </div>
-                <label class="field-label" for="knowledge-index-path">文件路径</label>
-                <div class="control-row">
-                  <input
-                    id="knowledge-index-path"
-                    class="backend-input"
-                    type="text"
-                    placeholder="data/notes/daily-note.md"
-                    autocomplete="off"
-                  />
-                </div>
-                <div class="knowledge-inline-fields">
-                  <div>
-                    <label class="field-label" for="knowledge-index-kb-id">知识库 ID</label>
-                    <input
-                      id="knowledge-index-kb-id"
-                      class="backend-input"
-                      type="text"
-                      value="default"
-                      autocomplete="off"
-                    />
-                  </div>
-                  <div class="control-row" style="align-items:end;">
-                    <button id="knowledge-index-submit" class="check-button" type="button">
-                      接入笔记
-                    </button>
-                  </div>
-                </div>
-                <p id="knowledge-index-status" class="request-status idle">
-                  输入单篇 Markdown 文件路径后手动接入。
-                </p>
-                <div
-                  id="knowledge-index-result"
-                  class="file-preview-result hidden"
-                  aria-live="polite"
-                ></div>
-              </section>
-
-              <section id="knowledge-markdown-directory-section" class="knowledge-section">
-                <div class="section-heading">
-                  <h3>目录批量入库</h3>
-                  <p>将指定目录内的所有 Markdown 文件批量接入知识库。</p>
-                </div>
-                <label class="field-label" for="knowledge-directory-index-path">目录路径</label>
-                <div class="control-row">
-                  <input
-                    id="knowledge-directory-index-path"
-                    class="backend-input"
-                    type="text"
-                    placeholder="notes"
-                    autocomplete="off"
-                  />
-                </div>
-                <div class="knowledge-inline-fields knowledge-inline-fields-triple">
-                  <div>
-                    <label class="field-label" for="knowledge-directory-index-kb-id">知识库 ID</label>
-                    <input
-                      id="knowledge-directory-index-kb-id"
-                      class="backend-input"
-                      type="text"
-                      value="default"
-                      autocomplete="off"
-                    />
-                  </div>
-                  <div>
-                    <label class="field-label" for="knowledge-directory-index-max-files">数量上限</label>
-                    <input
-                      id="knowledge-directory-index-max-files"
-                      class="backend-input"
-                      type="number"
-                      min="1"
-                      max="200"
-                      value="50"
-                      autocomplete="off"
-                    />
-                  </div>
-                  <div class="knowledge-option-stack">
-                    <label class="knowledge-option-item" for="knowledge-directory-index-recursive">
-                      <input id="knowledge-directory-index-recursive" type="checkbox" checked />
-                      <span>包含子目录</span>
-                    </label>
-                    <label class="knowledge-option-item" for="knowledge-directory-index-force-reindex">
-                      <input id="knowledge-directory-index-force-reindex" type="checkbox" />
-                      <span>强制重建已有条目</span>
-                    </label>
-                  </div>
-                </div>
-                <div class="control-row">
-                  <button id="knowledge-directory-index-submit" class="check-button" type="button">
-                    批量接入
-                  </button>
-                </div>
-                <p id="knowledge-directory-index-status" class="request-status idle">
-                  输入目录路径后手动批量接入。
-                </p>
-                <div
-                  id="knowledge-directory-index-result"
-                  class="file-preview-result hidden"
-                  aria-live="polite"
-                ></div>
-              </section>
-
-            </div>
-          </details>
-
-          <details class="knowledge-collapsible" id="knowledge-search-group">
-            <summary>知识库搜索 <span class="section-badge search">检索</span></summary>
-            <div class="knowledge-collapsible-body">
-              <section class="knowledge-section">
-                <div class="section-heading">
-                  <h3>全文搜索</h3>
-                  <p>在已入库的知识库中搜索相关内容，不调用 AI 模型。</p>
-                </div>
-                <label class="field-label" for="knowledge-search-query">搜索关键词</label>
-                <div class="control-row">
-                  <input
-                    id="knowledge-search-query"
-                    class="backend-input"
-                    type="text"
-                    placeholder="输入要搜索的内容..."
-                    autocomplete="off"
-                  />
-                </div>
-                <div class="knowledge-inline-fields">
-                  <div>
-                    <label class="field-label" for="knowledge-search-kb-id">知识库 ID</label>
-                    <input
-                      id="knowledge-search-kb-id"
-                      class="backend-input"
-                      type="text"
-                      value="default"
-                      autocomplete="off"
-                    />
-                  </div>
-                  <div>
-                    <label class="field-label" for="knowledge-search-top-k">结果数量</label>
-                    <input
-                      id="knowledge-search-top-k"
-                      class="backend-input"
-                      type="number"
-                      min="1"
-                      value="4"
-                      autocomplete="off"
-                    />
-                  </div>
-                </div>
-                <div class="control-row">
-                  <button id="knowledge-search-submit" class="check-button" type="button">
-                    搜索
-                  </button>
-                </div>
-                <p id="knowledge-search-status" class="request-status idle">
-                  输入关键词后点击搜索，不会调用 AI 模型。
-                </p>
-                <div
-                  id="knowledge-search-result"
-                  class="file-preview-result hidden"
-                  aria-live="polite"
-                ></div>
-              </section>
-            </div>
-          </details>
-
-          <details class="knowledge-collapsible" id="knowledge-query-group">
-            <summary>知识库问答 <span class="section-badge qa">AI 问答</span></summary>
-            <div class="knowledge-collapsible-body">
-              <section class="knowledge-section">
-                <div class="section-heading">
-                  <h3>智能问答</h3>
-                  <p>基于知识库内容生成回答，会调用 AI 模型。</p>
-                </div>
-                <label class="field-label" for="knowledge-query-question">问题</label>
-                <div class="control-row">
-                  <input
-                    id="knowledge-query-question"
-                    class="backend-input"
-                    type="text"
-                    placeholder="基于知识库内容提问..."
-                    autocomplete="off"
-                  />
-                </div>
-                <div class="knowledge-inline-fields">
-                  <div>
-                    <label class="field-label" for="knowledge-query-kb-id">知识库 ID</label>
-                    <input
-                      id="knowledge-query-kb-id"
-                      class="backend-input"
-                      type="text"
-                      value="default"
-                      autocomplete="off"
-                    />
-                  </div>
-                  <div>
-                    <label class="field-label" for="knowledge-query-top-k">结果数量</label>
-                    <input
-                      id="knowledge-query-top-k"
-                      class="backend-input"
-                      type="number"
-                      min="1"
-                      value="4"
-                      autocomplete="off"
-                    />
-                  </div>
-                </div>
-                <div class="control-row">
-                  <button id="knowledge-query-submit" class="check-button" type="button">
-                    提问
-                  </button>
-                </div>
-                <p id="knowledge-query-status" class="request-status idle">
-                  输入问题后点击提问，将调用 AI 模型基于知识库内容回答。
-                </p>
-                <div
-                  id="knowledge-query-result"
-                  class="file-preview-result hidden"
-                  aria-live="polite"
-                ></div>
-              </section>
-            </div>
-          </details>
-        </section>
-
-        <section
-          class="files-tools-grid"
-          id="files-tools-grid"
-          aria-live="polite"
-        ></section>
+        </div>
       </section>
     </main>
 
-    <script src="./app.js" type="module"></script>
+    <script src="./chat-first.js" type="module"></script>
   </body>
 </html>

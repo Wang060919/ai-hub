@@ -196,6 +196,14 @@ body.aihub-chat-first::before {
   font-weight: 600;
 }
 
+.aihub-chat-first button.cf-panel__link,
+.aihub-chat-first button.cf-chat__header-link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
 .aihub-chat-first .cf-topbar__pill,
 .aihub-chat-first .cf-context__chip {
   display: inline-flex;

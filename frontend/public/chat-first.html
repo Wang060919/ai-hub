@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AI Hub | Chat-first</title>
+    <title>AI Hub | 聊天优先</title>
     <link rel="stylesheet" href="./styles/chat-first.css" />
   </head>
   <body class="aihub-chat-first">
@@ -14,13 +14,13 @@
             <div id="orbit-app-icon" class="cf-topbar__icon" aria-hidden="true"></div>
             <div>
               <div class="cf-topbar__title">AI Hub</div>
-              <div class="cf-topbar__subtitle">Chat-first Orbit Core Candidate</div>
+              <div class="cf-topbar__subtitle">聊天优先核心候选版</div>
             </div>
           </div>
 
           <div class="cf-topbar__controls">
             <label class="cf-topbar__backend">
-              <span class="cf-topbar__label">Backend</span>
+              <span class="cf-topbar__label">后端地址</span>
               <input
                 id="backend-url"
                 class="cf-topbar__input"
@@ -29,66 +29,66 @@
               />
             </label>
             <button id="check-backend" class="cf-topbar__button" type="button">
-              Check Backend
+              检查后端
             </button>
-            <div class="cf-topbar__status-group" aria-label="Backend route status">
+            <div class="cf-topbar__status-group" aria-label="后端路由状态">
               <span class="cf-topbar__pill">
-                <span class="cf-topbar__pill-label">Backend</span>
+                <span class="cf-topbar__pill-label">后端</span>
                 <strong id="cf-topbar-backend-value">http://127.0.0.1:8000</strong>
               </span>
               <span class="cf-topbar__pill">
-                <span class="cf-topbar__pill-label">Model</span>
-                <strong id="cf-topbar-model-value">Route: Existing backend</strong>
+                <span class="cf-topbar__pill-label">模型</span>
+                <strong id="cf-topbar-model-value">路由：现有后端</strong>
               </span>
               <span class="cf-topbar__pill">
-                <span class="cf-topbar__pill-label">Status</span>
-                <strong id="cf-topbar-status-value" data-tone="idle">Not checked</strong>
+                <span class="cf-topbar__pill-label">状态</span>
+                <strong id="cf-topbar-status-value" data-tone="idle">未检查</strong>
               </span>
             </div>
-            <a class="cf-topbar__link" href="./index.html">Classic Home</a>
+            <a class="cf-topbar__link" href="./index-classic.html">经典首页</a>
           </div>
         </header>
 
         <div class="cf-layout">
-          <aside class="cf-drawer" aria-label="Data sources drawer">
+          <aside class="cf-drawer" aria-label="数据源面板">
             <div class="cf-drawer__inner">
               <section class="cf-panel">
                 <div class="cf-panel__header">
-                  <h2>Backend Status</h2>
-                  <a class="cf-panel__link" href="./index.html?tab=status">Open Classic</a>
+                  <h2>后端状态</h2>
+                  <button id="cf-panel-check-backend" class="cf-panel__link" type="button">检查后端</button>
                 </div>
                 <div class="cf-panel__summary-grid">
                   <div class="cf-panel__summary-item">
-                    <span>Online</span>
-                    <strong id="panel-backend-online">Waiting</strong>
+                    <span>在线状态</span>
+                    <strong id="panel-backend-online">等待中</strong>
                   </div>
                   <div class="cf-panel__summary-item">
-                    <span>Version</span>
+                    <span>版本</span>
                     <strong id="panel-backend-version">-</strong>
                   </div>
                   <div class="cf-panel__summary-item">
-                    <span>App</span>
+                    <span>应用</span>
                     <strong id="panel-backend-app">-</strong>
                   </div>
                   <div class="cf-panel__summary-item">
-                    <span>Skills</span>
+                    <span>技能数</span>
                     <strong id="panel-backend-skills">0</strong>
                   </div>
                 </div>
-                <p id="panel-backend-status" class="request-status idle">Check backend to load summary.</p>
-                <p id="cf-backend-message" class="cf-panel__hint">Backend metadata is not loaded yet.</p>
+                <p id="panel-backend-status" class="request-status idle">检查后端以加载摘要。</p>
+                <p id="cf-backend-message" class="cf-panel__hint">后端元数据尚未加载。</p>
               </section>
 
               <section class="cf-panel">
                 <div class="cf-panel__header">
-                  <h2>Knowledge Summary</h2>
+                  <h2>知识库摘要</h2>
                   <button id="cf-refresh-knowledge" class="cf-panel__button" type="button">
-                    Refresh
+                    刷新
                   </button>
                 </div>
                 <div class="cf-panel__summary-grid">
                   <div class="cf-panel__summary-item">
-                    <span>Files</span>
+                    <span>文件数</span>
                     <strong id="panel-knowledge-files">-</strong>
                   </div>
                   <div class="cf-panel__summary-item">
@@ -96,73 +96,73 @@
                     <strong id="panel-knowledge-markdown-files">-</strong>
                   </div>
                   <div class="cf-panel__summary-item">
-                    <span>Chunks</span>
+                    <span>分片数</span>
                     <strong id="panel-knowledge-chunks">-</strong>
                   </div>
                   <div class="cf-panel__summary-item">
-                    <span>Index</span>
+                    <span>索引方式</span>
                     <strong id="panel-knowledge-index-method">-</strong>
                   </div>
                   <div class="cf-panel__summary-item">
-                    <span>FTS Enabled</span>
+                    <span>FTS 已启用</span>
                     <strong id="panel-knowledge-fts-enabled">-</strong>
                   </div>
                   <div class="cf-panel__summary-item">
-                    <span>FTS Available</span>
+                    <span>FTS 可用</span>
                     <strong id="panel-knowledge-fts-available">-</strong>
                   </div>
                 </div>
-                <p id="panel-knowledge-status" class="request-status idle">Knowledge summary stays idle until backend is checked.</p>
-                <p id="cf-knowledge-message" class="cf-panel__hint">Knowledge summary stays idle until backend is checked.</p>
-                <a class="cf-panel__link" href="./index.html?tab=files-tools&section=knowledge-section">Open Knowledge</a>
+                <p id="panel-knowledge-status" class="request-status idle">检查后端后知识库摘要才会更新。</p>
+                <p id="cf-knowledge-message" class="cf-panel__hint">检查后端后知识库摘要才会更新。</p>
+                <a class="cf-panel__link" href="./index-classic.html?tab=files-tools&section=knowledge-section">打开知识库</a>
               </section>
 
               <section class="cf-panel">
                 <div class="cf-panel__header">
-                  <h2>Files / Tools</h2>
-                  <a class="cf-panel__link" href="./index.html?tab=files-tools">Open Tools</a>
+                  <h2>文件 / 工具</h2>
+                  <a class="cf-panel__link" href="./index-classic.html?tab=files-tools">打开工具</a>
                 </div>
-                <p class="cf-panel__hint">Manual only. No drag upload. No mounted file context.</p>
+                <p class="cf-panel__hint">仅手动操作。不支持拖拽上传。未挂载文件上下文。</p>
                 <div class="cf-panel__list">
                   <div class="cf-panel__list-row">
-                    <span>Current stage</span>
-                    <span>Read-only entry + summary</span>
+                    <span>当前阶段</span>
+                    <span>只读入口 + 摘要</span>
                   </div>
                   <div class="cf-panel__list-row">
-                    <span>Source mounting</span>
-                    <span>Not enabled</span>
+                    <span>源挂载</span>
+                    <span>未启用</span>
                   </div>
                   <div class="cf-panel__list-row">
-                    <span>Upload</span>
-                    <span>Not enabled</span>
+                    <span>上传</span>
+                    <span>未启用</span>
                   </div>
                 </div>
-                <p id="cf-files-summary" class="cf-panel__hint">Check backend to load tool availability.</p>
+                <p id="cf-files-summary" class="cf-panel__hint">检查后端以加载工具可用性。</p>
               </section>
 
               <section class="cf-panel">
                 <div class="cf-panel__header">
-                  <h2>Chat Workspace Helper</h2>
-                  <a id="cf-helper-classic-link" class="cf-panel__link" href="./index.html?tab=chat">Classic Chat</a>
+                  <h2>聊天工作区助手</h2>
+                  <a id="cf-helper-classic-link" class="cf-panel__link" href="./index-classic.html?tab=chat">在经典版中打开</a>
                 </div>
                 <div class="cf-panel__list">
                   <div class="cf-panel__list-row">
-                    <span>Current mode</span>
-                    <span id="cf-helper-mode-value">Chat</span>
+                    <span>当前模式</span>
+                    <span id="cf-helper-mode-value">聊天</span>
                   </div>
                   <div class="cf-panel__list-row">
-                    <span>Backend checked</span>
-                    <span id="cf-helper-backend-value">Pending</span>
+                    <span>后端已检查</span>
+                    <span id="cf-helper-backend-value">待检查</span>
                   </div>
                   <div class="cf-panel__list-row">
-                    <span>History</span>
-                    <span>Recent turns only</span>
+                    <span>历史</span>
+                    <span>仅最近轮次</span>
                   </div>
                 </div>
                 <div class="cf-panel__actions">
-                  <button id="cf-helper-mode-chat" class="cf-panel__button" type="button">Mode: Chat</button>
-                  <button id="cf-helper-mode-knowledge" class="cf-panel__button" type="button">Mode: Knowledge</button>
-                  <button id="cf-helper-clear-chat" class="cf-panel__button" type="button">Clear Session</button>
+                  <button id="cf-helper-mode-chat" class="cf-panel__button" type="button">模式：聊天</button>
+                  <button id="cf-helper-mode-knowledge" class="cf-panel__button" type="button">模式：知识库</button>
+                  <button id="cf-helper-clear-chat" class="cf-panel__button" type="button">清空会话</button>
                 </div>
               </section>
             </div>
@@ -171,56 +171,56 @@
           <section class="cf-chat">
             <div class="cf-chat__header">
               <button id="cf-drawer-toggle" class="cf-chat__drawer-toggle" type="button" aria-expanded="false">
-                Show Drawer
+                显示面板
               </button>
               <div class="cf-chat__header-actions">
-                <a class="cf-chat__header-link" href="./index.html?tab=status">Status</a>
-                <a class="cf-chat__header-link" href="./index.html?tab=files-tools">Files / Tools</a>
+                <button id="cf-header-status" class="cf-chat__header-link" type="button">状态</button>
+                <a class="cf-chat__header-link" href="./index-classic.html?tab=files-tools">文件 / 工具</a>
               </div>
             </div>
 
             <div class="cf-chat__context">
               <div class="cf-context__row">
-                <span id="cf-context-mode" class="cf-context__chip">Mode: Chat</span>
-                <span id="cf-context-backend" class="cf-context__chip">Backend: Not checked</span>
-                <span id="cf-context-history" class="cf-context__chip">History: 0/4 turns</span>
+                <span id="cf-context-mode" class="cf-context__chip">模式：聊天</span>
+                <span id="cf-context-backend" class="cf-context__chip">后端：未检查</span>
+                <span id="cf-context-history" class="cf-context__chip">历史：0/4 轮</span>
               </div>
               <div class="cf-context__row">
-                <span id="cf-context-safety" class="cf-context__chip cf-context__chip--soft">Manual only</span>
-                <span id="cf-context-uploads" class="cf-context__chip cf-context__chip--soft">No auto file upload</span>
+                <span id="cf-context-safety" class="cf-context__chip cf-context__chip--soft">仅手动操作</span>
+                <span id="cf-context-uploads" class="cf-context__chip cf-context__chip--soft">无自动文件上传</span>
               </div>
               <div class="cf-context__actions">
-                <button id="cf-context-mode-chat" class="cf-context__button" type="button">Chat</button>
-                <button id="cf-context-mode-knowledge" class="cf-context__button" type="button">Knowledge</button>
-                <button id="cf-clear-chat" class="cf-context__button" type="button">Clear Chat</button>
+                <button id="cf-context-mode-chat" class="cf-context__button" type="button">聊天</button>
+                <button id="cf-context-mode-knowledge" class="cf-context__button" type="button">知识库</button>
+                <button id="cf-clear-chat" class="cf-context__button" type="button">清空聊天</button>
               </div>
             </div>
 
             <section class="cf-chat__workspace">
               <div class="cf-chat__intro">
-                <div class="cf-chat__intro-badge">Chat-first Home</div>
-                <h1>AI Hub main workspace, redesigned around conversation.</h1>
+                <div class="cf-chat__intro-badge">聊天优先首页</div>
+                <h1>AI Hub 主工作区，围绕对话重新设计。</h1>
                 <p>
-                  This page reuses the existing AI Hub chat and knowledge behaviors. It does not auto-call
-                  <code>/chat</code>, does not upload files, and does not mount local sources.
+                  此页面复用现有 AI Hub 聊天和知识库功能。不会自动调用
+                  <code>/chat</code>，不会上传文件，不会挂载本地源。
                 </p>
               </div>
 
-              <p id="request-status" class="request-status idle">Backend has not been checked yet.</p>
+              <p id="request-status" class="request-status idle">尚未检查后端。</p>
 
               <div
                 id="chat-messages"
                 class="cf-chat__messages"
                 role="log"
                 aria-live="polite"
-                aria-label="Chat messages"
+                aria-label="聊天消息"
               >
-                <div class="chat-empty-state">Send a message to begin.</div>
+                <div class="chat-empty-state">发送消息开始对话。</div>
               </div>
 
               <div class="cf-chat__mode-row">
-                <span class="cf-chat__mode-label">Mode</span>
-                <div class="cf-chat__mode-toggle" role="radiogroup" aria-label="Chat mode">
+                <span class="cf-chat__mode-label">模式</span>
+                <div class="cf-chat__mode-toggle" role="radiogroup" aria-label="聊天模式">
                   <button
                     id="chat-mode-normal"
                     class="cf-chat__mode-button active"
@@ -228,7 +228,7 @@
                     role="radio"
                     aria-checked="true"
                   >
-                    Chat
+                    聊天
                   </button>
                   <button
                     id="chat-mode-knowledge"
@@ -237,14 +237,14 @@
                     role="radio"
                     aria-checked="false"
                   >
-                    Knowledge
+                    知识库
                   </button>
                 </div>
               </div>
 
               <div id="chat-knowledge-params" class="cf-chat__knowledge-params hidden">
                 <label class="cf-chat__field">
-                  <span>Knowledge Base ID</span>
+                  <span>知识库 ID</span>
                   <input id="chat-kb-id" class="cf-chat__input" type="text" value="default" autocomplete="off" />
                 </label>
                 <label class="cf-chat__field">
@@ -254,26 +254,26 @@
               </div>
 
               <div class="cf-chat__composer">
-                <label class="cf-chat__composer-label" for="chat-message">Message</label>
+                <label class="cf-chat__composer-label" for="chat-message">消息</label>
                 <textarea
                   id="chat-message"
                   class="cf-chat__textarea"
                   rows="4"
-                  placeholder="Try: hello ai hub"
+                  placeholder="试试：hello ai hub"
                 ></textarea>
                 <div class="cf-chat__composer-actions">
-                  <button id="send-chat" class="cf-chat__send-button" type="button" disabled>Send</button>
+                  <button id="send-chat" class="cf-chat__send-button" type="button" disabled>发送</button>
                 </div>
-                <p id="chat-status" class="request-status idle">Waiting for a manual chat request.</p>
+                <p id="chat-status" class="request-status idle">等待手动发送聊天请求。</p>
               </div>
             </section>
 
             <footer class="cf-footer">
-              <span>Local Privacy Guard: Data is not uploaded.</span>
+              <span>本地隐私保护：数据不会上传。</span>
               <span class="cf-footer__sep">|</span>
-              <span>Status:</span>
+              <span>状态：</span>
               <span id="cf-footer-dot" class="cf-footer__dot" aria-hidden="true"></span>
-              <span id="cf-footer-status">Idle</span>
+              <span id="cf-footer-status">空闲</span>
             </footer>
           </section>
         </div>

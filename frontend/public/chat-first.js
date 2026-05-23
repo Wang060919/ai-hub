@@ -61,6 +61,8 @@ const helperModeKnowledgeButton = document.querySelector("#cf-helper-mode-knowle
 const helperClearChatButton = document.querySelector("#cf-helper-clear-chat");
 const footerStatus = document.querySelector("#cf-footer-status");
 const footerDot = document.querySelector("#cf-footer-dot");
+const panelCheckBackendButton = document.querySelector("#cf-panel-check-backend");
+const headerStatusButton = document.querySelector("#cf-header-status");
 
 const state = {
   backendUrl: backendUrlInput.value.trim(),
@@ -70,8 +72,8 @@ const state = {
   chatHistory: [],
   skills: [],
   fileToolsCatalog,
-  backendPanelMessage: "Backend metadata is not loaded yet.",
-  knowledgePanelMessage: "Knowledge summary stays idle until backend is checked.",
+  backendPanelMessage: "后端元数据尚未加载。",
+  knowledgePanelMessage: "检查后端后知识库摘要才会更新。",
 };
 
 const {
@@ -141,7 +143,7 @@ function clearChat() {
 
 async function refreshKnowledgeStatus() {
   if (!state.hasCheckedBackend) {
-    setKnowledgeUnavailable("Knowledge summary stays idle until backend is checked.");
+    setKnowledgeUnavailable("检查后端后知识库摘要才会更新。");
     shell.syncAll();
     return null;
   }
@@ -149,11 +151,11 @@ async function refreshKnowledgeStatus() {
   try {
     const payload = await requestKnowledgeStatus(backendUrlInput.value.trim());
     updateKnowledgeSummary(payload);
-    state.knowledgePanelMessage = "Knowledge summary reflects the latest manual refresh.";
+    state.knowledgePanelMessage = "知识库摘要反映最新手动刷新。";
     return payload;
   } catch (error) {
     state.knowledgePanelMessage =
-      error instanceof Error ? error.message : "Failed to refresh knowledge status.";
+      error instanceof Error ? error.message : "刷新知识库状态失败。";
     setKnowledgeUnavailable(
       state.knowledgePanelMessage
     );
@@ -166,7 +168,7 @@ async function refreshKnowledgeStatus() {
 async function checkBackend() {
   state.backendUrl = backendUrlInput.value.trim();
   checkButton.disabled = true;
-  setTextStatus(requestStatus, "Checking /health, /version, and /skills ...", "idle");
+  setTextStatus(requestStatus, "正在检查 /health、/version 和 /skills ...", "idle");
 
   try {
     const payload = await requestMetadata(state.backendUrl);
@@ -176,16 +178,16 @@ async function checkBackend() {
 
     state.hasCheckedBackend = true;
     state.skills = payload.skills.skills || [];
-    state.backendPanelMessage = "Backend metadata loaded from the current AI Hub server.";
+    state.backendPanelMessage = "后端元数据已从当前 AI Hub 服务器加载。";
     updateBackendSummary(payload);
-    setTextStatus(requestStatus, `Connected: ${payload.backendUrl}`, "success");
+    setTextStatus(requestStatus, `已连接：${payload.backendUrl}`, "success");
     await refreshKnowledgeStatus();
   } catch (error) {
     state.hasCheckedBackend = false;
     state.skills = [];
     state.backendPanelMessage =
       error instanceof Error ? error.message : backendUnavailableMessage;
-    state.knowledgePanelMessage = "Knowledge summary stays idle until backend is checked.";
+    state.knowledgePanelMessage = "检查后端后知识库摘要才会更新。";
     setBackendUnavailable(
       state.backendPanelMessage
     );
@@ -258,6 +260,13 @@ chatMessageInput.addEventListener("input", updateSendChatButtonState);
 chatMessageInput.addEventListener("keydown", handleChatInputKeydown);
 chatModeNormalButton.addEventListener("click", () => setChatMode("chat"));
 chatModeKnowledgeButton.addEventListener("click", () => setChatMode("knowledge"));
+panelCheckBackendButton.addEventListener("click", () => {
+  void checkBackend();
+});
+headerStatusButton.addEventListener("click", () => {
+  shell.setDrawerOpen(true);
+  void checkBackend();
+});
 
 function applyInitialClassicNavigation() {
   const query = new URLSearchParams(window.location.search);
