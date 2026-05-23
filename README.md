@@ -32,7 +32,7 @@ V1.0 / V1.0.1 已基本完成：
 | V1.7 | 本地 Markdown 笔记接入 / Obsidian Bridge 第一版 | M3-M6 已完成，等待 M7 |
 | V1.8 | Tauri 桌面体验增强 + Panel 轻量优化 | M2-M6 已完成，等待 M7 |
 | V1.9 | Chat 与 Knowledge 手动联动第一版 | M1/M2/M3 已完成，等待收尾验证 |
-| V2.0 | AI Hub 桌面工作台产品化界面第一版 | M1-M6 已基本完成，M7 收尾中 |
+| V2.0 | AI Hub 桌面工作台产品化界面第一版 | M1-M6 已基本完成，M7 收尾中，M8 规划已补充 |
 
 详见 [docs/VERSION_PLAN.md](docs/VERSION_PLAN.md)。
 
@@ -176,6 +176,14 @@ V2.0 主题为"AI Hub 桌面工作台产品化界面第一版"，M1-M6 已基本
 - M6：Files / Tools 页面统一（卡片样式与 Panel/Knowledge 对齐）
 
 本轮仅修改前端 CSS、HTML 和 JS 展示文案，未新增后端能力、API、依赖，未改变功能逻辑。
+
+V2.0-M8 已正式补充为“视觉强化与首页重构”。这一里程碑不是新增功能，而是在现有 V2.0 产品化打底基础上，继续强化首页作为“AI Hub 桌面工作台入口”的第一眼识别度，重点放在 Panel 首屏视觉层级、主操作入口、状态摘要与整体桌面工作台气质的肉眼可见提升。
+
+V2.0-M8 允许做：首页 / Panel hero 区域视觉强化、Panel 四张卡片重新排版、主操作按钮层级强化、状态摘要展示优化，以及颜色、背景、边框、阴影、字重、留白的进一步打磨。可借鉴 `frontend-design` 的视觉思路，但要保持当前暖色、圆角、柔和卡片体系，优先走 Organic / Workspace / Dashboard 风格，而不是推翻已有方向。
+
+V2.0-M8 不做：不新增后端能力、不新增 API、不改 Tauri 权限、不新增依赖、不引入 React / Vue、不做暗色模式、不做系统托盘 / 快捷键 / 悬浮窗、不做真正桌宠、不做 PDF / Word / Excel、不做自动 Agent，也不伪造状态数据或编造 AI 指标。
+
+V2.0-M8 推荐改动范围是 `frontend/public/index.html`、`frontend/public/styles.css`，以及在确实需要时微调 `frontend/public/app.js` 或 `frontend/public/js/panel/panel.js`；原则上不改 Chat / Knowledge / Files 的业务逻辑。推荐验收标准是：启动后默认 Panel 首屏有明显视觉提升，第一眼能看出这是 AI Hub 桌面工作台，主操作入口更明确，Panel 不再像功能说明列表，且 Chat / Files / Knowledge 原功能不受影响，`npm run build` 通过。
 
 仍不支持：
 - 新后端能力 / API

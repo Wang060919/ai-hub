@@ -408,6 +408,26 @@ V2.0 当前主题为"AI Hub 桌面工作台产品化界面第一版"。重点是
 - 所有 API 调用保持手动触发，未自动 chat / summarize / query / 入库
 - 未修改后端、Tauri 配置或依赖
 
+V2.0-M8 当前已补充为“视觉强化与首页重构”。该阶段仍属于前端表现层强化，不是功能扩张阶段。建议理解为：
+
+- 继续以 Panel 为默认桌面工作台入口，强化首屏 hero、四卡排版、主操作按钮与状态摘要的第一眼层级
+- 继续复用现有 `frontend/public/index.html`、`frontend/public/styles.css`、`frontend/public/app.js` 与 `frontend/public/js/panel/panel.js` 结构，不要求引入新框架
+- 可以借鉴 `frontend-design` 的视觉方法做更明确的视觉方向收束，但应保持当前暖色、圆角、柔和卡片体系，优先走 Organic / Workspace / Dashboard 风格
+- 所有展示内容继续以真实接口返回和真实状态为准，不允许为了“更像 AI 产品”而伪造摘要数据、运行指标或能力状态
+- Chat / Files / Knowledge 的业务逻辑与后端接口边界保持不变，M8 主要处理首页和 Panel 入口层的视觉识别度问题
+
+V2.0-M8 当前明确不应写成已包含的内容：
+
+- 新后端能力或新 API
+- Tauri 权限扩展
+- React / Vue 重构
+- 暗色模式
+- 系统托盘、快捷键、悬浮窗
+- 真正桌宠
+- PDF / Word / Excel
+- 自动 Agent
+- 编造 AI 指标或伪造状态数据
+
 # V1.1-M6 最新架构状态
 
 V1.4-M13 文档修正补充：当前知识库服务的实际实现应理解为“本地文本切片 + SQLite FTS5 全文检索 + LIKE fallback + 独立 query 增强回答”，不是 embedding、向量检索或 ChromaDB 已落地。文中若出现“向量检索”或“ChromaDB 在 V1.4 实现”的旧表述，应视为历史预留描述；ChromaDB 目前仅属于 V1.5+ 预留方向，不属于 V1.4 已实现能力。

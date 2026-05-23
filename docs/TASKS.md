@@ -630,7 +630,7 @@ V1.8 保留说明：
 
 ### V2.0：AI Hub 桌面工作台产品化界面第一版
 
-**状态**：`DOING`（M1-M6 已基本完成，M7 收尾待完成）
+**状态**：`DOING`（M1-M6 已基本完成，M7 收尾待完成；M8 规划已补充，待执行）
 
 任务清单：
 
@@ -641,6 +641,7 @@ V1.8 保留说明：
 - [x] M5：Knowledge 页面信息架构整理（折叠分组、Markdown 接入合并）
 - [x] M6：Files / Tools 页面统一（卡片样式对齐）
 - [ ] M7：回归验证、文档同步、tag
+- [ ] M8：视觉强化与首页重构
 
 当前支持：
 - 统一的设计 Token 体系（间距、圆角、阴影、表面色）
@@ -649,6 +650,55 @@ V1.8 保留说明：
 - Chat 知识库问答结果简化（合并 citations/hits 为统一"参考来源"）
 - Knowledge 折叠式分组（Markdown 接入、搜索、问答三大组）
 - 各页面卡片、按钮、输入框样式统一
+
+V2.0-M8 目标：
+
+- [ ] 强化首页作为桌面工作台入口的识别度
+- [ ] 重构 Panel 首屏视觉层级
+- [ ] 做出肉眼可见的 UI 提升
+- [ ] 让页面更像成熟桌面 AI 工作台，而不是开发工具集合
+
+V2.0-M8 允许做：
+
+- [ ] 首页 / Panel hero 区域视觉强化
+- [ ] Panel 四张卡片重新排版
+- [ ] 强化主操作按钮层级
+- [ ] 优化状态摘要展示
+- [ ] 优化颜色、背景、边框、阴影、字重、留白
+- [ ] 使用 `frontend-design` 的视觉思路，但保持当前暖色、圆角、柔和卡片体系
+- [ ] 优先采用 Organic / Workspace / Dashboard 风格，不推翻当前整体风格
+
+V2.0-M8 不做：
+
+- [x] 不新增后端能力
+- [x] 不新增 API
+- [x] 不改 Tauri 权限
+- [x] 不新增依赖
+- [x] 不引入 React / Vue
+- [x] 不做暗色模式
+- [x] 不做系统托盘 / 快捷键 / 悬浮窗
+- [x] 不做真正桌宠
+- [x] 不做 PDF / Word / Excel
+- [x] 不做自动 Agent
+- [x] 不伪造状态数据
+- [x] 不编造 AI 指标
+
+V2.0-M8 推荐实现范围：
+
+- [ ] `frontend/public/index.html`
+- [ ] `frontend/public/styles.css`
+- [ ] `frontend/public/app.js`（如确实需要）
+- [ ] `frontend/public/js/panel/panel.js`（如确实需要）
+- [x] 原则上不改 Chat / Knowledge / Files 业务逻辑
+
+V2.0-M8 推荐验收标准：
+
+- [ ] 启动后默认 Panel 首屏有明显视觉提升
+- [ ] 第一眼能看出这是 AI Hub 桌面工作台
+- [ ] 主操作入口更明确
+- [ ] Panel 不再像功能说明列表
+- [ ] Chat / Files / Knowledge 原功能不受影响
+- [ ] `npm run build` 通过
 
 仍不支持：
 - 新后端能力 / API
