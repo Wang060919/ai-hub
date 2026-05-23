@@ -4,6 +4,8 @@ import { requestMetadata, backendUnavailableMessage } from "./js/api/metadata.js
 import { requestKnowledgeStatus } from "./js/api/knowledge.js";
 import { createChatModule } from "./js/chat/chat.js";
 import { createPanelModule } from "./js/panel/panel.js";
+import { createFilesModule } from "./js/files/files.js";
+import { createKnowledgeModule } from "./js/knowledge/knowledge.js";
 import { createChatFirstShell } from "./js/layout/chat-first-shell.js";
 import { renderOrbitIcon } from "./js/components/orbit-icon.js";
 import { setTextStatus } from "./js/ui/status.js";
@@ -43,7 +45,6 @@ const topbarModelValue = document.querySelector("#cf-topbar-model-value");
 const topbarStatusValue = document.querySelector("#cf-topbar-status-value");
 const backendMessage = document.querySelector("#cf-backend-message");
 const knowledgeMessage = document.querySelector("#cf-knowledge-message");
-const filesSummary = document.querySelector("#cf-files-summary");
 const helperModeValue = document.querySelector("#cf-helper-mode-value");
 const helperBackendValue = document.querySelector("#cf-helper-backend-value");
 const helperClassicLink = document.querySelector("#cf-helper-classic-link");
@@ -64,6 +65,35 @@ const footerDot = document.querySelector("#cf-footer-dot");
 const panelCheckBackendButton = document.querySelector("#cf-panel-check-backend");
 const headerStatusButton = document.querySelector("#cf-header-status");
 
+const filePreviewPathInput = document.querySelector("#file-preview-path");
+const readFilePreviewButton = document.querySelector("#read-file-preview");
+const summarizeFilePreviewButton = document.querySelector("#summarize-file-preview");
+const filePreviewStatus = document.querySelector("#file-preview-status");
+const filePreviewResult = document.querySelector("#file-preview-result");
+const fileSummaryStatus = document.querySelector("#file-summary-status");
+const fileSummaryResult = document.querySelector("#file-summary-result");
+
+const refreshKnowledgeStatusButton = document.querySelector("#refresh-knowledge-status");
+const knowledgeStatusMessage = document.querySelector("#knowledge-status-message");
+const knowledgeStatusResult = document.querySelector("#knowledge-status-result");
+const knowledgeIndexPathInput = document.querySelector("#knowledge-index-path");
+const knowledgeIndexKbIdInput = document.querySelector("#knowledge-index-kb-id");
+const knowledgeIndexSubmitButton = document.querySelector("#knowledge-index-submit");
+const knowledgeIndexStatus = document.querySelector("#knowledge-index-status");
+const knowledgeIndexResult = document.querySelector("#knowledge-index-result");
+const knowledgeSearchQueryInput = document.querySelector("#knowledge-search-query");
+const knowledgeSearchKbIdInput = document.querySelector("#knowledge-search-kb-id");
+const knowledgeSearchTopKInput = document.querySelector("#knowledge-search-top-k");
+const knowledgeSearchSubmitButton = document.querySelector("#knowledge-search-submit");
+const knowledgeSearchStatus = document.querySelector("#knowledge-search-status");
+const knowledgeSearchResult = document.querySelector("#knowledge-search-result");
+const knowledgeQueryQuestionInput = document.querySelector("#knowledge-query-question");
+const knowledgeQueryKbIdInput = document.querySelector("#knowledge-query-kb-id");
+const knowledgeQueryTopKInput = document.querySelector("#knowledge-query-top-k");
+const knowledgeQuerySubmitButton = document.querySelector("#knowledge-query-submit");
+const knowledgeQueryStatus = document.querySelector("#knowledge-query-status");
+const knowledgeQueryResult = document.querySelector("#knowledge-query-result");
+
 const state = {
   backendUrl: backendUrlInput.value.trim(),
   drawerOpen: false,
@@ -74,6 +104,14 @@ const state = {
   fileToolsCatalog,
   backendPanelMessage: "后端元数据尚未加载。",
   knowledgePanelMessage: "检查后端后知识库摘要才会更新。",
+  filePreviewLoading: false,
+  fileSummaryLoading: false,
+  hasPreviewResult: false,
+  lastPreviewPath: "",
+  knowledgeStatusLoading: false,
+  knowledgeIndexLoading: false,
+  knowledgeSearchLoading: false,
+  knowledgeQueryLoading: false,
 };
 
 const {
@@ -124,6 +162,59 @@ const {
   },
 });
 
+const {
+  updateFilePreviewButtonState,
+  readFilePreview,
+  summarizeFilePreview,
+  resetFileSummaryResult,
+  handleFilePreviewPathInput,
+} = createFilesModule({
+  dom: {
+    backendUrlInput,
+    filePreviewPathInput,
+    readFilePreviewButton,
+    summarizeFilePreviewButton,
+    filePreviewStatus,
+    filePreviewResult,
+    fileSummaryStatus,
+    fileSummaryResult,
+  },
+  state,
+});
+
+const {
+  updateKnowledgeButtonState,
+  refreshKnowledgeStatus: refreshKnowledgeStatusDetail,
+  addToKnowledge,
+  searchKnowledge,
+  queryKnowledge,
+} = createKnowledgeModule({
+  dom: {
+    backendUrlInput,
+    refreshKnowledgeStatusButton,
+    knowledgeStatusMessage,
+    knowledgeStatusResult,
+    knowledgeIndexPathInput,
+    knowledgeIndexKbIdInput,
+    knowledgeIndexSubmitButton,
+    knowledgeIndexStatus,
+    knowledgeIndexResult,
+    knowledgeSearchQueryInput,
+    knowledgeSearchKbIdInput,
+    knowledgeSearchTopKInput,
+    knowledgeSearchSubmitButton,
+    knowledgeSearchStatus,
+    knowledgeSearchResult,
+    knowledgeQueryQuestionInput,
+    knowledgeQueryKbIdInput,
+    knowledgeQueryTopKInput,
+    knowledgeQuerySubmitButton,
+    knowledgeQueryStatus,
+    knowledgeQueryResult,
+  },
+  state,
+});
+
 function renderOrbitBrand() {
   orbitAppIcon.innerHTML = renderOrbitIcon({
     variant: "app",
@@ -152,6 +243,7 @@ async function refreshKnowledgeStatus() {
     const payload = await requestKnowledgeStatus(backendUrlInput.value.trim());
     updateKnowledgeSummary(payload);
     state.knowledgePanelMessage = "知识库摘要反映最新手动刷新。";
+    void refreshKnowledgeStatusDetail();
     return payload;
   } catch (error) {
     state.knowledgePanelMessage =
@@ -219,7 +311,6 @@ const shell = createChatFirstShell({
     topbarStatusValue,
     backendMessage,
     knowledgeMessage,
-    filesSummary,
     helperModeValue,
     helperBackendValue,
     helperClassicLink,
@@ -268,6 +359,20 @@ headerStatusButton.addEventListener("click", () => {
   void checkBackend();
 });
 
+readFilePreviewButton.addEventListener("click", readFilePreview);
+summarizeFilePreviewButton.addEventListener("click", summarizeFilePreview);
+filePreviewPathInput.addEventListener("input", handleFilePreviewPathInput);
+
+refreshKnowledgeStatusButton.addEventListener("click", () => {
+  void refreshKnowledgeStatusDetail();
+});
+knowledgeIndexSubmitButton.addEventListener("click", addToKnowledge);
+knowledgeSearchSubmitButton.addEventListener("click", searchKnowledge);
+knowledgeQuerySubmitButton.addEventListener("click", queryKnowledge);
+knowledgeIndexPathInput.addEventListener("input", updateKnowledgeButtonState);
+knowledgeSearchQueryInput.addEventListener("input", updateKnowledgeButtonState);
+knowledgeQueryQuestionInput.addEventListener("input", updateKnowledgeButtonState);
+
 function applyInitialClassicNavigation() {
   const query = new URLSearchParams(window.location.search);
   if (query.get("drawer") === "open") {
@@ -279,7 +384,10 @@ renderOrbitBrand();
 resetBackendSummary();
 resetKnowledgeSummary();
 resetChatResult();
+resetFileSummaryResult();
 updateSendChatButtonState();
+updateFilePreviewButtonState();
+updateKnowledgeButtonState();
 setChatMode("chat");
 shell.bindEvents();
 applyInitialClassicNavigation();
