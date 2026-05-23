@@ -1,6 +1,28 @@
-import { readJsonResponse, throwApiError } from "./client.js";
+import {
+  getTauriInvokeDirect,
+  isTauriRuntime,
+  normalizeErrorMessage,
+  readJsonResponse,
+  throwApiError,
+  throwTauriApiError,
+} from "./client.js";
 
 export async function requestKnowledgeStatus(backendUrl) {
+  if (isTauriRuntime()) {
+    try {
+      const tauriInvoke = getTauriInvokeDirect();
+      const payload = await tauriInvoke("fetch_knowledge_status", { backendUrl });
+
+      if (!payload.ok) {
+        throwTauriApiError(payload, "/knowledge/status", null);
+      }
+
+      return payload.knowledge;
+    } catch (error) {
+      throw new Error(normalizeErrorMessage(error, "/knowledge/status failed"));
+    }
+  }
+
   const response = await fetch(
     `/api/knowledge/status?backendUrl=${encodeURIComponent(backendUrl)}`,
     {
@@ -20,6 +42,25 @@ export async function requestKnowledgeStatus(backendUrl) {
 }
 
 export async function requestKnowledgeIndexFile(backendUrl, path, kbId) {
+  if (isTauriRuntime()) {
+    try {
+      const tauriInvoke = getTauriInvokeDirect();
+      const payload = await tauriInvoke("index_knowledge_file", {
+        backendUrl,
+        path,
+        kbId,
+      });
+
+      if (!payload.ok) {
+        throwTauriApiError(payload, "/knowledge/index-file", "index");
+      }
+
+      return payload;
+    } catch (error) {
+      throw new Error(normalizeErrorMessage(error, "/knowledge/index-file failed"));
+    }
+  }
+
   const response = await fetch("/api/knowledge/index-file", {
     method: "POST",
     headers: {
@@ -45,6 +86,30 @@ export async function requestKnowledgeIndexMarkdownDirectory(
   forceReindex,
   maxFiles
 ) {
+  if (isTauriRuntime()) {
+    try {
+      const tauriInvoke = getTauriInvokeDirect();
+      const payload = await tauriInvoke("index_knowledge_markdown_directory", {
+        backendUrl,
+        directory,
+        kbId,
+        recursive,
+        forceReindex,
+        maxFiles,
+      });
+
+      if (!payload.ok) {
+        throwTauriApiError(payload, "/knowledge/index-markdown-directory", "summary");
+      }
+
+      return payload;
+    } catch (error) {
+      throw new Error(
+        normalizeErrorMessage(error, "/knowledge/index-markdown-directory failed")
+      );
+    }
+  }
+
   const response = await fetch("/api/knowledge/index-markdown-directory", {
     method: "POST",
     headers: {
@@ -70,6 +135,26 @@ export async function requestKnowledgeIndexMarkdownDirectory(
 }
 
 export async function requestKnowledgeSearch(backendUrl, query, kbId, topK) {
+  if (isTauriRuntime()) {
+    try {
+      const tauriInvoke = getTauriInvokeDirect();
+      const payload = await tauriInvoke("search_knowledge", {
+        backendUrl,
+        query,
+        kbId,
+        topK,
+      });
+
+      if (!payload.ok) {
+        throwTauriApiError(payload, "/knowledge/search", "search");
+      }
+
+      return payload;
+    } catch (error) {
+      throw new Error(normalizeErrorMessage(error, "/knowledge/search failed"));
+    }
+  }
+
   const response = await fetch("/api/knowledge/search", {
     method: "POST",
     headers: {
@@ -88,6 +173,26 @@ export async function requestKnowledgeSearch(backendUrl, query, kbId, topK) {
 }
 
 export async function requestKnowledgeQuery(backendUrl, question, kbId, topK) {
+  if (isTauriRuntime()) {
+    try {
+      const tauriInvoke = getTauriInvokeDirect();
+      const payload = await tauriInvoke("query_knowledge", {
+        backendUrl,
+        question,
+        kbId,
+        topK,
+      });
+
+      if (!payload.ok) {
+        throwTauriApiError(payload, "/knowledge/query", "answer");
+      }
+
+      return payload;
+    } catch (error) {
+      throw new Error(normalizeErrorMessage(error, "/knowledge/query failed"));
+    }
+  }
+
   const response = await fetch("/api/knowledge/query", {
     method: "POST",
     headers: {

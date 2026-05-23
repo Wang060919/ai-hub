@@ -50,6 +50,25 @@ export function throwApiError(response, payload, operationName, nestedKey) {
   throw error;
 }
 
+export function throwTauriApiError(payload, operationName, nestedKey) {
+  const nestedError = nestedKey ? payload?.[nestedKey]?.error : undefined;
+
+  const code =
+    payload?.error?.code ||
+    nestedError?.code ||
+    "REQUEST_FAILED";
+
+  const message =
+    payload?.error?.message ||
+    nestedError?.message ||
+    payload?.details ||
+    `${code}: ${operationName} failed`;
+
+  const error = new Error(message);
+  error.code = code;
+  throw error;
+}
+
 export function getTauriInvokeDirect() {
   return getTauriInvoke();
 }
