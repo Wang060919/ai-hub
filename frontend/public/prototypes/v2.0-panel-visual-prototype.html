@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI Hub Panel Visual Prototype</title>
+    <style>
+      :root {
+        color-scheme: light;
+
+        --bg: #f5f1ea;
+        --bg-soft: #fbf8f3;
+        --surface: rgba(255, 252, 247, 0.92);
+        --surface-strong: #fffdf9;
+        --surface-muted: rgba(255, 255, 255, 0.62);
+        --line: rgba(96, 80, 61, 0.10);
+        --line-strong: rgba(96, 80, 61, 0.15);
+        --text: #2f2923;
+        --text-soft: #6f6458;
+        --text-faint: #8b8176;
+        --accent: #8f6f55;
+        --accent-soft: #efe5da;
+        --accent-strong: #72563f;
+        --success-bg: #edf6ef;
+        --success-text: #45664e;
+        --shadow-lg: 0 24px 60px rgba(87, 65, 42, 0.10);
+        --shadow-md: 0 14px 32px rgba(87, 65, 42, 0.08);
+        --shadow-sm: 0 8px 20px rgba(87, 65, 42, 0.06);
+        --radius-xl: 32px;
+        --radius-lg: 24px;
+        --radius-md: 18px;
+        --radius-sm: 14px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        font-family: "SF Pro Display", "PingFang SC", "Segoe UI", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(164, 136, 108, 0.10), transparent 28%),
+          radial-gradient(circle at top right, rgba(220, 206, 188, 0.28), transparent 26%),
+          linear-gradient(180deg, #fbf8f3 0%, var(--bg) 100%);
+      }
+
+      body {
+        padding: 34px 20px 48px;
+      }
+
+      .frame {
+        width: min(1240px, 100%);
+        margin: 0 auto;
+      }
+
+      .window {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 34px;
+        background: rgba(255, 250, 245, 0.80);
+        box-shadow: var(--shadow-lg);
+        backdrop-filter: blur(16px);
+      }
+
+      .titlebar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid rgba(96, 80, 61, 0.08);
+        background: rgba(255, 253, 249, 0.76);
+      }
+
+      .traffic-lights {
+        display: flex;
+        gap: 8px;
+      }
+
+      .light {
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+      }
+
+      .light.red { background: #ff5f57; }
+      .light.yellow { background: #ffbd2f; }
+      .light.green { background: #28c840; }
+
+      .titlebar-label {
+        font-size: 0.94rem;
+        color: var(--text-soft);
+        letter-spacing: 0.01em;
+      }
+
+      .titlebar-meta {
+        font-size: 0.88rem;
+        color: var(--text-faint);
+      }
+
+      .content {
+        padding: 28px;
+        display: grid;
+        gap: 24px;
+      }
+
+      .hero {
+        display: grid;
+        gap: 22px;
+        padding: 30px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-xl);
+        background:
+          linear-gradient(180deg, rgba(255, 253, 249, 0.95), rgba(247, 241, 234, 0.88)),
+          var(--surface);
+        box-shadow: var(--shadow-md);
+      }
+
+      .hero-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 12px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.54);
+        color: var(--text-soft);
+        font-size: 0.84rem;
+      }
+
+      .eyebrow::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: #9fb79f;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        margin-top: 16px;
+        font-size: clamp(2.5rem, 6vw, 4rem);
+        line-height: 1;
+        letter-spacing: -0.04em;
+        font-weight: 650;
+      }
+
+      .hero-subtitle {
+        max-width: 700px;
+        margin-top: 14px;
+        color: var(--text-soft);
+        font-size: 1.08rem;
+        line-height: 1.75;
+      }
+
+      .hero-note {
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.50);
+        color: var(--text-faint);
+        font-size: 0.92rem;
+        line-height: 1.6;
+      }
+
+      .hero-summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .summary-card {
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.56);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .summary-label {
+        color: var(--text-faint);
+        font-size: 0.9rem;
+      }
+
+      .summary-value {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.28rem;
+        font-weight: 620;
+        letter-spacing: -0.02em;
+      }
+
+      .summary-dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 999px;
+        background: #98b499;
+        box-shadow: 0 0 0 5px rgba(152, 180, 153, 0.14);
+      }
+
+      .summary-subtext {
+        margin-top: 8px;
+        color: var(--text-faint);
+        font-size: 0.88rem;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 46px;
+        padding: 0 18px;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        font: inherit;
+        font-size: 0.96rem;
+        text-decoration: none;
+        cursor: default;
+        user-select: none;
+      }
+
+      .btn-primary {
+        background: linear-gradient(180deg, #9a7c61 0%, #7d624b 100%);
+        color: #fffdf9;
+        box-shadow: 0 10px 22px rgba(125, 98, 75, 0.18);
+      }
+
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.66);
+        border-color: var(--line);
+        color: var(--text);
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .feature-card {
+        display: grid;
+        gap: 16px;
+        padding: 24px;
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background: var(--surface-strong);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .feature-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .feature-tag {
+        padding: 7px 11px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+        font-size: 0.82rem;
+      }
+
+      h2 {
+        font-size: 1.35rem;
+        letter-spacing: -0.02em;
+        font-weight: 620;
+      }
+
+      .feature-subtitle {
+        margin-top: 6px;
+        color: var(--text-soft);
+        font-size: 0.96rem;
+      }
+
+      .feature-copy {
+        color: var(--text-soft);
+        line-height: 1.72;
+        font-size: 0.95rem;
+      }
+
+      .feature-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .chip {
+        padding: 8px 11px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--surface-muted);
+        color: var(--text-soft);
+        font-size: 0.84rem;
+      }
+
+      .feature-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+      }
+
+      .feature-note {
+        color: var(--text-faint);
+        font-size: 0.88rem;
+      }
+
+      .status-grid {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 18px;
+      }
+
+      .status-card {
+        padding: 22px;
+        border: 1px solid var(--line);
+        border-radius: 26px;
+        background: rgba(255, 253, 249, 0.78);
+        box-shadow: var(--shadow-sm);
+      }
+
+      h3 {
+        font-size: 1rem;
+        font-weight: 620;
+        letter-spacing: -0.01em;
+      }
+
+      .status-body {
+        margin-top: 14px;
+        color: var(--text-soft);
+        line-height: 1.7;
+        font-size: 0.94rem;
+      }
+
+      .status-stack {
+        display: grid;
+        gap: 12px;
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: var(--success-bg);
+        color: var(--success-text);
+        font-size: 0.86rem;
+      }
+
+      .list-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(96, 80, 61, 0.08);
+      }
+
+      .list-row:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .muted {
+        color: var(--text-faint);
+      }
+
+      .proto-note {
+        margin-top: 18px;
+        text-align: center;
+        color: var(--text-faint);
+        font-size: 0.88rem;
+      }
+
+      @media (max-width: 960px) {
+        .hero-top,
+        .status-grid {
+          grid-template-columns: 1fr;
+          display: grid;
+        }
+
+        .hero-summary,
+        .cards {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        body {
+          padding: 14px;
+        }
+
+        .content {
+          padding: 18px;
+        }
+
+        .hero,
+        .feature-card,
+        .status-card {
+          padding: 18px;
+        }
+
+        .titlebar {
+          padding: 14px 16px;
+        }
+
+        h1 {
+          font-size: 2.25rem;
+        }
+
+        .hero-actions,
+        .feature-footer {
+          display: grid;
+          grid-template-columns: 1fr;
+        }
+
+        .btn {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <div class="window">
+        <div class="titlebar">
+          <div class="traffic-lights" aria-hidden="true">
+            <span class="light red"></span>
+            <span class="light yellow"></span>
+            <span class="light green"></span>
+          </div>
+          <div class="titlebar-label">AI Hub Panel Prototype</div>
+          <div class="titlebar-meta">Static visual draft</div>
+        </div>
+
+        <main class="content">
+          <section class="hero">
+            <div class="hero-top">
+              <div>
+                <div class="eyebrow">Panel Home</div>
+                <h1>AI Hub</h1>
+                <p class="hero-subtitle">
+                  本地 AI 工作台，连接聊天、知识库、文件与笔记。
+                </p>
+              </div>
+              <div class="hero-note">
+                首屏强调入口层级与桌面软件气质。所有数据均为原型占位，
+                仅用于判断视觉方向，不代表真实运行状态。
+              </div>
+            </div>
+
+            <div class="hero-summary">
+              <article class="summary-card">
+                <div class="summary-label">后端状态</div>
+                <div class="summary-value">
+                  <span class="summary-dot"></span>
+                  在线
+                </div>
+                <div class="summary-subtext">本地服务可用，等待用户手动操作。</div>
+              </article>
+
+              <article class="summary-card">
+                <div class="summary-label">知识库文件数</div>
+                <div class="summary-value">128</div>
+                <div class="summary-subtext">当前只作为状态摘要展示。</div>
+              </article>
+
+              <article class="summary-card">
+                <div class="summary-label">Markdown 笔记数</div>
+                <div class="summary-value">24</div>
+                <div class="summary-subtext">支持单篇与目录手动接入。</div>
+              </article>
+            </div>
+
+            <div class="hero-actions" aria-label="Prototype primary actions">
+              <span class="btn btn-primary">开始聊天</span>
+              <span class="btn btn-secondary">知识库问答</span>
+              <span class="btn btn-secondary">接入笔记</span>
+            </div>
+          </section>
+
+          <section class="cards" aria-label="Feature cards">
+            <article class="feature-card">
+              <div class="feature-top">
+                <div>
+                  <h2>Chat</h2>
+                  <p class="feature-subtitle">普通聊天 / 知识库问答</p>
+                </div>
+                <span class="feature-tag">Primary</span>
+              </div>
+              <p class="feature-copy">
+                用简洁对话入口开始提问，也可以切换到知识库问答模式。
+                首屏只强调“开始做事”，不堆叠解释性文案。
+              </p>
+              <div class="feature-list">
+                <span class="chip">普通聊天</span>
+                <span class="chip">知识库问答</span>
+                <span class="chip">手动触发</span>
+              </div>
+              <div class="feature-footer">
+                <span class="btn btn-secondary">进入聊天</span>
+                <span class="feature-note">用于快速开始一轮对话</span>
+              </div>
+            </article>
+
+            <article class="feature-card">
+              <div class="feature-top">
+                <div>
+                  <h2>Knowledge</h2>
+                  <p class="feature-subtitle">搜索 / 问答 / 引用</p>
+                </div>
+                <span class="feature-tag">Reference</span>
+              </div>
+              <p class="feature-copy">
+                在本地知识片段中搜索与问答，保留引用结果的可见性，
+                但首页只展示能力概览，不在此承载完整工作流。
+              </p>
+              <div class="feature-list">
+                <span class="chip">搜索</span>
+                <span class="chip">问答</span>
+                <span class="chip">引用</span>
+              </div>
+              <div class="feature-footer">
+                <span class="btn btn-secondary">打开知识库</span>
+                <span class="feature-note">适合基于现有笔记继续提问</span>
+              </div>
+            </article>
+
+            <article class="feature-card">
+              <div class="feature-top">
+                <div>
+                  <h2>Files</h2>
+                  <p class="feature-subtitle">预览 / 总结</p>
+                </div>
+                <span class="feature-tag">Utility</span>
+              </div>
+              <p class="feature-copy">
+                读取白名单目录内文本文件并手动生成总结。卡片强调“预览”
+                与“总结”两个核心动作，不扩展成管理后台式工具箱。
+              </p>
+              <div class="feature-list">
+                <span class="chip">预览</span>
+                <span class="chip">总结</span>
+                <span class="chip">文本文件</span>
+              </div>
+              <div class="feature-footer">
+                <span class="btn btn-secondary">文件工具</span>
+                <span class="feature-note">不自动读取，不自动总结</span>
+              </div>
+            </article>
+
+            <article class="feature-card">
+              <div class="feature-top">
+                <div>
+                  <h2>Markdown</h2>
+                  <p class="feature-subtitle">单篇 / 目录接入</p>
+                </div>
+                <span class="feature-tag">Notes</span>
+              </div>
+              <p class="feature-copy">
+                面向本地 Markdown 与 Obsidian 笔记的受控接入入口。
+                用更柔和的方式表达“笔记工作台”，避免企业知识库后台感。
+              </p>
+              <div class="feature-list">
+                <span class="chip">单篇接入</span>
+                <span class="chip">目录接入</span>
+                <span class="chip">Markdown</span>
+              </div>
+              <div class="feature-footer">
+                <span class="btn btn-secondary">接入笔记</span>
+                <span class="feature-note">仅展示入口，不做真实接入</span>
+              </div>
+            </article>
+          </section>
+
+          <section class="status-grid">
+            <article class="status-card">
+              <h3>本地运行状态</h3>
+              <div class="status-body">
+                <div class="status-stack">
+                  <span class="status-pill">AI Hub 在本机运行，桌面端作为入口壳层</span>
+                  <div class="list-row">
+                    <span>运行模式</span>
+                    <span class="muted">本地桌面工作台</span>
+                  </div>
+                  <div class="list-row">
+                    <span>默认入口</span>
+                    <span class="muted">Panel 首屏</span>
+                  </div>
+                  <div class="list-row">
+                    <span>操作方式</span>
+                    <span class="muted">全部手动触发</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="status-card">
+              <h3>最近接入</h3>
+              <div class="status-body">
+                <div class="list-row">
+                  <span>Markdown 笔记</span>
+                  <span class="muted">/knowledge/demo-notes</span>
+                </div>
+                <div class="list-row">
+                  <span>安全边界</span>
+                  <span class="muted">不自动读取文件</span>
+                </div>
+                <div class="list-row">
+                  <span>提示</span>
+                  <span class="muted">状态值为原型占位</span>
+                </div>
+              </div>
+            </article>
+          </section>
+        </main>
+      </div>
+
+      <p class="proto-note">
+        Prototype only. No real API, no live data, no repository integration.
+      </p>
+    </div>
+  </body>
+</html>
