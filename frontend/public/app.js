@@ -374,6 +374,20 @@ function openTabTarget(tabName, sectionId) {
   }
 }
 
+function applyInitialRoute() {
+  const query = new URLSearchParams(window.location.search);
+  const requestedTab = query.get("tab");
+  const requestedSection = query.get("section");
+  const supportedTabs = new Set(["panel", "status", "chat", "files-tools"]);
+
+  if (requestedTab && supportedTabs.has(requestedTab)) {
+    openTabTarget(requestedTab, requestedSection);
+    return;
+  }
+
+  showTab("panel");
+}
+
 async function refreshKnowledgeStatusWithPanel() {
   const payload = await refreshKnowledgeStatus();
   if (payload) {
@@ -517,5 +531,5 @@ updateSendChatButtonState();
 updateQuickChatButtonState();
 updateFilePreviewButtonState();
 updateKnowledgeButtonState();
-showTab("panel");
+applyInitialRoute();
 void refreshKnowledgeStatusWithPanel();
