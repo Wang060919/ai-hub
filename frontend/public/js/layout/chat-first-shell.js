@@ -68,7 +68,9 @@ export function createChatFirstShell({ dom, state, actions }) {
   }
 
   function syncFilesPanel() {
-    dom.filesSummary.textContent = getFilesToolsSummary();
+    if (dom.filesSummary) {
+      dom.filesSummary.textContent = getFilesToolsSummary();
+    }
   }
 
   function syncHelperPanel() {

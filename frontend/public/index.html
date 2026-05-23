@@ -81,10 +81,8 @@
 
               <section class="cf-panel">
                 <div class="cf-panel__header">
-                  <h2>知识库摘要</h2>
-                  <button id="cf-refresh-knowledge" class="cf-panel__button" type="button">
-                    刷新
-                  </button>
+                  <h2>知识库</h2>
+                  <button id="cf-refresh-knowledge" class="cf-panel__button" type="button">刷新</button>
                 </div>
                 <div class="cf-panel__summary-grid">
                   <div class="cf-panel__summary-item">
@@ -114,30 +112,84 @@
                 </div>
                 <p id="panel-knowledge-status" class="request-status idle">检查后端后知识库摘要才会更新。</p>
                 <p id="cf-knowledge-message" class="cf-panel__hint">检查后端后知识库摘要才会更新。</p>
-                <a class="cf-panel__link" href="./index-classic.html?tab=files-tools&section=knowledge-section">打开知识库</a>
+
+                <div class="cf-panel__section">
+                  <h3>状态详情</h3>
+                  <button id="refresh-knowledge-status" class="cf-panel__button" type="button">刷新状态</button>
+                  <p id="knowledge-status-message" class="request-status idle">等待刷新。</p>
+                  <div id="knowledge-status-result" class="hidden"></div>
+                </div>
+
+                <details class="cf-panel__collapse">
+                  <summary>接入笔记</summary>
+                  <label class="cf-panel__field">
+                    <span>Markdown 相对路径</span>
+                    <input id="knowledge-index-path" class="cf-panel__input" type="text" placeholder="例如：notes/readme.md" autocomplete="off" />
+                  </label>
+                  <label class="cf-panel__field">
+                    <span>知识库 ID</span>
+                    <input id="knowledge-index-kb-id" class="cf-panel__input" type="text" value="default" autocomplete="off" />
+                  </label>
+                  <button id="knowledge-index-submit" class="cf-panel__button" type="button" disabled>接入笔记</button>
+                  <p id="knowledge-index-status" class="request-status idle">输入路径以接入笔记。</p>
+                  <div id="knowledge-index-result" class="hidden"></div>
+                </details>
+
+                <details class="cf-panel__collapse">
+                  <summary>搜索知识库</summary>
+                  <label class="cf-panel__field">
+                    <span>查询</span>
+                    <input id="knowledge-search-query" class="cf-panel__input" type="text" placeholder="搜索关键词" autocomplete="off" />
+                  </label>
+                  <label class="cf-panel__field">
+                    <span>知识库 ID</span>
+                    <input id="knowledge-search-kb-id" class="cf-panel__input" type="text" value="default" autocomplete="off" />
+                  </label>
+                  <label class="cf-panel__field">
+                    <span>Top K</span>
+                    <input id="knowledge-search-top-k" class="cf-panel__input" type="number" min="1" value="4" autocomplete="off" />
+                  </label>
+                  <button id="knowledge-search-submit" class="cf-panel__button" type="button" disabled>搜索</button>
+                  <p id="knowledge-search-status" class="request-status idle">输入查询以搜索知识库。</p>
+                  <div id="knowledge-search-result" class="hidden"></div>
+                </details>
+
+                <details class="cf-panel__collapse">
+                  <summary>知识库问答</summary>
+                  <label class="cf-panel__field">
+                    <span>问题</span>
+                    <input id="knowledge-query-question" class="cf-panel__input" type="text" placeholder="根据知识库回答..." autocomplete="off" />
+                  </label>
+                  <label class="cf-panel__field">
+                    <span>知识库 ID</span>
+                    <input id="knowledge-query-kb-id" class="cf-panel__input" type="text" value="default" autocomplete="off" />
+                  </label>
+                  <label class="cf-panel__field">
+                    <span>Top K</span>
+                    <input id="knowledge-query-top-k" class="cf-panel__input" type="number" min="1" value="4" autocomplete="off" />
+                  </label>
+                  <button id="knowledge-query-submit" class="cf-panel__button" type="button" disabled>提问</button>
+                  <p id="knowledge-query-status" class="request-status idle">输入问题以查询知识库。</p>
+                  <div id="knowledge-query-result" class="hidden"></div>
+                </details>
               </section>
 
               <section class="cf-panel">
                 <div class="cf-panel__header">
-                  <h2>文件 / 工具</h2>
-                  <a class="cf-panel__link" href="./index-classic.html?tab=files-tools">打开工具</a>
+                  <h2>文件预览</h2>
                 </div>
-                <p class="cf-panel__hint">仅手动操作。不支持拖拽上传。未挂载文件上下文。</p>
-                <div class="cf-panel__list">
-                  <div class="cf-panel__list-row">
-                    <span>当前阶段</span>
-                    <span>只读入口 + 摘要</span>
-                  </div>
-                  <div class="cf-panel__list-row">
-                    <span>源挂载</span>
-                    <span>未启用</span>
-                  </div>
-                  <div class="cf-panel__list-row">
-                    <span>上传</span>
-                    <span>未启用</span>
-                  </div>
+                <label class="cf-panel__field">
+                  <span>文件路径</span>
+                  <input id="file-preview-path" class="cf-panel__input" type="text" placeholder="例如：README.md" autocomplete="off" />
+                </label>
+                <div class="cf-panel__actions">
+                  <button id="read-file-preview" class="cf-panel__button" type="button" disabled>读取预览</button>
+                  <button id="summarize-file-preview" class="cf-panel__button" type="button" disabled>生成总结</button>
                 </div>
-                <p id="cf-files-summary" class="cf-panel__hint">检查后端以加载工具可用性。</p>
+                <p id="file-preview-status" class="request-status idle">输入文件路径以开始。</p>
+                <div id="file-preview-result" class="hidden"></div>
+                <p id="file-summary-status" class="request-status idle">仅预览成功后且点击按钮时才能生成总结。</p>
+                <div id="file-summary-result" class="hidden"></div>
               </section>
 
               <section class="cf-panel">
