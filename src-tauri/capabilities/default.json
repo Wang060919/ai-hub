@@ -11,6 +11,13 @@
     "core:webview:default",
     "core:window:default",
     "allow-fetch-backend-metadata",
-    "allow-send-chat-message"
+    "allow-send-chat-message",
+    "allow-preview-file",
+    "allow-summarize-file",
+    "allow-fetch-knowledge-status",
+    "allow-index-knowledge-file",
+    "allow-index-knowledge-markdown-directory",
+    "allow-search-knowledge",
+    "allow-query-knowledge"
   ]
 }

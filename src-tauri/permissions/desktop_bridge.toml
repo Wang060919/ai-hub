@@ -1,0 +1,34 @@
+[[permission]]
+identifier = "allow-preview-file"
+description = "Enables the preview_file command for forwarding file preview requests to the local FastAPI backend."
+commands.allow = ["preview_file"]
+
+[[permission]]
+identifier = "allow-summarize-file"
+description = "Enables the summarize_file command for forwarding file summary requests to the local FastAPI backend."
+commands.allow = ["summarize_file"]
+
+[[permission]]
+identifier = "allow-fetch-knowledge-status"
+description = "Enables the fetch_knowledge_status command for forwarding knowledge status requests to the local FastAPI backend."
+commands.allow = ["fetch_knowledge_status"]
+
+[[permission]]
+identifier = "allow-index-knowledge-file"
+description = "Enables the index_knowledge_file command for forwarding single-file knowledge indexing requests to the local FastAPI backend."
+commands.allow = ["index_knowledge_file"]
+
+[[permission]]
+identifier = "allow-index-knowledge-markdown-directory"
+description = "Enables the index_knowledge_markdown_directory command for forwarding Markdown directory indexing requests to the local FastAPI backend."
+commands.allow = ["index_knowledge_markdown_directory"]
+
+[[permission]]
+identifier = "allow-search-knowledge"
+description = "Enables the search_knowledge command for forwarding knowledge search requests to the local FastAPI backend."
+commands.allow = ["search_knowledge"]
+
+[[permission]]
+identifier = "allow-query-knowledge"
+description = "Enables the query_knowledge command for forwarding knowledge question requests to the local FastAPI backend."
+commands.allow = ["query_knowledge"]
