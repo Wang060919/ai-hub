@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI Hub | Chat-first</title>
+    <link rel="stylesheet" href="./styles/chat-first.css" />
+  </head>
+  <body class="aihub-chat-first">
+    <main id="chat-first-root" class="cf-shell">
+      <section class="cf-window">
+        <header class="cf-topbar">
+          <div class="cf-topbar__brand">
+            <div id="orbit-app-icon" class="cf-topbar__icon" aria-hidden="true"></div>
+            <div>
+              <div class="cf-topbar__title">AI Hub</div>
+              <div class="cf-topbar__subtitle">Chat-first Orbit Core Candidate</div>
+            </div>
+          </div>
+
+          <div class="cf-topbar__controls">
+            <label class="cf-topbar__backend">
+              <span class="cf-topbar__label">Backend</span>
+              <input
+                id="backend-url"
+                class="cf-topbar__input"
+                type="url"
+                value="http://127.0.0.1:8000"
+              />
+            </label>
+            <button id="check-backend" class="cf-topbar__button" type="button">
+              Check Backend
+            </button>
+            <div class="cf-topbar__status-group" aria-label="Backend route status">
+              <span class="cf-topbar__pill">
+                <span class="cf-topbar__pill-label">Backend</span>
+                <strong id="cf-topbar-backend-value">http://127.0.0.1:8000</strong>
+              </span>
+              <span class="cf-topbar__pill">
+                <span class="cf-topbar__pill-label">Model</span>
+                <strong id="cf-topbar-model-value">Route: Existing backend</strong>
+              </span>
+              <span class="cf-topbar__pill">
+                <span class="cf-topbar__pill-label">Status</span>
+                <strong id="cf-topbar-status-value" data-tone="idle">Not checked</strong>
+              </span>
+            </div>
+            <a class="cf-topbar__link" href="./index.html">Classic Home</a>
+          </div>
+        </header>
+
+        <div class="cf-layout">
+          <aside class="cf-drawer" aria-label="Data sources drawer">
+            <div class="cf-drawer__inner">
+              <section class="cf-panel">
+                <div class="cf-panel__header">
+                  <h2>Backend Status</h2>
+                  <a class="cf-panel__link" href="./index.html?tab=status">Open Classic</a>
+                </div>
+                <div class="cf-panel__summary-grid">
+                  <div class="cf-panel__summary-item">
+                    <span>Online</span>
+                    <strong id="panel-backend-online">Waiting</strong>
+                  </div>
+                  <div class="cf-panel__summary-item">
+                    <span>Version</span>
+                    <strong id="panel-backend-version">-</strong>
+                  </div>
+                  <div class="cf-panel__summary-item">
+                    <span>App</span>
+                    <strong id="panel-backend-app">-</strong>
+                  </div>
+                  <div class="cf-panel__summary-item">
+                    <span>Skills</span>
+                    <strong id="panel-backend-skills">0</strong>
+                  </div>
+                </div>
+                <p id="panel-backend-status" class="request-status idle">Check backend to load summary.</p>
+                <p id="cf-backend-message" class="cf-panel__hint">Backend metadata is not loaded yet.</p>
+              </section>
+
+              <section class="cf-panel">
+                <div class="cf-panel__header">
+                  <h2>Knowledge Summary</h2>
+                  <button id="cf-refresh-knowledge" class="cf-panel__button" type="button">
+                    Refresh
+                  </button>
+                </div>
+                <div class="cf-panel__summary-grid">
+                  <div class="cf-panel__summary-item">
+                    <span>Files</span>
+                    <strong id="panel-knowledge-files">-</strong>
+                  </div>
+                  <div class="cf-panel__summary-item">
+                    <span>Markdown</span>
+                    <strong id="panel-knowledge-markdown-files">-</strong>
+                  </div>
+                  <div class="cf-panel__summary-item">
+                    <span>Chunks</span>
+                    <strong id="panel-knowledge-chunks">-</strong>
+                  </div>
+                  <div class="cf-panel__summary-item">
+                    <span>Index</span>
+                    <strong id="panel-knowledge-index-method">-</strong>
+                  </div>
+                  <div class="cf-panel__summary-item">
+                    <span>FTS Enabled</span>
+                    <strong id="panel-knowledge-fts-enabled">-</strong>
+                  </div>
+                  <div class="cf-panel__summary-item">
+                    <span>FTS Available</span>
+                    <strong id="panel-knowledge-fts-available">-</strong>
+                  </div>
+                </div>
+                <p id="panel-knowledge-status" class="request-status idle">Knowledge summary stays idle until backend is checked.</p>
+                <p id="cf-knowledge-message" class="cf-panel__hint">Knowledge summary stays idle until backend is checked.</p>
+                <a class="cf-panel__link" href="./index.html?tab=files-tools&section=knowledge-section">Open Knowledge</a>
+              </section>
+
+              <section class="cf-panel">
+                <div class="cf-panel__header">
+                  <h2>Files / Tools</h2>
+                  <a class="cf-panel__link" href="./index.html?tab=files-tools">Open Tools</a>
+                </div>
+                <p class="cf-panel__hint">Manual only. No drag upload. No mounted file context.</p>
+                <div class="cf-panel__list">
+                  <div class="cf-panel__list-row">
+                    <span>Current stage</span>
+                    <span>Read-only entry + summary</span>
+                  </div>
+                  <div class="cf-panel__list-row">
+                    <span>Source mounting</span>
+                    <span>Not enabled</span>
+                  </div>
+                  <div class="cf-panel__list-row">
+                    <span>Upload</span>
+                    <span>Not enabled</span>
+                  </div>
+                </div>
+                <p id="cf-files-summary" class="cf-panel__hint">Check backend to load tool availability.</p>
+              </section>
+
+              <section class="cf-panel">
+                <div class="cf-panel__header">
+                  <h2>Chat Workspace Helper</h2>
+                  <a id="cf-helper-classic-link" class="cf-panel__link" href="./index.html?tab=chat">Classic Chat</a>
+                </div>
+                <div class="cf-panel__list">
+                  <div class="cf-panel__list-row">
+                    <span>Current mode</span>
+                    <span id="cf-helper-mode-value">Chat</span>
+                  </div>
+                  <div class="cf-panel__list-row">
+                    <span>Backend checked</span>
+                    <span id="cf-helper-backend-value">Pending</span>
+                  </div>
+                  <div class="cf-panel__list-row">
+                    <span>History</span>
+                    <span>Recent turns only</span>
+                  </div>
+                </div>
+                <div class="cf-panel__actions">
+                  <button id="cf-helper-mode-chat" class="cf-panel__button" type="button">Mode: Chat</button>
+                  <button id="cf-helper-mode-knowledge" class="cf-panel__button" type="button">Mode: Knowledge</button>
+                  <button id="cf-helper-clear-chat" class="cf-panel__button" type="button">Clear Session</button>
+                </div>
+              </section>
+            </div>
+          </aside>
+
+          <section class="cf-chat">
+            <div class="cf-chat__header">
+              <button id="cf-drawer-toggle" class="cf-chat__drawer-toggle" type="button" aria-expanded="false">
+                Show Drawer
+              </button>
+              <div class="cf-chat__header-actions">
+                <a class="cf-chat__header-link" href="./index.html?tab=status">Status</a>
+                <a class="cf-chat__header-link" href="./index.html?tab=files-tools">Files / Tools</a>
+              </div>
+            </div>
+
+            <div class="cf-chat__context">
+              <div class="cf-context__row">
+                <span id="cf-context-mode" class="cf-context__chip">Mode: Chat</span>
+                <span id="cf-context-backend" class="cf-context__chip">Backend: Not checked</span>
+                <span id="cf-context-history" class="cf-context__chip">History: 0/4 turns</span>
+              </div>
+              <div class="cf-context__row">
+                <span id="cf-context-safety" class="cf-context__chip cf-context__chip--soft">Manual only</span>
+                <span id="cf-context-uploads" class="cf-context__chip cf-context__chip--soft">No auto file upload</span>
+              </div>
+              <div class="cf-context__actions">
+                <button id="cf-context-mode-chat" class="cf-context__button" type="button">Chat</button>
+                <button id="cf-context-mode-knowledge" class="cf-context__button" type="button">Knowledge</button>
+                <button id="cf-clear-chat" class="cf-context__button" type="button">Clear Chat</button>
+              </div>
+            </div>
+
+            <section class="cf-chat__workspace">
+              <div class="cf-chat__intro">
+                <div class="cf-chat__intro-badge">Chat-first Home</div>
+                <h1>AI Hub main workspace, redesigned around conversation.</h1>
+                <p>
+                  This page reuses the existing AI Hub chat and knowledge behaviors. It does not auto-call
+                  <code>/chat</code>, does not upload files, and does not mount local sources.
+                </p>
+              </div>
+
+              <p id="request-status" class="request-status idle">Backend has not been checked yet.</p>
+
+              <div
+                id="chat-messages"
+                class="cf-chat__messages"
+                role="log"
+                aria-live="polite"
+                aria-label="Chat messages"
+              >
+                <div class="chat-empty-state">Send a message to begin.</div>
+              </div>
+
+              <div class="cf-chat__mode-row">
+                <span class="cf-chat__mode-label">Mode</span>
+                <div class="cf-chat__mode-toggle" role="radiogroup" aria-label="Chat mode">
+                  <button
+                    id="chat-mode-normal"
+                    class="cf-chat__mode-button active"
+                    type="button"
+                    role="radio"
+                    aria-checked="true"
+                  >
+                    Chat
+                  </button>
+                  <button
+                    id="chat-mode-knowledge"
+                    class="cf-chat__mode-button"
+                    type="button"
+                    role="radio"
+                    aria-checked="false"
+                  >
+                    Knowledge
+                  </button>
+                </div>
+              </div>
+
+              <div id="chat-knowledge-params" class="cf-chat__knowledge-params hidden">
+                <label class="cf-chat__field">
+                  <span>Knowledge Base ID</span>
+                  <input id="chat-kb-id" class="cf-chat__input" type="text" value="default" autocomplete="off" />
+                </label>
+                <label class="cf-chat__field">
+                  <span>Top K</span>
+                  <input id="chat-top-k" class="cf-chat__input" type="number" min="1" value="4" autocomplete="off" />
+                </label>
+              </div>
+
+              <div class="cf-chat__composer">
+                <label class="cf-chat__composer-label" for="chat-message">Message</label>
+                <textarea
+                  id="chat-message"
+                  class="cf-chat__textarea"
+                  rows="4"
+                  placeholder="Try: hello ai hub"
+                ></textarea>
+                <div class="cf-chat__composer-actions">
+                  <button id="send-chat" class="cf-chat__send-button" type="button" disabled>Send</button>
+                </div>
+                <p id="chat-status" class="request-status idle">Waiting for a manual chat request.</p>
+              </div>
+            </section>
+
+            <footer class="cf-footer">
+              <span>Local Privacy Guard: Data is not uploaded.</span>
+              <span class="cf-footer__sep">|</span>
+              <span>Status:</span>
+              <span id="cf-footer-dot" class="cf-footer__dot" aria-hidden="true"></span>
+              <span id="cf-footer-status">Idle</span>
+            </footer>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script src="./chat-first.js" type="module"></script>
+  </body>
+</html>
