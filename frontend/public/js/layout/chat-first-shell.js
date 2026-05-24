@@ -22,6 +22,44 @@ function setConnectionStatus(status) {
   label.textContent = status === "connected" ? "已连接" : status === "error" ? "连接失败" : "空闲";
 }
 
+function bindWindowControls() {
+  const currentWindow = window.__TAURI__?.window?.getCurrentWindow?.();
+  const buttons = document.querySelectorAll("[data-window-action]");
+
+  if (!currentWindow) {
+    buttons.forEach((btn) => {
+      btn.disabled = true;
+    });
+    return;
+  }
+
+  buttons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const action = btn.dataset.windowAction;
+
+      if (action === "minimize") {
+        currentWindow.minimize();
+      } else if (action === "toggle-maximize") {
+        currentWindow.toggleMaximize();
+      } else if (action === "close") {
+        currentWindow.close();
+      }
+    });
+  });
+}
+
+function bindTitlebarDrag() {
+  const currentWindow = window.__TAURI__?.window?.getCurrentWindow?.();
+  if (!currentWindow?.startDragging) return;
+
+  document.querySelectorAll(".app-titlebar, .app-titlebar-brand, .app-titlebar-drag").forEach((area) => {
+    area.addEventListener("pointerdown", async (event) => {
+      if (event.target.closest(".app-titlebar-actions, .app-titlebar-controls, button")) return;
+      await currentWindow.startDragging();
+    });
+  });
+}
+
 export function createDesktopShell({ dom, state, actions }) {
   function navigateTo(page) {
     state.activePage = page;
@@ -49,6 +87,9 @@ export function createDesktopShell({ dom, state, actions }) {
         navigateTo(page);
       });
     });
+
+    bindWindowControls();
+    bindTitlebarDrag();
   }
 
   return {

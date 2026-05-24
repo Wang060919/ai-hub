@@ -52,8 +52,79 @@ body.aihub-desktop {
 /* ===== Desktop Shell ===== */
 .desktop-shell {
   display: flex;
+  flex-direction: column;
   width: 100vw;
   height: 100vh;
+  overflow: hidden;
+}
+
+.app-titlebar {
+  display: flex;
+  align-items: center;
+  flex: 0 0 36px;
+  height: 36px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  user-select: none;
+}
+
+.app-titlebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  min-width: var(--sidebar-width);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.app-titlebar-icon {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  box-shadow: 0 0 0 4px var(--color-primary-soft);
+}
+
+.app-titlebar-drag {
+  flex: 1;
+  align-self: stretch;
+}
+
+.app-titlebar-controls {
+  display: flex;
+  align-self: stretch;
+}
+
+.app-titlebar-button {
+  width: 46px;
+  border: 0;
+  color: var(--color-text-muted);
+  background: transparent;
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.app-titlebar-button:hover {
+  color: var(--color-text);
+  background: var(--color-surface-soft);
+}
+
+.app-titlebar-button:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.app-titlebar-button-close:hover {
+  color: #ffffff;
+  background: #d7263d;
+}
+
+.desktop-content {
+  display: flex;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -63,7 +134,7 @@ body.aihub-desktop {
   flex-direction: column;
   width: var(--sidebar-width);
   min-width: var(--sidebar-width);
-  height: 100vh;
+  height: 100%;
   background: var(--color-surface);
   border-right: 1px solid var(--color-border);
   box-shadow: var(--shadow-sidebar);
@@ -184,7 +255,7 @@ body.aihub-desktop {
 .desktop-main {
   flex: 1;
   min-width: 0;
-  height: 100vh;
+  height: 100%;
   overflow: hidden;
   position: relative;
 }

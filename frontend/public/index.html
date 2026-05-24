@@ -8,13 +8,26 @@
   </head>
   <body class="aihub-desktop">
     <div class="desktop-shell">
-
-      <!-- ====== Sidebar ====== -->
-      <aside class="desktop-sidebar" aria-label="主导航">
-        <div class="sidebar-brand">
-          <div id="orbit-app-icon" class="sidebar-brand-icon" aria-hidden="true"></div>
-          <span class="sidebar-brand-text">AI Hub</span>
+      <header class="app-titlebar" data-tauri-drag-region>
+        <div class="app-titlebar-brand" data-tauri-drag-region>
+          <span class="app-titlebar-icon" aria-hidden="true"></span>
+          <span class="app-titlebar-title">AI Hub</span>
         </div>
+        <div class="app-titlebar-drag" data-tauri-drag-region></div>
+        <div class="app-titlebar-controls" aria-label="窗口控制">
+          <button class="app-titlebar-button" type="button" data-window-action="minimize" aria-label="最小化">−</button>
+          <button class="app-titlebar-button" type="button" data-window-action="toggle-maximize" aria-label="最大化或还原">□</button>
+          <button class="app-titlebar-button app-titlebar-button-close" type="button" data-window-action="close" aria-label="关闭">×</button>
+        </div>
+      </header>
+
+      <div class="desktop-content">
+        <!-- ====== Sidebar ====== -->
+        <aside class="desktop-sidebar" aria-label="主导航">
+          <div class="sidebar-brand">
+            <div id="orbit-app-icon" class="sidebar-brand-icon" aria-hidden="true"></div>
+            <span class="sidebar-brand-text">AI Hub</span>
+          </div>
 
         <nav class="sidebar-nav" role="navigation">
           <button class="sidebar-nav-item active" data-page="chat" type="button">
@@ -257,6 +270,7 @@
         </section>
 
       </main>
+      </div>
     </div>
 
     <script src="./chat-first.js" type="module"></script>
