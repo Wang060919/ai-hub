@@ -630,7 +630,7 @@ V1.8 保留说明：
 
 ### V2.0：AI Hub 桌面工作台产品化界面第一版
 
-**状态**：`DOING`（M1-M6 已基本完成，M7 收尾待完成；M8 规划已补充，待执行）
+**状态**：`DONE`
 
 任务清单：
 
@@ -640,8 +640,8 @@ V1.8 保留说明：
 - [x] M4：Chat 页面体验优化（去除技术细节、简化知识库展示）
 - [x] M5：Knowledge 页面信息架构整理（折叠分组、Markdown 接入合并）
 - [x] M6：Files / Tools 页面统一（卡片样式对齐）
-- [ ] M7：回归验证、文档同步、tag
-- [ ] M8：视觉强化与首页重构
+- [x] M7：回归验证、文档同步、tag
+- [x] M8：视觉强化与首页重构
 
 当前支持：
 - 统一的设计 Token 体系（间距、圆角、阴影、表面色）
@@ -712,6 +712,87 @@ V2.0-M8 推荐验收标准：
 
 ---
 
+### V2.1：Chat-first 抽屉式 UI 原型
+
+**状态**：`DONE`
+
+**目标**：聊天界面重构为左侧抽屉 + 右侧主区域的 chat-first 布局。
+
+任务清单：
+
+- [x] 新增 `chat-first.html` 原型页面
+- [x] 新增 `styles/chat-first.css` 独立样式体系
+- [x] 新增 `js/layout/chat-first-shell.js` Shell 状态管理
+- [x] 抽屉内集成后端状态、知识库、文件预览面板
+- [x] 新增 `orbit-icon.js` 品牌图标组件
+- [x] 新增 `prototypes/chat-first-drawer-ui/` 原型目录
+- [x] chat-first 设为默认首页
+- [x] 清理重复文件和旧 `services/api.js`
+
+不包含：不改后端 API、不改 Tauri、不新增依赖。
+
+---
+
+### V2.2：Classic 功能迁移至 Chat-first
+
+**状态**：`DONE`
+
+**目标**：将经典首页全部功能迁移到 chat-first 架构下。
+
+任务清单：
+
+- [x] Chat 功能在 chat-first 中可用
+- [x] Files 功能在 chat-first 中可用
+- [x] Knowledge 功能在 chat-first 中可用
+- [x] Backend Status 在 chat-first 中可用
+- [x] `chat-first.js` 作为新主入口，导入全部 JS 模块
+- [x] 经典首页归档为 `index-classic.html`
+- [x] 删除重复的 `chat-first.html`
+
+---
+
+### V2.3：Tauri 桌面集成 MVP（Rust 代理层）
+
+**状态**：`DONE`
+
+**目标**：在 Tauri 桌面端建立 Rust reqwest 代理层，封装全部后端端点。
+
+任务清单：
+
+- [x] `src-tauri/src/lib.rs` 实现完整 Rust 代理（528 行）
+- [x] 代理全部后端端点（chat / files / knowledge / metadata）
+- [x] `capabilities/default.json` 配置权限白名单
+- [x] `permissions/desktop_bridge.toml` 自定义权限定义
+- [x] `client.js` 新增 `isTauriRuntime()` 双模式路由
+- [x] Tauri 模式走 Rust invoke，浏览器模式走 fetch
+- [x] 不开放 fs/shell/系统托盘权限
+
+---
+
+### V2.4：桌面 App Shell + 自定义标题栏
+
+**状态**：`DONE`
+
+**目标**：Chat-first 抽屉 UI 重构为桌面 App Shell：标题栏 + Sidebar + 四页独立布局。
+
+任务清单：
+
+- [x] `index.html` 重写为桌面 Shell DOM 结构（278 行）
+- [x] 自定义标题栏：最小化/最大化/关闭按钮 + 拖拽区域
+- [x] 左侧 Sidebar：品牌区 + 四页导航 + 连接状态指示器
+- [x] 主内容区四个独立页面区域（chat/files/knowledge/status）
+- [x] `chat-first.css` 适配 Shell 布局（填满窗口、独立滚动）
+- [x] `chat-first-shell.js` 改造为页面路由控制器
+- [x] `chat-first.js` 重新编排全部模块
+- [x] 移除 Web 模式元素：顶栏后端地址、上下文栏、页脚
+- [x] `npm run build` 通过
+- [x] `node --check` 全量通过
+- [x] Git 提交 `feat: add custom desktop titlebar`
+
+仍不支持：新后端能力、React/Vue、暗色模式、系统托盘、桌宠、自动 Agent。
+
+---
+
 ## 二、开发工程线
 
 开发工程线不面向用户，用于提高开发效率。
@@ -771,66 +852,4 @@ V2.0-M8 推荐验收标准：
 
 **状态**：`TODO`
 
-- [ ] 制定每次修改后的最小验证步骤
-- [ ] 核心功能打开检查
-- [ ] 主流程跑通检查
-- [ ] 明显报错检查
-- [ ] 文档同步检查
-
-### E8：打包发布流程
-
-**状态**：`TODO`
-
-- [ ] Tauri 桌面端打包流程
-- [ ] 版本号管理规范
-- [ ] 发布说明模板
-
----
-
-## 三、历史实验记录（已完成）
-
-以下为 V0.x 阶段已完成的实验记录，保留作为技术参考：
-
-- V0.1 微核心验证版 — FastAPI + Skill 插件架构验证（`DONE`）
-- V0.2 学习能力接入版 — DifyEnglishSkill 接入（`DONE`）
-- V0.3 AI Router 实验 — Ollama 路由实验（`DONE`）
-- V0.4 Safe Actions 实验 — ActionPlan 生成（`DONE`）
-- V0.5 File Analysis Plan 实验 — FileAnalysisPlan 生成（`DONE`）
-- V0.6 File Inventory 实验 — 文件清单解析（`DONE`）
-- V0.7 ReadOnlyFileScanner 实验 — 只读文件扫描（`DONE`）
-- V0.8 ReadOnlyTextPreview 实验 — 文本预览（`DONE`）
-- V0.9 API Stabilization 实验 — /health /version /skills 接口（`DONE`）
-- V1.0 Phase 1 Desktop MVP — 前端状态壳（`DONE`）
-- V1.0 Phase 2 Desktop Chat Page — 聊天页面（`DONE`）
-- V1.0 Phase 3 Files / Tools Page — 文件工具页面（`DONE`）
-- V1.0 Phase 4 Tauri Desktop Wrapper — Tauri 桌面包装（`DONE`）
-- V1.0.1 Desktop Startup Polish — 启动体验优化（`DONE`）
-
-## 执行规则
-
-- 优先级顺序：产品功能线按版本号顺序执行，开发工程线按需穿插
-- 每次只执行一个小任务
-- 不得跨版本并行开发多个功能模块
-- 若任务超出当前版本边界，必须停止并回看 VERSION_PLAN.md
-- 完成每个版本后必须更新本文档状态
-
-# V1.1-M6 最新同步
-
-当前 V1.1 高适配性底层框架进度：
-
-- [x] V1.1-M2 后端分层目录骨架已完成
-- [x] V1.1-M3 core 基础模块已完成
-- [x] V1.1-M4 API 路由拆分已完成
-- [x] V1.1-M5 前端预留结构已完成
-- [ ] V1.1-M7 轻量验证
-
-说明：
-
-- M2 建立了 `backend/core/`、`backend/api/`、`backend/services/`、`backend/adapters/`、`backend/modules/` 等后端分层目录骨架。
-- M3 建立了 `backend/core/config.py`、`backend/core/logging.py`、`backend/core/errors.py`，仅提供基础配置、日志、错误定义，未接入现有业务逻辑。
-- M4 将 `/health`、`/version`、`/skills`、`/chat` 路由拆入 `backend/api/routes/`，接口路径、请求格式和响应格式保持不变。
-- M5 建立了 `frontend/components/`、`frontend/pages/`、`frontend/preview/`、`frontend/services/api.js`，仅作为前端组件化和 API 封装预留结构，暂未接入现有页面。
-- V1.1 下一步是 M7 轻量验证。
-
----
-
+- [ ] 制�

@@ -4,12 +4,13 @@ AI Hub 是一个长期演进的个人 AI 桌面工作站 / 本地 AI Hub / 可�
 
 ## 当前状态
 
-V1.0 / V1.0.1 已基本完成：
+V2.4 已基本完成：
 
-- Tauri 桌面端基础结构
-- Backend Status / Chat / Files & Tools 基础页面
-- 桌面端启动体验优化
-- Git 管理和基础文档
+- V2.0 产品化界面打底（设计 Token、Panel/Chat/Knowledge/Files 统一 UI）
+- V2.1 Chat-first 抽屉式 UI（chat-first.html 原型落地）
+- V2.2 Classic 功能完整迁移至 Chat-first 架构
+- V2.3 Tauri 桌面集成 MVP（Rust Reqwest 代理层，所有后端端点通过 Tauri command 调用）
+- V2.4 桌面 App Shell 重构（自定义标题栏、Sidebar 四页导航、填满窗口布局）
 
 ## 技术栈
 
@@ -32,7 +33,11 @@ V1.0 / V1.0.1 已基本完成：
 | V1.7 | 本地 Markdown 笔记接入 / Obsidian Bridge 第一版 | M3-M6 已完成，等待 M7 |
 | V1.8 | Tauri 桌面体验增强 + Panel 轻量优化 | M2-M6 已完成，等待 M7 |
 | V1.9 | Chat 与 Knowledge 手动联动第一版 | M1/M2/M3 已完成，等待收尾验证 |
-| V2.0 | AI Hub 桌面工作台产品化界面第一版 | M1-M6 已基本完成，M7 收尾中，M8 规划已补充 |
+| V2.0 | AI Hub 桌面工作台产品化界面第一版 | 已完成 |
+| V2.1 | Chat-first 抽屉式 UI 原型 | 已完成 |
+| V2.2 | Classic 功能迁移至 Chat-first | 已完成 |
+| V2.3 | Tauri 桌面集成 MVP（Rust 代理层） | 已完成 |
+| V2.4 | 桌面 App Shell + 自定义标题栏 | 已完成 |
 
 详见 [docs/VERSION_PLAN.md](docs/VERSION_PLAN.md)。
 
@@ -260,15 +265,4 @@ V1.6 当前仍不支持：
 
 - 不做 3D / Live2D
 - 不做复杂动画
-- 不做语音
-- 不做截图 OCR
-- 不做文件上传
-- 不做 embedding / ChromaDB
-- 不做 `/chat` 自动接入知识库
-- 不做自动扫描目录
-- 不做自动长期记忆
-- 不做自动执行 PR / 修复
-- 不做透明 / 置顶 / 无边框 Tauri 窗口
-- 不做大规模前端重构
-
-Panel 是入口层，不替代完整 Chat / Files / Knowledge 页面；后续如进入桌宠形态，也应在当前面板第一版完成并验证后再单独规划。
+- 不�

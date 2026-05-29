@@ -651,7 +651,7 @@ V1.4-M13 文档修正补充：上方 V1.4 节若仍保留旧表述，以本补�
 
 ### V2.0：AI Hub 桌面工作台产品化界面第一版
 
-**状态**：M1-M6 已基本完成，M7 收尾待完成；V2.0-M8 文档规划已补充，待进入实现。
+**状态**：已完成。M1-M8 已全部完成。
 
 **目标**：在不新增功能的前提下，统一前端 UI 视觉风格、优化信息架构、让页面更像成熟桌面产品。
 
@@ -663,8 +663,8 @@ V1.4-M13 文档修正补充：上方 V1.4 节若仍保留旧表述，以本补�
 - M4：Chat 页面体验优化（去除技术细节、简化知识库结果展示、中文友好错误提示）
 - M5：Knowledge 页面信息架构整理（折叠式分组、Markdown 接入合并、搜索/问答区分）
 - M6：Files / Tools 页面统一（卡片样式与 Panel/Knowledge 对齐）
-- M7：收尾验证与文档同步（待完成）
-- M8：视觉强化与首页重构（文档规划已补充，待执行）
+- M7：收尾验证与文档同步（已完成）
+- M8：视觉强化与首页重构（已完成）
 
 **改版原则**：
 
@@ -732,6 +732,109 @@ V1.4-M13 文档修正补充：上方 V1.4 节若仍保留旧表述，以本补�
 - 真正桌宠
 - 自动 Agent
 - 自动 chat / summarize / query / 入库
+
+---
+
+### V2.1：Chat-first 抽屉式 UI 原型
+
+**状态**：已完成。
+
+**目标**：将聊天界面重构为左侧抽屉 + 右侧主区域的 chat-first 布局，替代经典多 Tab 页面。
+
+**已完成内容**：
+
+- 新增 `frontend/public/chat-first.html` 原型页面
+- 新增 `frontend/public/styles/chat-first.css` 独立样式体系
+- 新增 `frontend/public/js/layout/chat-first-shell.js` Shell 状态管理
+- 抽屉内集成后端状态、知识库、文件预览、聊天工作区面板
+- 新增 `frontend/public/js/components/orbit-icon.js` 品牌图标组件
+- 新增 `frontend/public/prototypes/chat-first-drawer-ui/` 原型目录
+
+**改版原则**：
+
+- 保留 Vanilla JS + CSS 架构
+- 不新增后端能力、API 或依赖
+- chat-first.html 作为新默认首页，经典 index.html 保留为兼容模式
+
+---
+
+### V2.2：Classic 功能迁移至 Chat-first
+
+**状态**：已完成。
+
+**目标**：将经典首页（`index-classic.html` + `app.js` + `styles.css`）的全部功能迁移到 chat-first 架构下。
+
+**已完成内容**：
+
+- Chat、Files、Knowledge、Backend Status 全部功能在 chat-first 抽屉 UI 中可用
+- `chat-first.js` 作为新主入口，导入全部 JS 模块（chat/files/knowledge/panel/api/core/ui/catalog）
+- 经典首页归档为 `index-classic.html`，保留浏览器兼容模式
+- 删除重复的 `chat-first.html` 和旧 `frontend/services/api.js`
+
+**不包含**：
+
+- 不改变后端 API
+- 不改变 Tauri 配置
+- 不新增依赖
+
+---
+
+### V2.3：Tauri 桌面集成 MVP（Rust 代理层）
+
+**状态**：已完成。
+
+**目标**：在 Tauri 桌面端建立 Rust 原生代理层，通过 `reqwest` 将全部后端端点封装为 Tauri command，使前端可通过 `window.__TAURI__.core.invoke()` 调用。
+
+**已完成内容**：
+
+- `src-tauri/src/lib.rs` 实现完整 Rust 代理层（528 行）
+- 代理的后端端点：`fetch_backend_metadata`、`send_chat_message`、`preview_file`、`summarize_file`、`fetch_knowledge_status`、`index_knowledge_file`、`index_knowledge_markdown_directory`、`search_knowledge`、`query_knowledge`
+- `src-tauri/capabilities/default.json` 配置 Tauri 权限白名单
+- `src-tauri/permissions/desktop_bridge.toml` 自定义权限定义
+- `frontend/public/js/api/client.js` 新增 `isTauriRuntime()` / `getTauriInvoke()` 双模式路由（Tauri 模式走 Rust 代理，浏览器模式走 fetch）
+
+**安全边界**：
+
+- Tauri 仅开放 HTTP 客户端权限（reqwest），不开放 `fs`、`shell`、系统托盘
+- 不自动启动后端
+- 不扩大 API Key 暴露面
+
+---
+
+### V2.4：桌面 App Shell + 自定义标题栏
+
+**状态**：已完成。
+
+**目标**：将 Chat-first 抽屉 UI 重构为真正的桌面应用 Shell：自定义标题栏 + Sidebar 四页导航 + 填满窗口布局。
+
+**已完成内容**：
+
+- `frontend/public/index.html` 重写为桌面 Shell 结构（278 行）
+- 自定义标题栏：最小化 / 最大化 / 关闭按钮，`data-tauri-drag-region` 拖拽区域
+- 左侧 Sidebar（200px）：AI Hub 品牌区、四页导航（聊天 / 文件 / 知识库 / 状态）、底部连接状态指示器
+- 主内容区四个独立页面：`#page-chat`（默认）、`#page-files`、`#page-knowledge`、`#page-status`
+- 每个页面内独立滚动，Shell 填满 `100vw × 100vh`
+- `frontend/public/js/layout/chat-first-shell.js` 改造为页面路由 + 连接指示器
+- `frontend/public/chat-first.js` 作为新主入口，编排全部模块
+- Sidebar 导航按钮通过 `data-page` 属性驱动页面切换
+
+**移除的 Web 模式元素**：
+
+- 移除顶栏后端地址输入框（迁至状态页）
+- 移除上下文栏技术细节展示（后端地址 / 模型 / 历史轮数）
+- 移除全局页脚连接状态
+- 移除页面内 `<a>` 跳转链接
+- 移除固定宽度容器（`max-width: 1320px`），改为填满窗口
+
+**仍不支持**：
+
+- 新后端能力 / API
+- PDF / Word / Excel
+- React / Vue 重构
+- 暗色模式
+- 系统托盘 / 快捷键 / 悬浮窗
+- 真正桌宠
+- 自动 Agent
 
 ---
 
@@ -845,96 +948,4 @@ V1.4-M13 文档修正补充：上方 V1.4 节若仍保留旧表述，以本补�
 ## 四、开发原则
 
 1. V1.1 只做高适配性底层框架，不在 V1.1 里强行塞具体业务功能
-2. V1.2 及后续版本每次只主攻一个功能模块
-3. 后续功能必须按 modules / services / adapters / api / frontend 的分层规则接入
-4. 不允许把大量逻辑堆进单个 app.js 或单个页面文件
-5. 不允许未讨论清楚就直接实现功能
-6. 不允许为了速度破坏整体架构
-7. 功能不删减，但按版本逐步落地
-8. 开发工程线和产品功能线分开记录
-
-# V1.1-M6 当前进度同步
-
-V1.1 高适配性底层框架当前状态：进行中，M2-M5 已完成。
-
-已完成里程碑：
-
-- V1.1-M2 后端分层目录骨架已完成。
-- V1.1-M3 core 基础模块已完成。
-- V1.1-M4 API 路由拆分已完成。
-- V1.1-M5 前端预留结构已完成。
-
-当前已经落地的结构：
-
-- 后端已预留 `backend/core/`、`backend/api/`、`backend/services/`、`backend/adapters/`、`backend/modules/`。
-- `backend/core/` 已包含 `config.py`、`logging.py`、`errors.py`。
-- API 路由已拆分到 `backend/api/routes/health.py`、`backend/api/routes/meta.py`、`backend/api/routes/chat.py`。
-- 前端已预留 `frontend/components/`、`frontend/pages/`、`frontend/preview/`、`frontend/services/api.js`。
-
-当前边界：
-
-- 未新增业务功能。
-- 未接真实模型。
-- 未进入 V1.2 AI 对话功能。
-- 未重构现有前端页面。
-- 未改变现有接口路径、请求格式或响应格式。
-
-V1.1 下一步：
-
-- V1.1-M7 轻量验证。
-
----
-
-## 反幻觉原则
-
-AI Hub 的开发和运行都必须避免把推测当事实，避免把计划中的功能写成已经完成，避免编造不存在的文件、接口、配置、测试结果或功能状态。
-
-### 开发阶段要求
-
-1. 所有项目状态必须以真实文件、Git 状态、命令输出或用户确认的信息为准。
-2. 未读取文件，不得声称了解文件内容。
-3. 未运行验证命令，不得声称测试通过。
-4. 不允许编造不存在的接口、模块、配置项、依赖、脚本或功能。
-5. 规划中的功能必须标注为“计划中”或“暂未实现”，不能写成“已支持”。
-6. 如果某个结论只是推测，必须明确标注“推测”。
-7. 如果某个点需要用户确认，必须明确标注“需要确认”，不能擅自决定。
-8. Codex / Claude 输出实施结果时，必须说明：
-   - 修改了哪些文件
-   - 没有修改哪些禁止范围
-   - 实际运行过哪些命令
-   - 哪些验证只是建议运行，哪些验证已经实际完成
-9. 没有命令输出或截图证明时，不得写“已验证通过”。
-10. 不允许为了让项目看起来更完整而夸大当前能力。
-
-### 文档阶段要求
-
-1. README、TASKS、VERSION_PLAN、ARCHITECTURE 中必须区分：
-   - 已完成
-   - 进行中
-   - 计划中
-   - 暂未实现
-2. 文档中的功能状态必须和代码实际能力一致。
-3. 不得把 V1.3 及后续功能提前写成当前已支持。
-4. 如果某个能力只是预留目录或架构位置，只能写“已预留”，不能写“已实现”。
-5. 如果某个功能仅通过接口测试，不能写成“完整产品功能已完成”。
-
-### 产品运行阶段要求
-
-1. AI 回答应尽量区分事实、推测和不确定内容。
-2. 文件 / 知识库问答应优先基于用户提供资料，资料中没有依据时应明确说明。
-3. 涉及代码、文件、系统操作、自动化任务时，应说明影响范围，并在必要时等待用户确认。
-4. 涉及学习、做题、屏幕识别等功能时，应避免编造题干、选项、来源或用户未提供的信息。
-5. 涉及外部 API、模型、依赖或版本信息时，应尽量基于实际配置或明确说明“不确定”。
-
-### 后续功能开发固定要求
-
-每个功能开发前，必须先完成：
-
-1. 功能设想确认
-2. 功能边界确认
-3. 架构接入确认
-4. 最小可用版本确认
-5. 实现前任务清单
-6. 实现后轻量验证
-
-并且每一步都必须避免把推测写成事实。
+2
