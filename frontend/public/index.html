@@ -48,6 +48,10 @@
           </button>
         </nav>
 
+        <button class="sidebar-collapse-btn" data-action="toggle-sidebar" type="button" aria-label="折叠侧边栏">
+          <span class="sidebar-collapse-icon" aria-hidden="true">‹</span>
+        </button>
+
         <div class="sidebar-connection">
           <span id="sidebar-connection-dot" class="sidebar-connection-dot idle" aria-hidden="true"></span>
           <span id="sidebar-connection-label" class="sidebar-connection-label">空闲</span>
@@ -84,7 +88,14 @@
             </div>
 
             <div class="chat-composer">
-              <textarea id="chat-message" class="chat-composer-textarea" rows="3" placeholder="试试：hello ai hub"></textarea>
+              <div class="chat-composer-textarea-wrap">
+                <div class="chat-composer-resize-handle" id="chat-resize-handle"></div>
+                <textarea id="chat-message" class="chat-composer-textarea" rows="3" placeholder="试试：hello ai hub"></textarea>
+              </div>
+              <div class="chat-composer-row">
+                <p class="chat-composer-hint">Enter 发送 · Shift+Enter 换行</p>
+                <p id="chat-char-counter" class="chat-composer-counter"></p>
+              </div>
               <div class="chat-composer-actions">
                 <button id="send-chat" class="chat-send-btn" type="button" disabled>发送</button>
               </div>
@@ -170,6 +181,7 @@
             <!-- Index section -->
             <details class="page-collapse">
               <summary>接入笔记</summary>
+              <div class="page-collapse-content">
               <label class="form-field">
                 <span class="form-label">Markdown 相对路径</span>
                 <input id="knowledge-index-path" class="form-input" type="text" placeholder="例如：notes/readme.md" autocomplete="off" />
@@ -181,11 +193,13 @@
               <button id="knowledge-index-submit" class="btn btn-primary" type="button" disabled>接入笔记</button>
               <p id="knowledge-index-status" class="status-text idle">输入路径以接入笔记。</p>
               <div id="knowledge-index-result" class="hidden"></div>
+              </div>
             </details>
 
             <!-- Search section -->
             <details class="page-collapse">
               <summary>搜索知识库</summary>
+              <div class="page-collapse-content">
               <label class="form-field">
                 <span class="form-label">查询</span>
                 <input id="knowledge-search-query" class="form-input" type="text" placeholder="搜索关键词" autocomplete="off" />
@@ -201,11 +215,13 @@
               <button id="knowledge-search-submit" class="btn btn-primary" type="button" disabled>搜索</button>
               <p id="knowledge-search-status" class="status-text idle">输入查询以搜索知识库。</p>
               <div id="knowledge-search-result" class="hidden"></div>
+              </div>
             </details>
 
             <!-- Q&A section -->
             <details class="page-collapse">
               <summary>知识库问答</summary>
+              <div class="page-collapse-content">
               <label class="form-field">
                 <span class="form-label">问题</span>
                 <input id="knowledge-query-question" class="form-input" type="text" placeholder="根据知识库回答..." autocomplete="off" />
@@ -221,6 +237,7 @@
               <button id="knowledge-query-submit" class="btn btn-primary" type="button" disabled>提问</button>
               <p id="knowledge-query-status" class="status-text idle">输入问题以查询知识库。</p>
               <div id="knowledge-query-result" class="hidden"></div>
+              </div>
             </details>
           </div>
         </section>
@@ -270,6 +287,7 @@
         </section>
 
       </main>
+      <div id="toast-container" class="toast-container" aria-live="polite" aria-relevant="additions"></div>
       </div>
     </div>
 

@@ -48,6 +48,22 @@ export function createChatModule(deps) {
 
   let chatMode = "chat";
 
+  function updateCharCounter() {
+    const counter = document.querySelector("#chat-char-counter");
+    if (!counter) return;
+    const len = dom.chatMessageInput.value.length;
+    const ratio = len / MAX_CHAT_MESSAGE_CHARS;
+    if (ratio < 0.8) {
+      counter.textContent = "";
+      counter.className = "chat-composer-counter";
+    } else {
+      counter.textContent = `${len} / ${MAX_CHAT_MESSAGE_CHARS}`;
+      counter.className = ratio >= 1
+        ? "chat-composer-counter at-limit"
+        : "chat-composer-counter near-limit";
+    }
+  }
+
   function getChatMode() {
     return chatMode;
   }
@@ -189,8 +205,26 @@ export function createChatModule(deps) {
   }
 
   function resetChatResult() {
-    dom.chatMessages.innerHTML =
-      '<div class="chat-empty-state">发送消息开始对话。</div>';
+    dom.chatMessages.innerHTML = `
+      <div class="chat-empty-state">
+        <div class="chat-empty-state-icon" aria-hidden="true"></div>
+        <div class="chat-empty-state-title">开始对话</div>
+        <p class="chat-empty-state-subtitle">输入消息，按 Enter 发送，Shift+Enter 换行</p>
+        <div class="chat-empty-state-hints">
+          <button class="chat-empty-state-hint" type="button">你好，介绍一下你自己</button>
+          <button class="chat-empty-state-hint" type="button">帮我分析一个文件</button>
+          <button class="chat-empty-state-hint" type="button">搜索知识库</button>
+        </div>
+      </div>
+    `;
+    const hints = dom.chatMessages.querySelectorAll(".chat-empty-state-hint");
+    hints.forEach((hint) => {
+      hint.addEventListener("click", () => {
+        dom.chatMessageInput.value = hint.textContent;
+        dom.chatMessageInput.dispatchEvent(new Event("input"));
+        dom.chatMessageInput.focus();
+      });
+    });
     state.chatHistory = [];
   }
 
@@ -242,11 +276,18 @@ export function createChatModule(deps) {
 
     const label = document.createElement("div");
     label.className = "chat-message-label";
-    label.textContent = role === "user" ? "你" : "AI Hub";
+
+    const avatar = document.createElement("span");
+    avatar.className = "chat-message-avatar";
+    avatar.textContent = role === "user" ? "U" : "A";
+    label.append(avatar);
+
+    const labelText = document.createTextNode(role === "user" ? "你" : "AI Hub");
+    label.append(labelText);
 
     const bubble = document.createElement("div");
     bubble.className = "chat-message-bubble";
-    if (role === "assistant") {
+    if (role === "assistant" && !options.loading) {
       bubble.classList.add("markdown-content");
       renderAssistantMessageContent(bubble, content || "-");
     } else {
@@ -282,14 +323,19 @@ export function createChatModule(deps) {
   }
 
   function renderChatLoading() {
-    return appendChatMessage(
+    const messageItem = appendChatMessage(
       "assistant",
-      "等待 /chat 响应 ...",
-      "status: sending",
-      {
-        loading: true,
-      }
+      "",
+      "",
+      { loading: true }
     );
+    const bubble = messageItem.querySelector(".chat-message-bubble");
+    bubble.textContent = "";
+    const indicator = document.createElement("div");
+    indicator.className = "chat-typing-indicator";
+    indicator.innerHTML = "<span></span><span></span><span></span>";
+    bubble.append(indicator);
+    return messageItem;
   }
 
   function removeChatLoading(loadingMessage) {
@@ -306,7 +352,57 @@ export function createChatModule(deps) {
   function setChatLoading(isLoading) {
     state.chatSending = isLoading;
     dom.sendChatButton.classList.toggle("sending", isLoading);
+    if (isLoading) {
+      dom.sendChatButton.innerHTML = '<span class="spinner spinner--sm spinner--white"></span> 发送中';
+      dom.chatMessageInput.disabled = true;
+    } else {
+      dom.sendChatButton.textContent = "发送";
+      dom.chatMessageInput.disabled = false;
+      resetTextareaHeight();
+    }
     updateSendChatButtonState();
+  }
+
+  function autoResizeTextarea() {
+    const ta = dom.chatMessageInput;
+    ta.style.height = "auto";
+    ta.style.height = Math.min(ta.scrollHeight, 200) + "px";
+    updateCharCounter();
+  }
+
+  function resetTextareaHeight() {
+    dom.chatMessageInput.style.height = "";
+  }
+
+  function initResizeHandle() {
+    const handle = document.querySelector("#chat-resize-handle");
+    const ta = dom.chatMessageInput;
+    if (!handle || !ta) return;
+
+    let startY, startHeight;
+
+    handle.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      startY = e.clientY;
+      startHeight = ta.offsetHeight;
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+      document.body.style.cursor = "ns-resize";
+      document.body.style.userSelect = "none";
+    });
+
+    function onMouseMove(e) {
+      const delta = startY - e.clientY;
+      const newHeight = Math.min(Math.max(startHeight + delta, 80), 200);
+      ta.style.height = newHeight + "px";
+    }
+
+    function onMouseUp() {
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    }
   }
 
   function handleChatInputKeydown(event) {
@@ -447,5 +543,7 @@ export function createChatModule(deps) {
     sendChat,
     getChatMode,
     setChatMode,
+    autoResizeTextarea,
+    initResizeHandle,
   };
 }

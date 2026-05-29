@@ -3,6 +3,7 @@ import { setTextStatus } from "../ui/status.js";
 import { setButtonLoading } from "../ui/loading.js";
 import { renderErrorBox } from "../ui/error.js";
 import { requestFilePreview, requestFileSummary } from "../api/files.js";
+import { createInputHistory } from "../ui/input-history.js";
 
 function renderFilePreview(dom, payload) {
   const file = payload.file || {};
@@ -37,8 +38,28 @@ function renderFilePreview(dom, payload) {
         <strong>${truncated}</strong>
       </div>
     </div>
-    <pre class="file-preview-text"><code>${escapeHtml(preview.text || "")}</code></pre>
+    <div class="file-preview-text-wrap">
+      <pre class="file-preview-text"><code>${escapeHtml(preview.text || "")}</code></pre>
+      <button class="file-preview-expand-btn" type="button" aria-label="全屏预览">⛶</button>
+    </div>
   `;
+
+  const expandBtn = dom.filePreviewResult.querySelector(".file-preview-expand-btn");
+  const textWrap = dom.filePreviewResult.querySelector(".file-preview-text-wrap");
+  if (expandBtn && textWrap) {
+    expandBtn.addEventListener("click", () => {
+      textWrap.classList.toggle("expanded");
+      expandBtn.textContent = textWrap.classList.contains("expanded") ? "⛶" : "⛶";
+      expandBtn.setAttribute("aria-label", textWrap.classList.contains("expanded") ? "退出全屏" : "全屏预览");
+    });
+    const escapeHandler = (e) => {
+      if (e.key === "Escape" && textWrap.classList.contains("expanded")) {
+        textWrap.classList.remove("expanded");
+        expandBtn.setAttribute("aria-label", "全屏预览");
+      }
+    };
+    document.addEventListener("keydown", escapeHandler);
+  }
 }
 
 function renderFileSummary(dom, payload) {
@@ -147,6 +168,17 @@ export function createFilesModule(deps) {
   const setFilePreviewLoading = createSetFilePreviewLoading(dom, state, updateFilePreviewButtonState);
   const setFileSummaryLoading = createSetFileSummaryLoading(dom, state, updateFilePreviewButtonState);
 
+  /* Input history for file path */
+  const filePathHistory = createInputHistory("aihub-file-paths", 5);
+  const historyDropdown = filePathHistory.createDropdown(dom.filePreviewPathInput, () => {
+    dom.readFilePreviewButton.disabled = false;
+  });
+
+  dom.filePreviewPathInput.addEventListener("focus", () => historyDropdown.show());
+  dom.filePreviewPathInput.addEventListener("blur", () => {
+    setTimeout(() => historyDropdown.hide(), 150);
+  });
+
   async function readFilePreview() {
     if (state.filePreviewLoading) {
       return;
@@ -174,6 +206,7 @@ export function createFilesModule(deps) {
       renderFilePreview(dom, payload);
       state.hasPreviewResult = true;
       state.lastPreviewPath = path;
+      filePathHistory.addEntry(path);
       setTextStatus(dom.filePreviewStatus, "预览已从 /files/preview 加载", "success");
     } catch (error) {
       renderErrorBox(dom.filePreviewResult, error, "文件预览失败");

@@ -9,6 +9,7 @@ import { createKnowledgeModule } from "./js/knowledge/knowledge.js";
 import { createDesktopShell } from "./js/layout/chat-first-shell.js";
 import { renderOrbitIcon } from "./js/components/orbit-icon.js";
 import { setTextStatus } from "./js/ui/status.js";
+import { createToastManager } from "./js/ui/toast.js";
 
 /* ---- DOM references (elements that persist across pages) ---- */
 const backendUrlInput = document.querySelector("#backend-url");
@@ -93,6 +94,9 @@ const state = {
   knowledgeQueryLoading: false,
 };
 
+/* ---- Toast ---- */
+const toast = createToastManager(document.querySelector("#toast-container"));
+
 /* ---- Chat module ---- */
 const {
   resetChatResult,
@@ -101,6 +105,8 @@ const {
   sendChat: sendChatRequest,
   getChatMode,
   setChatMode: setChatModeInternal,
+  autoResizeTextarea,
+  initResizeHandle,
 } = createChatModule({
   dom: {
     backendUrlInput,
@@ -257,6 +263,7 @@ async function checkBackend() {
     state.skills = payload.skills.skills || [];
     updateBackendSummary(payload);
     setTextStatus(requestStatus, `已连接：${payload.backendUrl}`, "success");
+    toast.show(`已连接后端：${payload.backendUrl}`, "success");
     await refreshKnowledgeStatus();
   } catch (error) {
     state.hasCheckedBackend = false;
@@ -270,6 +277,7 @@ async function checkBackend() {
       error instanceof Error ? error.message : backendUnavailableMessage,
       "error"
     );
+    toast.show(error instanceof Error ? error.message : backendUnavailableMessage, "error");
     shell.setConnected(false, true);
   } finally {
     checkButton.disabled = false;
@@ -300,6 +308,7 @@ sendChatButton.addEventListener("click", () => {
   void sendChat();
 });
 chatMessageInput.addEventListener("input", updateSendChatButtonState);
+chatMessageInput.addEventListener("input", autoResizeTextarea);
 chatMessageInput.addEventListener("keydown", handleChatInputKeydown);
 chatModeNormalButton.addEventListener("click", () => setChatMode("chat"));
 chatModeKnowledgeButton.addEventListener("click", () => setChatMode("knowledge"));
@@ -333,5 +342,7 @@ updateSendChatButtonState();
 updateFilePreviewButtonState();
 updateKnowledgeButtonState();
 setChatMode("chat");
+initResizeHandle();
 shell.bindEvents();
+shell.restoreSidebarState();
 shell.syncAll();

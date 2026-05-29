@@ -80,6 +80,30 @@ export function createDesktopShell({ dom, state, actions }) {
     setConnected(state.hasCheckedBackend, false);
   }
 
+  function toggleSidebar() {
+    const sidebar = document.querySelector(".desktop-sidebar");
+    if (!sidebar) return;
+    sidebar.classList.toggle("collapsed");
+    const isCollapsed = sidebar.classList.contains("collapsed");
+    try { localStorage.setItem("aihub-sidebar-collapsed", String(isCollapsed)); } catch (_) {}
+    const btn = document.querySelector(".sidebar-collapse-btn");
+    if (btn) {
+      btn.setAttribute("aria-label", isCollapsed ? "展开侧边栏" : "折叠侧边栏");
+    }
+  }
+
+  function restoreSidebarState() {
+    try {
+      const saved = localStorage.getItem("aihub-sidebar-collapsed");
+      if (saved === "true") {
+        const sidebar = document.querySelector(".desktop-sidebar");
+        if (sidebar) sidebar.classList.add("collapsed");
+        const btn = document.querySelector(".sidebar-collapse-btn");
+        if (btn) btn.setAttribute("aria-label", "展开侧边栏");
+      }
+    } catch (_) {}
+  }
+
   function bindEvents() {
     document.querySelectorAll(".sidebar-nav-item").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -87,6 +111,11 @@ export function createDesktopShell({ dom, state, actions }) {
         navigateTo(page);
       });
     });
+
+    const collapseBtn = document.querySelector(".sidebar-collapse-btn");
+    if (collapseBtn) {
+      collapseBtn.addEventListener("click", toggleSidebar);
+    }
 
     bindWindowControls();
     bindTitlebarDrag();
@@ -97,5 +126,6 @@ export function createDesktopShell({ dom, state, actions }) {
     navigateTo,
     setConnected,
     syncAll,
+    restoreSidebarState,
   };
 }
