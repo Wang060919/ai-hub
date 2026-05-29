@@ -1,8 +1,38 @@
 use reqwest::{Client, Url};
 use serde::Serialize;
 use serde_json::{json, Map, Value};
+use std::process::{Child, Command};
+use std::sync::Mutex;
+use tauri::Manager;
 
 const BACKEND_UNAVAILABLE_MESSAGE: &str = "无法连接后端，请先启动 FastAPI 服务";
+
+struct BackendProcess(Mutex<Option<Child>>);
+
+impl Drop for BackendProcess {
+    fn drop(&mut self) {
+        if let Ok(mut guard) = self.0.lock() {
+            if let Some(mut child) = guard.take() {
+                let _ = child.kill();
+                let _ = child.wait();
+            }
+        }
+    }
+}
+
+fn find_python() -> Option<String> {
+    if let Ok(custom) = std::env::var("AI_HUB_PYTHON") {
+        if !custom.is_empty() {
+            return Some(custom);
+        }
+    }
+    for name in &["python", "python3"] {
+        if Command::new(name).arg("--version").output().is_ok() {
+            return Some(name.to_string());
+        }
+    }
+    None
+}
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -475,6 +505,28 @@ async fn query_knowledge(
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .setup(|app| {
+            #[cfg(not(debug_assertions))]
+            {
+                let port_in_use = std::net::TcpStream::connect("127.0.0.1:8000").is_ok();
+                if port_in_use {
+                    return Ok(());
+                }
+
+                if let Some(python) = find_python() {
+                    let mut cmd = Command::new(python);
+                    cmd.args([
+                        "-m", "uvicorn", "backend.main:app",
+                        "--host", "127.0.0.1", "--port", "8000",
+                    ]);
+                    #[cfg(target_os = "windows")]
+                    cmd.creation_flags(0x08000000);
+                    let child = cmd.spawn().ok();
+                    app.manage(BackendProcess(Mutex::new(child)));
+                }
+            }
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             fetch_backend_metadata,
             send_chat_message,
