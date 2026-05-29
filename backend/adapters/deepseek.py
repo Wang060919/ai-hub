@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Generator
 from urllib import error, request
 
 from backend.core.config import get_settings
@@ -85,6 +86,71 @@ def create_deepseek_reply_from_messages(messages: list[ChatMessage | dict[str, s
         raise DeepSeekResponseError("DeepSeek returned a non-JSON response.") from exc
 
     return _extract_reply(response_data)
+
+
+def stream_deepseek_reply_from_messages(
+    messages: list[ChatMessage | dict[str, str]],
+) -> Generator[str, None, None]:
+    """Yield content tokens from a streaming DeepSeek chat completion."""
+    settings = get_settings()
+    clean_messages = _normalize_messages(messages)
+
+    if not settings.enable_deepseek_chat:
+        raise DeepSeekConfigError("DeepSeek chat is disabled.")
+    if not settings.deepseek_api_key:
+        raise DeepSeekConfigError("DeepSeek API key is not configured.")
+    if not clean_messages:
+        raise DeepSeekConfigError("DeepSeek messages cannot be empty.")
+
+    payload = json.dumps(
+        {
+            "model": settings.deepseek_model,
+            "messages": clean_messages,
+            "stream": True,
+        }
+    ).encode("utf-8")
+
+    http_request = request.Request(
+        settings.deepseek_api_url,
+        data=payload,
+        headers={
+            "Authorization": f"Bearer {settings.deepseek_api_key}",
+            "Content-Type": "application/json",
+            "Accept": "text/event-stream",
+        },
+        method="POST",
+    )
+
+    try:
+        with request.urlopen(
+            http_request,
+            timeout=settings.deepseek_timeout_seconds,
+        ) as response:
+            for raw_line in response:
+                line = raw_line.decode("utf-8").strip()
+                if not line or not line.startswith("data:"):
+                    continue
+                data_str = line[len("data:"):].strip()
+                if data_str == "[DONE]":
+                    break
+                try:
+                    chunk = json.loads(data_str)
+                except json.JSONDecodeError:
+                    continue
+                delta = (
+                    chunk.get("choices", [{}])[0]
+                    .get("delta", {})
+                    .get("content")
+                )
+                if delta:
+                    yield delta
+    except TimeoutError as exc:
+        raise DeepSeekError("DeepSeek request timed out.") from exc
+    except error.HTTPError as exc:
+        message = f"DeepSeek HTTP request failed with status {exc.code}."
+        raise DeepSeekError(message) from exc
+    except error.URLError as exc:
+        raise DeepSeekError(f"DeepSeek network request failed: {exc.reason}.") from exc
 
 
 def _normalize_messages(messages: list[ChatMessage | dict[str, str]]) -> list[dict[str, str]]:

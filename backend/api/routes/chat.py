@@ -1,9 +1,16 @@
 from __future__ import annotations
 
+import json
+
 from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
 
 from backend.ai_router import OllamaRouter, is_ai_router_enabled
-from backend.adapters.deepseek import is_deepseek_chat_enabled
+from backend.adapters.deepseek import (
+    DeepSeekError,
+    is_deepseek_chat_enabled,
+    stream_deepseek_reply_from_messages,
+)
 from backend.schemas import ChatMessage, ChatRequest, ChatResponse
 from backend.services.knowledge.answer_service import KnowledgeAnswerError
 from backend.services.knowledge.query_service import KnowledgeQueryService
@@ -130,6 +137,128 @@ def chat(payload: ChatRequest) -> ChatResponse:
     routed_skill_name = str(ai_route.get("skill", echo_skill.name))
     routed_skill = skills_by_name.get(routed_skill_name, echo_skill)
     return routed_skill.execute(payload.message)
+
+
+def _sse_event(data: dict) -> str:
+    return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+
+@router.post("/chat/stream")
+def chat_stream(payload: ChatRequest) -> StreamingResponse:
+    rule_skill = _select_skill(payload.message)
+
+    def generate():
+        if rule_skill.name != echo_skill.name:
+            result = rule_skill.execute(payload.message)
+            yield _sse_event({"type": "metadata", "skill": result.skill, "status": result.status})
+            yield _sse_event({"type": "token", "content": result.reply})
+            yield _sse_event({"type": "done"})
+            return
+
+        if _should_use_knowledge(payload.message) and _has_knowledge_content():
+            yield from _stream_knowledge_chat(payload.message)
+            return
+
+        if is_deepseek_chat_enabled():
+            yield from _stream_deepseek_chat(payload.message, payload.messages)
+            return
+
+        if is_ai_router_enabled():
+            ai_route = ai_router.classify(payload.message)
+            routed_skill_name = str(ai_route.get("skill", echo_skill.name))
+            routed_skill = skills_by_name.get(routed_skill_name, echo_skill)
+            result = routed_skill.execute(payload.message)
+            yield _sse_event({"type": "metadata", "skill": result.skill, "status": result.status})
+            yield _sse_event({"type": "token", "content": result.reply})
+            yield _sse_event({"type": "done"})
+            return
+
+        result = echo_skill.execute(payload.message)
+        yield _sse_event({"type": "metadata", "skill": result.skill, "status": result.status})
+        yield _sse_event({"type": "token", "content": result.reply})
+        yield _sse_event({"type": "done"})
+
+    return StreamingResponse(generate(), media_type="text/event-stream")
+
+
+def _stream_deepseek_chat(message: str, messages: list[ChatMessage] | None):
+    deepseek_messages = _build_deepseek_messages(message, messages)
+    yield _sse_event({"type": "metadata", "skill": "deepseek_chat", "status": "success"})
+    try:
+        for token in stream_deepseek_reply_from_messages(deepseek_messages):
+            yield _sse_event({"type": "token", "content": token})
+    except DeepSeekError as exc:
+        yield _sse_event({"type": "error", "message": str(exc)})
+        return
+    except Exception:
+        result = echo_skill.execute(message)
+        yield _sse_event({"type": "token", "content": result.reply})
+    yield _sse_event({"type": "done"})
+
+
+def _stream_knowledge_chat(message: str):
+    try:
+        result = knowledge_query_service.query(question=message)
+    except KnowledgeAnswerError as exc:
+        if exc.code == "KNOWLEDGE_MODEL_DISABLED":
+            yield _sse_event({"type": "metadata", "skill": "knowledge", "status": "error"})
+            yield _sse_event({"type": "error", "message": "知识库问答功能未启用：后端 AI 模型尚未配置，请联系管理员开启 DeepSeek。", "code": "KNOWLEDGE_MODEL_DISABLED"})
+        else:
+            yield _sse_event({"type": "metadata", "skill": "knowledge", "status": "error"})
+            yield _sse_event({"type": "error", "message": str(exc)})
+        yield _sse_event({"type": "done"})
+        return
+    except ValueError:
+        yield _sse_event({"type": "metadata", "skill": "knowledge", "status": "success"})
+        yield _sse_event({"type": "token", "content": "未在知识库中找到相关内容。"})
+        yield _sse_event({"type": "done"})
+        return
+    except Exception:
+        result = echo_skill.execute(message)
+        yield _sse_event({"type": "metadata", "skill": "knowledge", "status": "success"})
+        yield _sse_event({"type": "token", "content": result.reply})
+        yield _sse_event({"type": "done"})
+        return
+
+    citations_data = [
+        {"index": c.index, "relative_path": c.relative_path, "chunk_index": c.chunk_index}
+        for c in result.citations
+    ]
+
+    if is_deepseek_chat_enabled() and result.answer.grounded:
+        yield _sse_event({
+            "type": "metadata",
+            "skill": "knowledge",
+            "status": "success",
+            "grounded": result.answer.grounded,
+            "citations": citations_data,
+            "hits_count": len(result.hits),
+            "kb_id": result.kb_id,
+        })
+        deepseek_messages = _build_deepseek_messages(
+            f"基于以下知识片段回答用户问题。\n\n知识片段：\n{result.answer.text}\n\n用户问题：{message}",
+            None,
+        )
+        try:
+            for token in stream_deepseek_reply_from_messages(deepseek_messages):
+                yield _sse_event({"type": "token", "content": token})
+        except DeepSeekError as exc:
+            yield _sse_event({"type": "token", "content": result.answer.text})
+        except Exception:
+            yield _sse_event({"type": "token", "content": result.answer.text})
+    else:
+        yield _sse_event({
+            "type": "metadata",
+            "skill": "knowledge",
+            "status": "success",
+            "grounded": result.answer.grounded,
+            "citations": citations_data,
+            "hits_count": len(result.hits),
+            "kb_id": result.kb_id,
+        })
+        yield _sse_event({"type": "token", "content": result.answer.text})
+
+    yield _sse_event({"type": "done"})
 
 
 def _execute_deepseek_with_echo_fallback(

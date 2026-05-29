@@ -24,6 +24,7 @@
   --color-primary-bg-strong: rgba(37, 99, 235, 0.10);
   --color-success: #22c55e;
   --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
   --color-danger-bg: rgba(220, 38, 38, 0.06);
   --color-warning-bg: rgba(245, 158, 11, 0.08);
   --color-warning-ink: #92400e;
@@ -743,7 +744,34 @@ body.aihub-desktop {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  pointer-events: none;
+  pointer-events: auto;
+}
+
+.chat-send-btn.stopping {
+  background: var(--color-danger);
+  color: white;
+  border-color: var(--color-danger);
+}
+
+.chat-send-btn.stopping:hover {
+  background: var(--color-danger-hover, #dc2626);
+}
+
+.chat-message-bubble.streaming::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  background: var(--color-primary);
+  vertical-align: text-bottom;
+  animation: streaming-cursor 600ms steps(2) infinite;
+}
+
+@keyframes streaming-cursor {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 .chat-composer-textarea:disabled {

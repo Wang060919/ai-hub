@@ -158,6 +158,87 @@ async function fetchJsonWithStatus(baseUrl, path) {
   };
 }
 
+async function handleChatStreamProxy(request, response) {
+  try {
+    const rawBody = await readRequestBody(request);
+    const payload = rawBody ? JSON.parse(rawBody) : {};
+    const baseUrl = normalizeBackendUrl(payload.backendUrl);
+    const message = String(payload.message || "").trim();
+    const messages = Array.isArray(payload.messages)
+      ? payload.messages
+          .filter(
+            (item) =>
+              item &&
+              ["user", "assistant"].includes(item.role) &&
+              typeof item.content === "string"
+          )
+          .map((item) => ({
+            role: item.role,
+            content: item.content,
+          }))
+      : undefined;
+
+    if (!message) {
+      sendJson(response, 400, {
+        ok: false,
+        error: "Message cannot be empty",
+      });
+      return;
+    }
+
+    const chatPayload = messages ? { message, messages } : { message };
+    const backendResponse = await fetch(`${baseUrl}/chat/stream`, {
+      method: "POST",
+      headers: {
+        Accept: "text/event-stream",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(chatPayload),
+    });
+
+    if (!backendResponse.ok) {
+      const errorText = await backendResponse.text();
+      sendJson(response, backendResponse.status, {
+        ok: false,
+        error: `Backend stream failed: ${backendResponse.status}`,
+        details: errorText,
+      });
+      return;
+    }
+
+    response.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    });
+
+    const reader = backendResponse.body.getReader();
+    const pump = async () => {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          response.end();
+          break;
+        }
+        response.write(value);
+      }
+    };
+    await pump();
+  } catch (error) {
+    if (!response.headersSent) {
+      const message =
+        error instanceof Error ? error.message : backendUnavailableMessage;
+      sendJson(response, 502, {
+        ok: false,
+        error: "Chat stream request failed",
+        details: message,
+      });
+    } else {
+      response.end();
+    }
+  }
+}
+
 async function handleMetadataProxy(request, response) {
   try {
     const rawBody = await readRequestBody(request);
@@ -573,6 +654,11 @@ const server = http.createServer(async (request, response) => {
 
   if (request.method === "POST" && requestUrl.pathname === "/api/chat") {
     await handleChatProxy(request, response);
+    return;
+  }
+
+  if (request.method === "POST" && requestUrl.pathname === "/api/chat/stream") {
+    await handleChatStreamProxy(request, response);
     return;
   }
 

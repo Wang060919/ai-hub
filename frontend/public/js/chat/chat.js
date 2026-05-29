@@ -1,4 +1,4 @@
-import { requestChat } from "../api/chat.js";
+import { requestChat, requestChatStream } from "../api/chat.js";
 import { requestKnowledgeQuery } from "../api/knowledge.js";
 import { escapeHtml } from "../core/utils.js";
 import { setTextStatus } from "../ui/status.js";
@@ -47,6 +47,8 @@ export function createChatModule(deps) {
   const { dom, state, renderAssistantMessageContent } = deps;
 
   let chatMode = "chat";
+  let currentAbortController = null;
+  let sendChatLock = false;
 
   function updateCharCounter() {
     const counter = document.querySelector("#chat-char-counter");
@@ -356,11 +358,20 @@ export function createChatModule(deps) {
       dom.sendChatButton.innerHTML = '<span class="spinner spinner--sm spinner--white"></span> 发送中';
       dom.chatMessageInput.disabled = true;
     } else {
+      currentAbortController = null;
+      sendChatLock = false;
       dom.sendChatButton.textContent = "发送";
       dom.chatMessageInput.disabled = false;
       resetTextareaHeight();
     }
     updateSendChatButtonState();
+  }
+
+  function setChatStopping() {
+    dom.sendChatButton.classList.remove("sending");
+    dom.sendChatButton.classList.add("stopping");
+    dom.sendChatButton.textContent = "停止";
+    dom.sendChatButton.disabled = false;
   }
 
   function autoResizeTextarea() {
@@ -478,10 +489,20 @@ export function createChatModule(deps) {
     }
   }
 
+  function stopChat() {
+    if (currentAbortController) {
+      currentAbortController.abort();
+      currentAbortController = null;
+    }
+  }
+
   async function sendChat() {
-    if (state.chatSending) {
+    if (sendChatLock || state.chatSending) {
+      stopChat();
       return;
     }
+    sendChatLock = true;
+    state.chatSending = true;
 
     if (chatMode === "knowledge") {
       await sendKnowledgeChat();
@@ -505,35 +526,59 @@ export function createChatModule(deps) {
     setTextStatus(dom.chatStatus, "正在发送消息...", "idle");
     const loadingMessage = renderChatLoading();
 
-    try {
-      const payload = await requestChat(backendUrl, message, contextMessages);
-      if (!payload.ok) {
-        throw new Error(payload.details || payload.error || "Chat request failed");
-      }
+    const abortController = new AbortController();
+    currentAbortController = abortController;
 
-      removeChatLoading(loadingMessage);
-      renderChatResult(payload.chat);
-      if (payload.chat?.status === "success") {
-        recordSuccessfulChatTurn(message, payload.chat.reply || "");
-      }
-      setTextStatus(
-        dom.chatStatus,
-        "已收到回复。",
-        "success"
-      );
-    } catch (error) {
-      removeChatLoading(loadingMessage);
-      renderChatError(
-        error instanceof Error ? error.message : "聊天请求失败"
-      );
-      setTextStatus(
-        dom.chatStatus,
-        error instanceof Error ? error.message : "聊天请求失败",
-        "error"
-      );
-    } finally {
-      setChatLoading(false);
+    let accumulated = "";
+    let bubble = null;
+    let streamingStarted = false;
+
+    function finishStreaming() {
+      if (!bubble) return;
+      bubble.classList.add("markdown-content");
+      renderAssistantMessageContent(bubble, accumulated || "-");
     }
+
+    await requestChatStream(backendUrl, message, contextMessages, {
+      signal: abortController.signal,
+      onToken(token) {
+        if (!streamingStarted) {
+          streamingStarted = true;
+          removeChatLoading(loadingMessage);
+          const msg = appendChatMessage("assistant", "", "", {});
+          bubble = msg.querySelector(".chat-message-bubble");
+          bubble.textContent = "";
+          bubble.classList.add("streaming");
+        }
+        accumulated += token;
+        if (bubble) {
+          bubble.textContent = accumulated;
+          dom.chatMessages.scrollTop = dom.chatMessages.scrollHeight;
+        }
+      },
+      onDone() {
+        if (bubble) bubble.classList.remove("streaming");
+        finishStreaming();
+        if (accumulated) {
+          recordSuccessfulChatTurn(message, accumulated);
+        }
+        setTextStatus(dom.chatStatus, "已收到回复。", "success");
+        setChatLoading(false);
+      },
+      onError(errMsg) {
+        if (bubble) bubble.classList.remove("streaming");
+        if (streamingStarted && accumulated) {
+          finishStreaming();
+          recordSuccessfulChatTurn(message, accumulated);
+          setTextStatus(dom.chatStatus, "回复已中断。", "success");
+        } else {
+          removeChatLoading(loadingMessage);
+          renderChatError(errMsg || "聊天请求失败");
+          setTextStatus(dom.chatStatus, errMsg || "聊天请求失败", "error");
+        }
+        setChatLoading(false);
+      },
+    });
   }
 
   return {
