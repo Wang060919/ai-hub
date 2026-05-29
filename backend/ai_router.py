@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import os
-from pathlib import Path
 from typing import Final
 from urllib import error, request
 
@@ -11,13 +10,6 @@ DEFAULT_OLLAMA_BASE_URL = "http://127.0.0.1:11434"
 DEFAULT_OLLAMA_MODEL = "qwen2.5:7b"
 DEFAULT_TIMEOUT_SECONDS = 8
 MIN_CONFIDENCE = 0.7
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-ENV_FILE_PATH = PROJECT_ROOT / ".env"
-AI_ROUTER_ENV_KEYS: Final[set[str]] = {
-    "AI_ROUTER_ENABLED",
-    "OLLAMA_BASE_URL",
-    "OLLAMA_ROUTER_MODEL",
-}
 OLLAMA_SYSTEM_PROMPT = """
 你是一个中文意图分类器，只负责判断用户消息应该交给哪个 skill。
 
@@ -38,37 +30,12 @@ OLLAMA_SYSTEM_PROMPT = """
 """.strip()
 
 
-def load_ai_router_env() -> dict[str, str]:
-    env_values: dict[str, str] = {}
-    if not ENV_FILE_PATH.exists():
-        return env_values
-
-    for raw_line in ENV_FILE_PATH.read_text(encoding="utf-8-sig").splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-
-        key, value = line.split("=", 1)
-        clean_key = key.strip().lstrip("\ufeff")
-        if clean_key not in AI_ROUTER_ENV_KEYS:
-            continue
-
-        env_values[clean_key] = value.strip().strip('"').strip("'")
-
-    return env_values
-
-
-def get_ai_router_setting(key: str, default: str) -> str:
-    system_value = os.getenv(key, "").strip()
-    if system_value:
-        return system_value
-
-    env_values = load_ai_router_env()
-    return env_values.get(key, default).strip() or default
+def _get_env(key: str, default: str) -> str:
+    return os.getenv(key, "").strip() or default
 
 
 def is_ai_router_enabled() -> bool:
-    raw_value = get_ai_router_setting("AI_ROUTER_ENABLED", "true").lower()
+    raw_value = _get_env("AI_ROUTER_ENABLED", "true").lower()
     return raw_value not in {"false", "0", "no", "off"}
 
 
@@ -79,10 +46,8 @@ class OllamaRouter:
         model: str | None = None,
         timeout: int = DEFAULT_TIMEOUT_SECONDS,
     ) -> None:
-        resolved_base_url = base_url or get_ai_router_setting("OLLAMA_BASE_URL", DEFAULT_OLLAMA_BASE_URL)
-        resolved_model = model or get_ai_router_setting("OLLAMA_ROUTER_MODEL", DEFAULT_OLLAMA_MODEL)
-        self.base_url = resolved_base_url.rstrip("/")
-        self.model = resolved_model
+        self.base_url = (base_url or _get_env("OLLAMA_BASE_URL", DEFAULT_OLLAMA_BASE_URL)).rstrip("/")
+        self.model = model or _get_env("OLLAMA_ROUTER_MODEL", DEFAULT_OLLAMA_MODEL)
         self.timeout = timeout
 
     def classify(self, message: str) -> dict[str, object]:

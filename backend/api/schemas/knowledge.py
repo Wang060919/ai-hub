@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -51,8 +55,8 @@ class KnowledgeIndexMarkdownDirectoryItem(BaseModel):
     chunk_count: int
     reused_existing: bool
     replaced_existing: bool
-    error_code: str | None = None
-    error_message: str | None = None
+    error_code: Optional[str] = None
+    error_message: Optional[str] = None
 
 
 class KnowledgeIndexMarkdownDirectoryError(BaseModel):
@@ -128,7 +132,7 @@ class KnowledgeQueryRequest(BaseModel):
 
 class KnowledgeAnswerItem(BaseModel):
     text: str
-    model: str | None
+    model: Optional[str]
     grounded: bool
 
 

@@ -1,9 +1,11 @@
+from typing import Optional
+
 from pydantic import BaseModel, Field
 
 
 class FilePreviewRequest(BaseModel):
     path: str = Field(..., min_length=1)
-    preview_chars: int | None = None
+    preview_chars: Optional[int] = None
 
 
 class FilePreviewFileInfo(BaseModel):
@@ -29,7 +31,7 @@ class FilePreviewResponse(BaseModel):
 
 class FileSummarizeRequest(BaseModel):
     path: str = Field(..., min_length=1)
-    max_input_chars: int | None = Field(default=None, ge=1)
+    max_input_chars: Optional[int] = Field(default=None, ge=1)
 
 
 class FileSummaryBody(BaseModel):

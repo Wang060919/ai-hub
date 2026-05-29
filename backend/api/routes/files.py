@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
@@ -8,6 +10,7 @@ from backend.api.schemas.files import (
     FileSummarizeRequest,
     FileSummarizeResponse,
 )
+from backend.schemas import error_response
 from backend.services.file import (
     FileServiceError,
     FileSummaryError,
@@ -29,16 +32,7 @@ def preview_file(request: FilePreviewRequest) -> FilePreviewResponse | JSONRespo
             preview_chars=request.preview_chars,
         )
     except FileServiceError as exc:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "status": "error",
-                "error": {
-                    "code": exc.code,
-                    "message": exc.message,
-                },
-            },
-        )
+        return error_response(400, exc.code, exc.message)
 
     return FilePreviewResponse(
         status="ok",
@@ -59,27 +53,9 @@ def summarize_file(request: FileSummarizeRequest) -> FileSummarizeResponse | JSO
             max_input_chars=request.max_input_chars,
         )
     except FileServiceError as exc:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "status": "error",
-                "error": {
-                    "code": exc.code,
-                    "message": exc.message,
-                },
-            },
-        )
+        return error_response(400, exc.code, exc.message)
     except FileSummaryError as exc:
-        return JSONResponse(
-            status_code=_summary_error_status_code(exc.code),
-            content={
-                "status": "error",
-                "error": {
-                    "code": exc.code,
-                    "message": exc.message,
-                },
-            },
-        )
+        return error_response(_summary_error_status_code(exc.code), exc.code, exc.message)
 
     return FileSummarizeResponse(
         status="ok",

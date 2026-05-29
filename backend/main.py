@@ -6,8 +6,10 @@ from backend.api.routes.health import router as health_router
 from backend.api.routes.knowledge import router as knowledge_router
 from backend.api.routes.meta import router as meta_router
 from backend.app_info import APP_NAME, APP_VERSION
+from backend.core.env import load_dotenv_file
 from backend.storage import initialize_database
 
+load_dotenv_file()
 
 app = FastAPI(title=APP_NAME, version=APP_VERSION)
 app.include_router(chat_router)

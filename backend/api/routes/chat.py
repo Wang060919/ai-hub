@@ -1,3 +1,268 @@
-from backend.router import create_chat_router
+from __future__ import annotations
 
-router = create_chat_router()
+from fastapi import APIRouter
+
+from backend.ai_router import OllamaRouter, is_ai_router_enabled
+from backend.adapters.deepseek import is_deepseek_chat_enabled
+from backend.schemas import ChatMessage, ChatRequest, ChatResponse
+from backend.skills.deepseek_chat import DeepSeekChatSkill
+from backend.skills.dify_english import DIFY_KEYWORDS, DifyEnglishSkill
+from backend.skills.echo import EchoSkill
+from backend.skills.file_analysis import FILE_ANALYSIS_KEYWORDS_LOWER, FileAnalysisSkill
+from backend.skills.file_inventory import FILE_INVENTORY_KEYWORDS_LOWER, FileInventorySkill
+from backend.skills.idea_capture import CAPTURE_PREFIXES, LIST_KEYWORDS, IdeaCaptureSkill
+from backend.skills.readonly_file_scanner import READONLY_FILE_SCANNER_KEYWORDS_LOWER, ReadOnlyFileScannerSkill
+from backend.skills.readonly_text_preview import READONLY_TEXT_PREVIEW_KEYWORDS_LOWER, ReadOnlyTextPreviewSkill
+from backend.skills.safe_action import SAFE_ACTION_KEYWORDS_LOWER, SafeActionSkill
+from backend.skills.time import TimeSkill
+
+TIME_KEYWORDS = ("时间", "几点", "time")
+MAX_CONTEXT_TURNS = 4
+MAX_CONTEXT_MESSAGES = MAX_CONTEXT_TURNS * 2 + 1
+MAX_MESSAGE_CONTENT_CHARS = 1500
+MAX_CONTEXT_TOTAL_CHARS = 8000
+CAPTURE_PREFIXES_LOWER = tuple(prefix.lower() for prefix in CAPTURE_PREFIXES)
+LIST_KEYWORDS_LOWER = tuple(keyword.lower() for keyword in LIST_KEYWORDS)
+CAPTURE_INTENT_KEYWORDS_LOWER = (
+    "帮我记一下",
+    "记一下",
+    "帮我保存一下",
+    "帮我保存一个",
+    "先记下来",
+    "以后做",
+)
+DIFY_KEYWORDS_LOWER = tuple(keyword.lower() for keyword in DIFY_KEYWORDS)
+DIFY_LEARNING_KEYWORDS_LOWER = (
+    "怎么背",
+    "怎么记",
+    "这个词",
+    "词怎么",
+    "背单词",
+)
+SAFE_ACTION_OPERATION_HINTS = (
+    "删除",
+    "清理",
+    "重命名",
+    "批量移动",
+    "批量重命名",
+    "复制",
+    "移动",
+    "覆盖",
+    "删除重复文件",
+    "删除重复的",
+    "整理文件",
+    "整理目录",
+    "执行计划",
+    "操作计划",
+)
+
+ai_router = OllamaRouter()
+deepseek_chat_skill = DeepSeekChatSkill()
+dify_english_skill = DifyEnglishSkill()
+echo_skill = EchoSkill()
+file_analysis_skill = FileAnalysisSkill()
+file_inventory_skill = FileInventorySkill()
+idea_capture_skill = IdeaCaptureSkill()
+readonly_file_scanner_skill = ReadOnlyFileScannerSkill()
+readonly_text_preview_skill = ReadOnlyTextPreviewSkill()
+safe_action_skill = SafeActionSkill()
+time_skill = TimeSkill()
+skills_by_name = {
+    echo_skill.name: echo_skill,
+    time_skill.name: time_skill,
+    idea_capture_skill.name: idea_capture_skill,
+    dify_english_skill.name: dify_english_skill,
+    safe_action_skill.name: safe_action_skill,
+    readonly_text_preview_skill.name: readonly_text_preview_skill,
+    readonly_file_scanner_skill.name: readonly_file_scanner_skill,
+    file_inventory_skill.name: file_inventory_skill,
+    file_analysis_skill.name: file_analysis_skill,
+}
+
+router = APIRouter()
+
+
+@router.post("/chat", response_model=ChatResponse)
+def chat(payload: ChatRequest) -> ChatResponse:
+    rule_skill = _select_skill(payload.message)
+    if rule_skill.name != echo_skill.name:
+        return rule_skill.execute(payload.message)
+
+    if is_deepseek_chat_enabled():
+        deepseek_response = _execute_deepseek_with_echo_fallback(
+            payload.message,
+            messages=payload.messages,
+        )
+        return deepseek_response
+
+    if not is_ai_router_enabled():
+        return echo_skill.execute(payload.message)
+
+    ai_route = ai_router.classify(payload.message)
+    routed_skill_name = str(ai_route.get("skill", echo_skill.name))
+    routed_skill = skills_by_name.get(routed_skill_name, echo_skill)
+    return routed_skill.execute(payload.message)
+
+
+def _execute_deepseek_with_echo_fallback(
+    message: str,
+    messages: list[ChatMessage] | None,
+) -> ChatResponse:
+    try:
+        deepseek_messages = _build_deepseek_messages(message, messages)
+        deepseek_response = deepseek_chat_skill.execute_messages(deepseek_messages)
+    except Exception:
+        return echo_skill.execute(message)
+
+    if deepseek_response.status != "success":
+        return echo_skill.execute(message)
+    return deepseek_response
+
+
+def _build_deepseek_messages(
+    message: str,
+    messages: list[ChatMessage] | None,
+) -> list[ChatMessage]:
+    current_message = message.strip()
+    context_messages = list(messages or [])
+    normalized_messages = [
+        ChatMessage(
+            role=context_message.role,
+            content=context_message.content.strip()[:MAX_MESSAGE_CONTENT_CHARS],
+        )
+        for context_message in context_messages
+        if context_message.content.strip()
+    ]
+
+    has_current_message = (
+        bool(normalized_messages)
+        and normalized_messages[-1].role == "user"
+        and normalized_messages[-1].content == current_message
+    )
+    if not has_current_message:
+        normalized_messages.append(
+            ChatMessage(
+                role="user",
+                content=current_message[:MAX_MESSAGE_CONTENT_CHARS],
+            )
+        )
+
+    return _trim_deepseek_messages(normalized_messages[-MAX_CONTEXT_MESSAGES:])
+
+
+def _trim_deepseek_messages(messages: list[ChatMessage]) -> list[ChatMessage]:
+    trimmed_messages: list[ChatMessage] = []
+    total_chars = 0
+
+    for message in reversed(messages):
+        content = message.content[:MAX_MESSAGE_CONTENT_CHARS]
+        next_total = total_chars + len(content)
+        if next_total > MAX_CONTEXT_TOTAL_CHARS and trimmed_messages:
+            break
+        if next_total > MAX_CONTEXT_TOTAL_CHARS:
+            content = content[:MAX_CONTEXT_TOTAL_CHARS]
+            next_total = len(content)
+
+        trimmed_messages.append(ChatMessage(role=message.role, content=content))
+        total_chars = next_total
+
+    return list(reversed(trimmed_messages))
+
+
+def _select_skill(message: str):
+    normalized_message = message.strip().lower()
+    if normalized_message.startswith(CAPTURE_PREFIXES_LOWER):
+        return idea_capture_skill
+    if any(keyword in normalized_message for keyword in LIST_KEYWORDS_LOWER):
+        return idea_capture_skill
+    if any(keyword in normalized_message for keyword in CAPTURE_INTENT_KEYWORDS_LOWER):
+        return idea_capture_skill
+    if any(keyword in normalized_message for keyword in TIME_KEYWORDS):
+        return time_skill
+    if (
+        any(keyword in normalized_message for keyword in DIFY_KEYWORDS_LOWER)
+        and not _has_safe_action_intent(normalized_message)
+        and not _should_use_readonly_text_preview(normalized_message)
+        and not _should_use_readonly_file_scanner(normalized_message)
+        and not _should_use_file_inventory(normalized_message)
+    ):
+        return dify_english_skill
+    if (
+        any(keyword in normalized_message for keyword in DIFY_LEARNING_KEYWORDS_LOWER)
+        and not _has_safe_action_intent(normalized_message)
+        and not _should_use_readonly_text_preview(normalized_message)
+        and not _should_use_readonly_file_scanner(normalized_message)
+        and not _should_use_file_inventory(normalized_message)
+    ):
+        return dify_english_skill
+    if _has_safe_action_intent(normalized_message):
+        return safe_action_skill
+    if _should_use_readonly_text_preview(normalized_message):
+        return readonly_text_preview_skill
+    if _should_use_readonly_file_scanner(normalized_message):
+        return readonly_file_scanner_skill
+    if _should_use_file_inventory(normalized_message):
+        return file_inventory_skill
+    if _should_use_file_analysis(normalized_message):
+        return file_analysis_skill
+    return echo_skill
+
+
+def _has_safe_action_intent(normalized_message: str) -> bool:
+    if any(keyword in normalized_message for keyword in SAFE_ACTION_KEYWORDS_LOWER):
+        return True
+    return any(keyword in normalized_message for keyword in SAFE_ACTION_OPERATION_HINTS)
+
+
+def _should_use_file_inventory(normalized_message: str) -> bool:
+    if _has_safe_action_intent(normalized_message):
+        return False
+    if _should_use_readonly_text_preview(normalized_message):
+        return False
+    if _should_use_readonly_file_scanner(normalized_message):
+        return False
+    return any(keyword in normalized_message for keyword in FILE_INVENTORY_KEYWORDS_LOWER)
+
+
+def _should_use_readonly_text_preview(normalized_message: str) -> bool:
+    if _has_safe_action_intent(normalized_message):
+        return False
+    if any(keyword in normalized_message for keyword in READONLY_FILE_SCANNER_KEYWORDS_LOWER):
+        return False
+    if any(keyword in normalized_message for keyword in FILE_INVENTORY_KEYWORDS_LOWER):
+        return False
+    if any(keyword in normalized_message for keyword in FILE_ANALYSIS_KEYWORDS_LOWER):
+        return False
+
+    has_preview_keyword = any(keyword in normalized_message for keyword in READONLY_TEXT_PREVIEW_KEYWORDS_LOWER)
+    has_allowed_suffix = ".txt" in normalized_message or ".md" in normalized_message
+    has_preview_hint = any(keyword in normalized_message for keyword in ("预览", "查看", "读取"))
+    has_markdown_hint = "markdown" in normalized_message
+
+    if has_preview_keyword:
+        return True
+    if has_allowed_suffix and (has_preview_hint or has_markdown_hint):
+        return True
+    return False
+
+
+def _should_use_readonly_file_scanner(normalized_message: str) -> bool:
+    if _has_safe_action_intent(normalized_message):
+        return False
+    if _should_use_readonly_text_preview(normalized_message):
+        return False
+    if any(keyword in normalized_message for keyword in FILE_INVENTORY_KEYWORDS_LOWER):
+        return False
+    return any(keyword in normalized_message for keyword in READONLY_FILE_SCANNER_KEYWORDS_LOWER)
+
+
+def _should_use_file_analysis(normalized_message: str) -> bool:
+    if _has_safe_action_intent(normalized_message):
+        return False
+    if _should_use_readonly_text_preview(normalized_message):
+        return False
+    if _should_use_readonly_file_scanner(normalized_message):
+        return False
+    if _should_use_file_inventory(normalized_message):
+        return False
+    return any(keyword in normalized_message for keyword in FILE_ANALYSIS_KEYWORDS_LOWER)

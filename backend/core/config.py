@@ -10,7 +10,7 @@ class Settings:
     """Lightweight application settings with safe defaults."""
 
     app_name: str = "AI Hub"
-    app_version: str = "v0.9-api-stabilization"
+    app_version: str = "1.0.0"
     environment: str = "development"
     debug: bool = False
     backend_host: str = "127.0.0.1"

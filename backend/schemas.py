@@ -1,5 +1,8 @@
-from typing import Literal
+from __future__ import annotations
 
+from typing import Literal, Optional
+
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 
@@ -10,7 +13,7 @@ class ChatMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, description="User input message.")
-    messages: list[ChatMessage] | None = Field(
+    messages: Optional[list[ChatMessage]] = Field(
         default=None,
         description="Optional short chat context. Stateless and limited to recent user/assistant messages.",
     )
@@ -148,4 +151,27 @@ class ChatResponse(BaseModel):
     reply: str
     skill: str
     status: str
-    data: dict | None = None
+    data: Optional[dict] = None
+
+
+class ErrorBody(BaseModel):
+    code: str
+    message: str
+
+
+class ErrorResponse(BaseModel):
+    status: Literal["error"] = "error"
+    error: ErrorBody
+
+
+def error_response(status_code: int, code: str, message: str) -> JSONResponse:
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "status": "error",
+            "error": {
+                "code": code,
+                "message": message,
+            },
+        },
+    )

@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 import os
 from functools import lru_cache
-from pathlib import Path
 from urllib import error, request
 
 from backend.schemas import ChatResponse
@@ -12,43 +11,13 @@ from backend.skills.base import BaseSkill
 DIFY_KEYWORDS = ("四级", "单词", "出题", "判题", "错词", "英文", "英语", "cet")
 DEFAULT_DIFY_USER = "wang-ai-hub"
 DEFAULT_TIMEOUT = 30
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-ENV_FILE_PATH = PROJECT_ROOT / ".env"
-
-
-def load_dotenv() -> dict[str, str]:
-    env_values: dict[str, str] = {}
-    if not ENV_FILE_PATH.exists():
-        return env_values
-
-    for raw_line in ENV_FILE_PATH.read_text(encoding="utf-8-sig").splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-
-        key, value = line.split("=", 1)
-        clean_key = key.strip().lstrip("\ufeff")
-        clean_value = value.strip().strip('"').strip("'")
-        if clean_key:
-            env_values[clean_key] = clean_value
-
-    return env_values
 
 
 @lru_cache(maxsize=1)
 def get_dify_config() -> tuple[str | None, str | None]:
-    api_url = os.getenv("DIFY_API_URL", "").strip()
-    api_key = os.getenv("DIFY_API_KEY", "").strip()
-    if api_url and api_key:
-        return api_url, api_key
-
-    env_values = load_dotenv()
-    if not api_url:
-        api_url = env_values.get("DIFY_API_URL", "").strip()
-    if not api_key:
-        api_key = env_values.get("DIFY_API_KEY", "").strip()
-
-    return api_url or None, api_key or None
+    api_url = os.getenv("DIFY_API_URL", "").strip() or None
+    api_key = os.getenv("DIFY_API_KEY", "").strip() or None
+    return api_url, api_key
 
 
 class DifyEnglishSkill(BaseSkill):

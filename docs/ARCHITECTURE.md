@@ -92,23 +92,10 @@ Service 规则：
 - service 可调用多个 adapter 完成一个业务
 - service 通过 core 层获取配置、记录日志
 
-### Modules 层（`backend/modules/`）
+### Modules 层（已移除）
 
-功能模块，面向前端页面的业务聚合：
-
-- `chat/` — 聊天功能模块
-- `files/` — 文件处理功能模块
-- `knowledge/` — 知识库功能模块
-- `screen/` — 屏幕工具功能模块
-- `voice/` — 语音功能模块
-- `sandbox/` — 沙盒功能模块
-- `skills/` — 技能/路由预留模块（当前仅保留结构位置，不是 V1.6 主线）
-
-Module 规则：
-
-- module 是功能入口，负责组合 service 完成用户请求
-- module 不直接调用 adapter
-- module 对应前端的一个功能区域
+`backend/modules/` 曾作为功能模块层，但所有目录始终为空 scaffold，实际未承载任何业务逻辑。
+当前架构中，`api/routes/` 直接调用 `services/` 层，不再经过 modules 中间层。
 
 ### API 层（`backend/api/`）
 
@@ -240,29 +227,26 @@ ai-hub/
 
 新功能接入 AI Hub 的标准流程：
 
-1. 确定功能属于哪个 module
-2. 在 `backend/modules/<module>/` 下创建模块入口
-3. 在 `backend/services/<service>/` 下实现业务逻辑
-4. 如需外部依赖，在 `backend/adapters/<adapter>/` 下实现适配
-5. 在 `backend/api/routes/` 下添加路由
-6. 在 `backend/api/schemas/` 下添加请求/响应模型
-7. 在 `frontend/pages/` 下添加页面
-8. 在 `frontend/services/` 下封装 API 调用
-9. 更新架构文档
+1. 确定功能属于哪个 service
+2. 在 `backend/services/<service>/` 下实现业务逻辑
+3. 如需外部依赖，在 `backend/adapters/<adapter>/` 下实现适配
+4. 在 `backend/api/routes/` 下添加路由
+5. 在 `backend/api/schemas/` 下添加请求/响应模型
+6. 在 `frontend/pages/` 下添加页面
+7. 在 `frontend/services/` 下封装 API 调用
+8. 更新架构文档
 
-## 八、模块预留位置
+## 八、已清理的预留位置
 
-以下模块在 V1.1 阶段只预留目录和接口定义，不实现具体功能：
+以下曾作为预留目录，现已按"不得顺手预埋"原则移除：
 
-- `backend/modules/files/` — 文件处理（V1.3 实现）
-- `backend/modules/knowledge/` — 知识库（V1.4 当前为本地文本知识库第一版）
-- `backend/modules/screen/` — 屏幕工具（V1.5 实现）
-- `backend/modules/voice/` — 语音（后续版本预留，当前未纳入 V1.7 主线）
-- `backend/modules/sandbox/` — 沙盒（后续版本实现）
-- `backend/modules/skills/` — 技能/路由预留目录（当前已预留，后续版本再定义主线）
-- `backend/adapters/chromadb/` — 向量数据库预留（V1.5+ 预留，当前未实现）
-- `backend/adapters/docker/` — Docker（后续版本实现）
-- `backend/adapters/stt/` + `backend/adapters/tts/` — 语音（后续版本预留，当前未纳入 V1.7 主线）
+- ~~`backend/modules/`~~ — 所有子目录（chat、files、knowledge、screen、voice、sandbox、skills）均为空 scaffold，已删除
+
+仍保留的 adapter 目录：
+
+- `backend/adapters/deepseek.py` — DeepSeek API 适配（V1.2 已实现）
+
+后续如需引入新的 service 或 adapter，按当前阶段版本路线图明确允许后再创建目录。
 
 V1.7 当前主题补充：
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from backend.schemas import ChatResponse
 from backend.skills.base import BaseSkill
 from backend.storage import list_recent_ideas, save_idea

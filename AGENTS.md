@@ -170,7 +170,9 @@ AI Hub 是一个面向学习与个人工作流的桌面 AI 智能中枢。
 backend/
   main.py
   schemas.py
-  router.py
+  api/
+    routes/
+      chat.py
   skills/
     base.py
     echo.py
@@ -190,7 +192,7 @@ src-tauri/
 
 - `backend/main.py` 负责 FastAPI 应用入口
 - `backend/schemas.py` 负责请求与响应协议定义
-- `backend/router.py` 负责规则路由
+- `backend/api/routes/chat.py` 负责 skill 路由选择与 `/chat` 端点
 - `backend/skills/base.py` 负责 `BaseSkill`
 - `backend/skills/` 下按单个 Skill 拆分文件
 - `frontend/` 负责当前桌面实验前端页面

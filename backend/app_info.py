@@ -3,7 +3,7 @@ from __future__ import annotations
 from backend.schemas import HealthResponse, SkillInfo, SkillsResponse, VersionApiInfo, VersionResponse
 
 APP_NAME = "AI Hub"
-APP_VERSION = "v0.9-api-stabilization"
+APP_VERSION = "1.0.0"
 STABLE_BASE_VERSION = "v0.8-readonly-text-preview"
 
 API_ENDPOINTS = {

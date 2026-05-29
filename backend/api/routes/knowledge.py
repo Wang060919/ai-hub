@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
@@ -21,6 +23,7 @@ from backend.api.schemas.knowledge import (
     KnowledgeStatusBody,
     KnowledgeStatusResponse,
 )
+from backend.schemas import error_response
 from backend.services.file.text_file_service import FileServiceError, TextFileService
 from backend.services.knowledge.index_service import KnowledgeIndexService
 from backend.services.knowledge.answer_service import KnowledgeAnswerError
@@ -67,16 +70,7 @@ def knowledge_search(request: KnowledgeSearchRequest) -> KnowledgeSearchResponse
             top_k=request.top_k,
         )
     except ValueError as exc:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "status": "error",
-                "error": {
-                    "code": "INVALID_QUERY",
-                    "message": str(exc),
-                },
-            },
-        )
+        return error_response(400, "INVALID_QUERY", str(exc))
 
     return KnowledgeSearchResponse(
         status="ok",
@@ -110,27 +104,9 @@ def knowledge_query(request: KnowledgeQueryRequest) -> KnowledgeQueryResponse | 
             top_k=request.top_k,
         )
     except ValueError as exc:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "status": "error",
-                "error": {
-                    "code": "INVALID_QUESTION",
-                    "message": str(exc),
-                },
-            },
-        )
+        return error_response(400, "INVALID_QUESTION", str(exc))
     except KnowledgeAnswerError as exc:
-        return JSONResponse(
-            status_code=503,
-            content={
-                "status": "error",
-                "error": {
-                    "code": exc.code,
-                    "message": exc.message,
-                },
-            },
-        )
+        return error_response(503, exc.code, exc.message)
 
     return KnowledgeQueryResponse(
         status="ok",
@@ -165,16 +141,7 @@ def knowledge_query(request: KnowledgeQueryRequest) -> KnowledgeQueryResponse | 
 @router.post("/knowledge/index-file", response_model=KnowledgeIndexFileResponse)
 def index_file(request: KnowledgeIndexFileRequest) -> KnowledgeIndexFileResponse | JSONResponse:
     if request.chunk_overlap >= request.chunk_size:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "status": "error",
-                "error": {
-                    "code": "INVALID_CHUNK_PARAMS",
-                    "message": "chunk_overlap must be smaller than chunk_size.",
-                },
-            },
-        )
+        return error_response(400, "INVALID_CHUNK_PARAMS", "chunk_overlap must be smaller than chunk_size.")
 
     try:
         result = knowledge_index_service.index_file(
@@ -185,16 +152,7 @@ def index_file(request: KnowledgeIndexFileRequest) -> KnowledgeIndexFileResponse
             force_reindex=request.force_reindex,
         )
     except FileServiceError as exc:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "status": "error",
-                "error": {
-                    "code": exc.code,
-                    "message": exc.message,
-                },
-            },
-        )
+        return error_response(400, exc.code, exc.message)
 
     return KnowledgeIndexFileResponse(
         status="ok",
@@ -229,16 +187,7 @@ def index_markdown_directory(
             max_files=request.max_files,
         )
     except FileServiceError as exc:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "status": "error",
-                "error": {
-                    "code": exc.code,
-                    "message": exc.message,
-                },
-            },
-        )
+        return error_response(400, exc.code, exc.message)
 
     return KnowledgeIndexMarkdownDirectoryResponse(
         status="ok",
