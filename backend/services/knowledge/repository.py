@@ -8,6 +8,8 @@ from datetime import datetime
 from backend.services.knowledge.models import (
     KnowledgeChunkDraft,
     KnowledgeFileDraft,
+    KnowledgeFileLink,
+    KnowledgeFileTag,
     KnowledgeIndexResult,
     KnowledgeSearchHit,
     KnowledgeSearchResult,
@@ -123,6 +125,13 @@ class KnowledgeRepository:
                 relative_path=file_draft.relative_path,
                 chunks=chunks,
             )
+            _insert_file_tags(connection, file_id=file_id, tags=file_draft.tags)
+            _insert_file_links(
+                connection,
+                file_id=file_id,
+                target_names=file_draft.linked_files,
+                kb_id=file_draft.kb_id,
+            )
             connection.commit()
 
             return KnowledgeIndexResult(
@@ -189,6 +198,42 @@ def initialize_knowledge_schema(connection: sqlite3.Connection) -> bool:
         ON knowledge_chunks (kb_id, file_id, chunk_index)
         """
     )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS knowledge_file_tags (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            file_id INTEGER NOT NULL,
+            tag TEXT NOT NULL,
+            FOREIGN KEY(file_id) REFERENCES knowledge_files(id) ON DELETE CASCADE,
+            UNIQUE (file_id, tag)
+        )
+        """
+    )
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_knowledge_file_tags_lookup
+        ON knowledge_file_tags (file_id, tag)
+        """
+    )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS knowledge_file_links (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            source_file_id INTEGER NOT NULL,
+            target_name TEXT NOT NULL,
+            target_file_id INTEGER,
+            FOREIGN KEY(source_file_id) REFERENCES knowledge_files(id) ON DELETE CASCADE,
+            FOREIGN KEY(target_file_id) REFERENCES knowledge_files(id) ON DELETE SET NULL,
+            UNIQUE (source_file_id, target_name)
+        )
+        """
+    )
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_knowledge_file_links_lookup
+        ON knowledge_file_links (source_file_id, target_name)
+        """
+    )
     return ensure_knowledge_fts_table(connection)
 
 
@@ -233,6 +278,8 @@ def build_knowledge_storage_status(connection: sqlite3.Connection) -> KnowledgeS
 
     files_count = _count_rows(connection, "knowledge_files") if files_table_exists else 0
     chunks_count = _count_rows(connection, "knowledge_chunks") if chunks_table_exists else 0
+    tags_count = _count_file_tags(connection)
+    links_count = _count_file_links(connection)
 
     return KnowledgeStorageStatus(
         enabled=files_table_exists and chunks_table_exists,
@@ -245,6 +292,8 @@ def build_knowledge_storage_status(connection: sqlite3.Connection) -> KnowledgeS
         files_count=files_count,
         chunks_count=chunks_count,
         markdown_files_count=_count_markdown_files(connection) if files_table_exists else 0,
+        tags_count=tags_count,
+        links_count=links_count,
     )
 
 
@@ -564,3 +613,149 @@ def _count_markdown_files(connection: sqlite3.Connection) -> int:
         """
     ).fetchone()
     return int(row[0]) if row is not None else 0
+
+
+def _count_file_tags(connection: sqlite3.Connection) -> int:
+    if not _table_exists(connection, "knowledge_file_tags"):
+        return 0
+    return _count_rows(connection, "knowledge_file_tags")
+
+
+def _count_file_links(connection: sqlite3.Connection) -> int:
+    if not _table_exists(connection, "knowledge_file_links"):
+        return 0
+    return _count_rows(connection, "knowledge_file_links")
+
+
+def _insert_file_tags(
+    connection: sqlite3.Connection,
+    file_id: int,
+    tags: tuple[str, ...] | list[str],
+) -> None:
+    if not tags:
+        return
+    if not _table_exists(connection, "knowledge_file_tags"):
+        return
+    connection.executemany(
+        """
+        INSERT OR IGNORE INTO knowledge_file_tags (file_id, tag)
+        VALUES (?, ?)
+        """,
+        [(file_id, tag) for tag in tags],
+    )
+
+
+def _insert_file_links(
+    connection: sqlite3.Connection,
+    file_id: int,
+    target_names: tuple[str, ...] | list[str],
+    kb_id: str,
+) -> None:
+    if not target_names:
+        return
+    if not _table_exists(connection, "knowledge_file_links"):
+        return
+
+    for target_name in target_names:
+        target_file_id = _resolve_link_target(connection, kb_id, target_name)
+        connection.execute(
+            """
+            INSERT OR IGNORE INTO knowledge_file_links
+                (source_file_id, target_name, target_file_id)
+            VALUES (?, ?, ?)
+            """,
+            (file_id, target_name, target_file_id),
+        )
+
+
+def _resolve_link_target(
+    connection: sqlite3.Connection,
+    kb_id: str,
+    target_name: str,
+) -> int | None:
+    name_without_ext = target_name
+    for ext in (".md", ".txt"):
+        if target_name.lower().endswith(ext):
+            name_without_ext = target_name[: -len(ext)]
+            break
+
+    row = connection.execute(
+        """
+        SELECT id FROM knowledge_files
+        WHERE kb_id = ? AND (
+            file_name = ? OR file_name = ?
+        )
+        LIMIT 1
+        """,
+        (kb_id, target_name, name_without_ext + ".md"),
+    ).fetchone()
+    return int(row["id"]) if row is not None else None
+
+
+def get_linked_files(
+    connection: sqlite3.Connection,
+    file_id: int,
+) -> list[KnowledgeFileLink]:
+    if not _table_exists(connection, "knowledge_file_links"):
+        return []
+    rows = connection.execute(
+        """
+        SELECT source_file_id, target_name, target_file_id
+        FROM knowledge_file_links
+        WHERE source_file_id = ?
+        """,
+        (file_id,),
+    ).fetchall()
+    return [
+        KnowledgeFileLink(
+            source_file_id=int(row["source_file_id"]),
+            target_name=str(row["target_name"]),
+            target_file_id=int(row["target_file_id"]) if row["target_file_id"] else None,
+        )
+        for row in rows
+    ]
+
+
+def get_backlinks(
+    connection: sqlite3.Connection,
+    file_id: int,
+) -> list[KnowledgeFileLink]:
+    if not _table_exists(connection, "knowledge_file_links"):
+        return []
+    rows = connection.execute(
+        """
+        SELECT source_file_id, target_name, target_file_id
+        FROM knowledge_file_links
+        WHERE target_file_id = ?
+        """,
+        (file_id,),
+    ).fetchall()
+    return [
+        KnowledgeFileLink(
+            source_file_id=int(row["source_file_id"]),
+            target_name=str(row["target_name"]),
+            target_file_id=int(row["target_file_id"]) if row["target_file_id"] else None,
+        )
+        for row in rows
+    ]
+
+
+def search_by_tags(
+    connection: sqlite3.Connection,
+    tags: list[str],
+    kb_id: str = "default",
+) -> list[int]:
+    if not tags or not _table_exists(connection, "knowledge_file_tags"):
+        return []
+    placeholders = ",".join(["?"] * len(tags))
+    rows = connection.execute(
+        f"""
+        SELECT DISTINCT ft.file_id
+        FROM knowledge_file_tags ft
+        JOIN knowledge_files f ON f.id = ft.file_id
+        WHERE ft.tag IN ({placeholders})
+          AND f.kb_id = ?
+        """,
+        [*tags, kb_id],
+    ).fetchall()
+    return [int(row["file_id"]) for row in rows]

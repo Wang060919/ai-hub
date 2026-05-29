@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from backend.services.knowledge.answer_service import KnowledgeAnswerService
-from backend.services.knowledge.models import KnowledgeQueryResult, KnowledgeSearchResult
-from backend.services.knowledge.repository import KnowledgeRepository
+from backend.services.knowledge.models import KnowledgeQueryResult, KnowledgeSearchHit, KnowledgeSearchResult
+from backend.services.knowledge.repository import KnowledgeRepository, get_linked_files
 
 DEFAULT_KB_ID = "default"
 DEFAULT_TOP_K = 4
 MAX_TOP_K = 8
+MAX_LINK_HITS = 2
 
 
 class KnowledgeQueryService:
@@ -54,9 +55,16 @@ class KnowledgeQueryService:
             kb_id=kb_id,
             top_k=top_k,
         )
+
+        enriched_hits = self._enrich_with_link_hits(
+            hits=search_result.hits,
+            kb_id=search_result.kb_id,
+            query=normalized_question,
+        )
+
         answer, citations = self._answer_service.build_answer(
             question=normalized_question,
-            hits=search_result.hits,
+            hits=enriched_hits,
         )
 
         return KnowledgeQueryResult(
@@ -65,6 +73,53 @@ class KnowledgeQueryService:
             top_k=search_result.top_k,
             index_method=search_result.index_method,
             answer=answer,
-            hits=search_result.hits,
+            hits=enriched_hits,
             citations=citations,
         )
+
+    def _enrich_with_link_hits(
+        self,
+        hits: list[KnowledgeSearchHit],
+        kb_id: str,
+        query: str,
+    ) -> list[KnowledgeSearchHit]:
+        if not hits:
+            return hits
+
+        seen_file_ids = {hit.file_id for hit in hits}
+        link_hit_count = 0
+
+        for hit in hits[:2]:
+            if link_hit_count >= MAX_LINK_HITS:
+                break
+
+            try:
+                with self._repository._connection_factory() as connection:
+                    linked = get_linked_files(connection, hit.file_id)
+            except Exception:
+                continue
+
+            for link in linked:
+                if link_hit_count >= MAX_LINK_HITS:
+                    break
+                if not link.target_file_id:
+                    continue
+                if link.target_file_id in seen_file_ids:
+                    continue
+
+                try:
+                    linked_result = self._repository.search_chunks(
+                        query=query,
+                        kb_id=kb_id,
+                        top_k=1,
+                    )
+                    for linked_hit in linked_result.hits:
+                        if linked_hit.file_id == link.target_file_id:
+                            hits = list(hits) + [linked_hit]
+                            seen_file_ids.add(link.target_file_id)
+                            link_hit_count += 1
+                            break
+                except Exception:
+                    continue
+
+        return hits

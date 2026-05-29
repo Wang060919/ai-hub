@@ -11,6 +11,8 @@ from backend.services.knowledge.chunker import (
     DEFAULT_CHUNK_SIZE,
     chunk_text,
 )
+from backend.services.knowledge.frontmatter import parse_frontmatter
+from backend.services.knowledge.linker import extract_wikilinks
 from backend.services.knowledge.models import (
     KnowledgeDirectoryIndexError,
     KnowledgeDirectoryIndexItem,
@@ -54,9 +56,24 @@ class KnowledgeIndexService:
         force_reindex: bool = False,
     ) -> KnowledgeIndexResult:
         text_file = self._text_file_service.read_text_file(path)
+
+        frontmatter, body = parse_frontmatter(text_file.text)
+        tags = list(frontmatter.tags)
+        aliases = list(frontmatter.aliases)
+        linked_files = extract_wikilinks(body)
+
+        searchable_text = body
+        metadata_parts: list[str] = []
+        if tags:
+            metadata_parts.append(" ".join(f"#{tag}" for tag in tags))
+        if aliases:
+            metadata_parts.append(" ".join(aliases))
+        if metadata_parts:
+            searchable_text = "\n".join(metadata_parts) + "\n" + body
+
         file_hash = _calculate_sha256(text_file.text)
         chunks = chunk_text(
-            text_file.text,
+            searchable_text,
             chunk_size=chunk_size,
             overlap=chunk_overlap,
         )
@@ -72,6 +89,9 @@ class KnowledgeIndexService:
             file_hash=file_hash,
             content_chars=text_file.chars,
             text_content=text_file.text,
+            tags=tags,
+            aliases=aliases,
+            linked_files=linked_files,
         )
         return self._repository.index_file_content(
             file_draft=file_draft,

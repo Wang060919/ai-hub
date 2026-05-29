@@ -88,6 +88,8 @@ class KnowledgeStatusBody(BaseModel):
     files_table_exists: bool
     chunks_table_exists: bool
     fts_table_exists: bool
+    tags_count: int = 0
+    links_count: int = 0
 
 
 class KnowledgeStatusResponse(BaseModel):

@@ -57,6 +57,8 @@ def knowledge_status() -> KnowledgeStatusResponse:
             files_table_exists=storage_status.files_table_exists,
             chunks_table_exists=storage_status.chunks_table_exists,
             fts_table_exists=storage_status.fts_table_exists,
+            tags_count=storage_status.tags_count,
+            links_count=storage_status.links_count,
         ),
     )
 

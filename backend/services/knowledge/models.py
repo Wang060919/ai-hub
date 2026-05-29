@@ -15,6 +15,8 @@ class KnowledgeStorageStatus:
     files_count: int
     chunks_count: int
     markdown_files_count: int
+    tags_count: int = 0
+    links_count: int = 0
 
 
 @dataclass(frozen=True)
@@ -39,6 +41,9 @@ class KnowledgeFileDraft:
     file_hash: str
     content_chars: int
     text_content: str
+    tags: list[str] = ()
+    aliases: list[str] = ()
+    linked_files: list[str] = ()
 
 
 @dataclass(frozen=True)
@@ -135,3 +140,16 @@ class KnowledgeQueryResult:
     answer: KnowledgeAnswer
     hits: list[KnowledgeSearchHit]
     citations: list[KnowledgeCitation]
+
+
+@dataclass(frozen=True)
+class KnowledgeFileTag:
+    file_id: int
+    tag: str
+
+
+@dataclass(frozen=True)
+class KnowledgeFileLink:
+    source_file_id: int
+    target_name: str
+    target_file_id: int | None = None

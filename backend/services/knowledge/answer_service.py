@@ -117,7 +117,7 @@ class KnowledgeAnswerService:
         prompt_sections = [
             "你是 AI Hub 的知识库问答助手。",
             "你只能基于下面提供的知识片段回答问题，不允许补充片段之外的事实、常识、经验或猜测。",
-            "如果依据不足，必须明确说明依据不足，或直接回答“未在当前知识库中找到足够依据”。",
+            "如果依据不足，必须明确说明依据不足，或直接回答「未在当前知识库中找到足够依据」。",
             "请使用简体中文回答。",
             "回答时尽量在对应句子后标注 [1]、[2] 这样的引用编号。",
             "不要输出 JSON。",
@@ -128,6 +128,13 @@ class KnowledgeAnswerService:
             "知识片段：",
             self._build_context_block(hits),
         ]
+
+        linked_paths = self._collect_linked_paths(hits)
+        if linked_paths:
+            prompt_sections.append("")
+            prompt_sections.append("相关文档（可能包含补充信息）：")
+            prompt_sections.append(", ".join(linked_paths))
+
         return "\n".join(prompt_sections).strip()
 
     def _build_context_block(self, hits: list[KnowledgeSearchHit]) -> str:
@@ -149,3 +156,13 @@ class KnowledgeAnswerService:
                 break
 
         return "\n\n".join(sections).strip()
+
+    @staticmethod
+    def _collect_linked_paths(hits: list[KnowledgeSearchHit]) -> list[str]:
+        seen: set[str] = set()
+        paths: list[str] = []
+        for hit in hits:
+            if hit.relative_path not in seen:
+                seen.add(hit.relative_path)
+                paths.append(hit.relative_path)
+        return paths
