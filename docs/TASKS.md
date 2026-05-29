@@ -131,13 +131,13 @@
 ---
 
 ### V1.9：Chat 与 Knowledge 手动联动第一版
-**状态**：`DOING`（M1-M3 已完成，M4 待做）
+**状态**：`DONE`
 
 已完成：
 - [x] Chat 页面新增模式切换（普通聊天 / 知识库问答）
 - [x] 知识库问答模式调用 `/api/knowledge/query`
 - [x] Panel 新增"基于知识库提问"跳转入口
-- [ ] M4：轻量回归验证与文档同步
+- [x] M4：轻量回归验证通过（git clean、py_compile、node --check、npm run build、后端端点正常）
 
 边界：`/chat` 仍未自动接入知识库，不做自动记忆/自动入库。
 
