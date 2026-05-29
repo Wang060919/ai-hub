@@ -137,9 +137,10 @@
 - [x] Chat 页面新增模式切换（普通聊天 / 知识库问答）
 - [x] 知识库问答模式调用 `/api/knowledge/query`
 - [x] Panel 新增"基于知识库提问"跳转入口
-- [x] M4：轻量回归验证通过（git clean、py_compile、node --check、npm run build、后端端点正常）
+- [x] `/chat` 自动检测知识库意图关键词，知识库有内容时自动路由到知识库检索
+- [x] 回复 `skill: "knowledge"` 标识来源，`data` 携带 `grounded`/`citations` 元数据
 
-边界：`/chat` 仍未自动接入知识库，不做自动记忆/自动入库。
+边界：手动知识库模式仍保留作为精确查询入口；自动检测基于关键词，不使用 AI 意图分类。
 
 ---
 

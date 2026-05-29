@@ -5,6 +5,9 @@ from fastapi import APIRouter
 from backend.ai_router import OllamaRouter, is_ai_router_enabled
 from backend.adapters.deepseek import is_deepseek_chat_enabled
 from backend.schemas import ChatMessage, ChatRequest, ChatResponse
+from backend.services.knowledge.answer_service import KnowledgeAnswerError
+from backend.services.knowledge.query_service import KnowledgeQueryService
+from backend.services.knowledge.repository import KnowledgeRepository
 from backend.skills.deepseek_chat import DeepSeekChatSkill
 from backend.skills.dify_english import DIFY_KEYWORDS, DifyEnglishSkill
 from backend.skills.echo import EchoSkill
@@ -15,6 +18,7 @@ from backend.skills.readonly_file_scanner import READONLY_FILE_SCANNER_KEYWORDS_
 from backend.skills.readonly_text_preview import READONLY_TEXT_PREVIEW_KEYWORDS_LOWER, ReadOnlyTextPreviewSkill
 from backend.skills.safe_action import SAFE_ACTION_KEYWORDS_LOWER, SafeActionSkill
 from backend.skills.time import TimeSkill
+from backend.storage import get_connection
 
 TIME_KEYWORDS = ("时间", "几点", "time")
 MAX_CONTEXT_TURNS = 4
@@ -55,6 +59,24 @@ SAFE_ACTION_OPERATION_HINTS = (
     "执行计划",
     "操作计划",
 )
+KNOWLEDGE_INTENT_KEYWORDS_LOWER = (
+    "根据知识库",
+    "知识库",
+    "我的笔记",
+    "笔记里",
+    "笔记中",
+    "已入库",
+    "保存的内容",
+    "之前记录",
+    "我记录的",
+    "我的文档",
+    "根据我保存",
+    "搜索知识",
+    "查知识库",
+    "找到的笔记",
+    "文件里提到",
+    "文件中提到",
+)
 
 ai_router = OllamaRouter()
 deepseek_chat_skill = DeepSeekChatSkill()
@@ -79,6 +101,9 @@ skills_by_name = {
     file_analysis_skill.name: file_analysis_skill,
 }
 
+knowledge_repository = KnowledgeRepository(get_connection)
+knowledge_query_service = KnowledgeQueryService(knowledge_repository)
+
 router = APIRouter()
 
 
@@ -87,6 +112,9 @@ def chat(payload: ChatRequest) -> ChatResponse:
     rule_skill = _select_skill(payload.message)
     if rule_skill.name != echo_skill.name:
         return rule_skill.execute(payload.message)
+
+    if _should_use_knowledge(payload.message) and _has_knowledge_content():
+        return _execute_knowledge_chat(payload.message)
 
     if is_deepseek_chat_enabled():
         deepseek_response = _execute_deepseek_with_echo_fallback(
@@ -266,3 +294,59 @@ def _should_use_file_analysis(normalized_message: str) -> bool:
     if _should_use_file_inventory(normalized_message):
         return False
     return any(keyword in normalized_message for keyword in FILE_ANALYSIS_KEYWORDS_LOWER)
+
+
+def _should_use_knowledge(normalized_message: str) -> bool:
+    return any(keyword in normalized_message for keyword in KNOWLEDGE_INTENT_KEYWORDS_LOWER)
+
+
+def _has_knowledge_content() -> bool:
+    try:
+        status = knowledge_repository.get_storage_status()
+        return status.files_count > 0
+    except Exception:
+        return False
+
+
+def _execute_knowledge_chat(message: str) -> ChatResponse:
+    try:
+        result = knowledge_query_service.query(question=message)
+    except KnowledgeAnswerError as exc:
+        if exc.code == "KNOWLEDGE_MODEL_DISABLED":
+            return ChatResponse(
+                reply="知识库问答功能未启用：后端 AI 模型尚未配置，请联系管理员开启 DeepSeek。",
+                skill="knowledge",
+                status="error",
+                data={"error_type": "KNOWLEDGE_MODEL_DISABLED"},
+            )
+        return echo_skill.execute(message)
+    except ValueError:
+        return ChatResponse(
+            reply="未在知识库中找到相关内容。",
+            skill="knowledge",
+            status="success",
+            data={"grounded": False, "hits_count": 0},
+        )
+    except Exception:
+        return echo_skill.execute(message)
+
+    citations_data = [
+        {
+            "index": c.index,
+            "relative_path": c.relative_path,
+            "chunk_index": c.chunk_index,
+        }
+        for c in result.citations
+    ]
+
+    return ChatResponse(
+        reply=result.answer.text,
+        skill="knowledge",
+        status="success",
+        data={
+            "grounded": result.answer.grounded,
+            "citations": citations_data,
+            "hits_count": len(result.hits),
+            "kb_id": result.kb_id,
+        },
+    )
