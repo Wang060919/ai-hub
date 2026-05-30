@@ -532,12 +532,20 @@ export function createChatModule(deps) {
     let accumulated = "";
     let bubble = null;
     let streamingStarted = false;
+    let renderDebounce = null;
+
+    function renderStreamingMarkdown() {
+      if (!bubble) return;
+      bubble.innerHTML = "";
+      bubble.classList.add("markdown-content");
+      renderAssistantMessageContent(bubble, accumulated || "-");
+      dom.chatMessages.scrollTop = dom.chatMessages.scrollHeight;
+    }
 
     function finishStreaming() {
       if (!bubble) return;
-      bubble.textContent = "";
-      bubble.classList.add("markdown-content");
-      renderAssistantMessageContent(bubble, accumulated || "-");
+      if (renderDebounce) { clearTimeout(renderDebounce); renderDebounce = null; }
+      renderStreamingMarkdown();
     }
 
     await requestChatStream(backendUrl, message, contextMessages, {
@@ -553,8 +561,9 @@ export function createChatModule(deps) {
         }
         accumulated += token;
         if (bubble) {
-          bubble.textContent = accumulated;
-          dom.chatMessages.scrollTop = dom.chatMessages.scrollHeight;
+          // Debounce markdown re-render to avoid thrashing on fast streams
+          if (renderDebounce) clearTimeout(renderDebounce);
+          renderDebounce = setTimeout(renderStreamingMarkdown, 40);
         }
       },
       onDone() {

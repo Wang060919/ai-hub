@@ -48,8 +48,21 @@
           </button>
         </nav>
 
+        <!-- Conversations list -->
+        <div class="sidebar-conversations" id="sidebar-conversations">
+          <div class="chat-conversations-header">
+            <span class="chat-conversations-title">会话</span>
+            <button id="new-conversation-btn" class="chat-new-conversation-btn" type="button" aria-label="新建会话" title="新建会话">+</button>
+          </div>
+          <div id="conversations-list" class="chat-conversations-list"></div>
+        </div>
+
         <button class="sidebar-collapse-btn" data-action="toggle-sidebar" type="button" aria-label="折叠侧边栏">
           <span class="sidebar-collapse-icon" aria-hidden="true">‹</span>
+        </button>
+
+        <button id="sidebar-theme-toggle" class="sidebar-theme-btn" type="button" aria-label="切换深色模式" title="切换深色/浅色模式">
+          <span id="theme-icon" aria-hidden="true">🌙</span>
         </button>
 
         <div class="sidebar-connection">
@@ -76,31 +89,64 @@
             </header>
 
             <div id="chat-settings-panel" class="chat-settings-panel hidden">
-              <div class="chat-settings-form">
-                <label class="form-field">
-                  <span class="form-label">API URL</span>
-                  <input id="settings-api-url" class="form-input" type="url" placeholder="例如：https://api.deepseek.com/chat/completions" autocomplete="off" />
-                </label>
-                <label class="form-field">
-                  <span class="form-label">API Key</span>
-                  <input id="settings-api-key" class="form-input" type="password" placeholder="sk-..." autocomplete="off" />
-                </label>
-                <label class="form-field">
-                  <span class="form-label">模型名称</span>
-                  <div class="settings-model-row">
-                    <input id="settings-model" class="form-input settings-model-input" type="text" placeholder="例如：deepseek-chat" autocomplete="off" />
-                    <button id="settings-fetch-models" class="btn btn-sm" type="button">获取模型列表</button>
-                  </div>
-                </label>
-                <label class="form-field">
-                  <span class="form-label">超时（秒）</span>
-                  <input id="settings-timeout" class="form-input" type="number" min="1" max="120" value="30" autocomplete="off" />
-                </label>
-                <div class="form-actions">
-                  <button id="settings-save" class="btn btn-primary" type="button">保存配置</button>
+              <h3 class="chat-settings-title">模型设置</h3>
+              <button class="chat-settings-close" type="button" aria-label="关闭设置">×</button>
+
+              <!-- Presets list (includes current model as first item) -->
+              <div class="settings-section">
+                <div class="settings-section-header">
+                  <h4 class="settings-section-title">模型预设</h4>
+                  <button id="settings-add-preset" class="btn btn-sm btn-primary" type="button">+ 添加</button>
                 </div>
-                <p id="settings-status" class="status-text idle">加载中...</p>
+                <div id="settings-presets-list" class="settings-presets-list"></div>
               </div>
+
+              <p id="settings-status" class="status-text idle"></p>
+
+              <!-- Edit preset form (hidden) -->
+              <div id="settings-preset-form" class="settings-section settings-preset-form hidden">
+                <div class="settings-section-header">
+                  <h4 class="settings-section-title" id="settings-preset-form-title">编辑模型预设</h4>
+                </div>
+                <div class="chat-settings-form">
+                  <label class="form-field">
+                    <span class="form-label">名称</span>
+                    <input id="preset-form-label" class="form-input" type="text" placeholder="例如：DeepSeek" autocomplete="off" />
+                  </label>
+                  <label class="form-field">
+                    <span class="form-label">API URL</span>
+                    <input id="preset-form-api-url" class="form-input" type="url" placeholder="https://api.example.com/v1" autocomplete="off" />
+                  </label>
+                  <label class="form-field">
+                    <span class="form-label">API Key</span>
+                    <input id="preset-form-api-key" class="form-input" type="password" placeholder="sk-..." autocomplete="off" />
+                  </label>
+                  <label class="form-field">
+                    <span class="form-label">模型名称</span>
+                    <div class="settings-model-row">
+                      <input id="preset-form-model" class="form-input settings-model-input" type="text" placeholder="model-name" autocomplete="off" />
+                      <button id="preset-form-fetch-models" class="btn btn-sm" type="button">获取模型列表</button>
+                    </div>
+                  </label>
+                  <label class="form-field">
+                    <span class="form-label">超时（秒）</span>
+                    <input id="preset-form-timeout" class="form-input" type="number" min="1" max="120" value="30" autocomplete="off" />
+                  </label>
+                  <div class="form-actions">
+                    <button id="preset-form-save" class="btn btn-primary" type="button">保存</button>
+                    <button id="preset-form-cancel" class="btn" type="button">取消</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Provider presets bar -->
+            <div id="chat-provider-bar" class="chat-provider-bar">
+              <button class="chat-provider-chip active" data-provider="default" type="button">当前模型</button>
+              <button class="chat-provider-chip" data-provider="deepseek" type="button">DeepSeek</button>
+              <button class="chat-provider-chip" data-provider="openai" type="button">OpenAI</button>
+              <button class="chat-provider-chip" data-provider="anthropic" type="button">Claude</button>
+              <button class="chat-provider-chip" data-provider="ollama" type="button">Ollama</button>
             </div>
 
             <div id="chat-messages" class="chat-messages-area" role="log" aria-live="polite" aria-label="聊天消息">

@@ -11,6 +11,9 @@ import { createDesktopShell } from "./js/layout/chat-first-shell.js";
 import { renderOrbitIcon } from "./js/components/orbit-icon.js";
 import { setTextStatus } from "./js/ui/status.js";
 import { createToastManager } from "./js/ui/toast.js";
+import { createThemeManager } from "./js/ui/theme.js";
+import { createConversationManager } from "./js/chat/conversations.js";
+import { createProviderPresets } from "./js/chat/provider-presets.js";
 
 /* ---- DOM references (elements that persist across pages) ---- */
 const backendUrlInput = document.querySelector("#backend-url");
@@ -32,12 +35,6 @@ const chatSettingsToggleBtn = document.querySelector("#chat-settings-toggle");
 
 /* ---- Settings panel DOM ---- */
 const settingsPanel = document.querySelector("#chat-settings-panel");
-const settingsApiUrl = document.querySelector("#settings-api-url");
-const settingsApiKey = document.querySelector("#settings-api-key");
-const settingsModel = document.querySelector("#settings-model");
-const settingsTimeout = document.querySelector("#settings-timeout");
-const settingsSaveBtn = document.querySelector("#settings-save");
-const settingsFetchModelsBtn = document.querySelector("#settings-fetch-models");
 const settingsStatus = document.querySelector("#settings-status");
 
 /* ---- Files page DOM ---- */
@@ -219,21 +216,21 @@ const {
 /* ---- Settings module ---- */
 const {
   toggle: toggleSettings,
-  saveSettings,
-  fetchModels,
+  renderPresetsList,
 } = createSettingsModule({
   dom: {
     backendUrlInput,
     settingsPanel,
-    settingsApiUrl,
-    settingsApiKey,
-    settingsModel,
-    settingsTimeout,
-    settingsSaveBtn,
-    settingsFetchModelsBtn,
     settingsStatus,
     settingsToggleBtn: chatSettingsToggleBtn,
   },
+  onSaved() {
+    providerPresets.render();
+  },
+  onPresetsChanged() {
+    providerPresets.render();
+  },
+  toast,
 });
 
 /* ---- Shell ---- */
@@ -344,9 +341,8 @@ chatMessageInput.addEventListener("input", autoResizeTextarea);
 chatMessageInput.addEventListener("keydown", handleChatInputKeydown);
 chatModeNormalButton.addEventListener("click", () => setChatMode("chat"));
 chatModeKnowledgeButton.addEventListener("click", () => setChatMode("knowledge"));
+// Settings events
 chatSettingsToggleBtn.addEventListener("click", toggleSettings);
-settingsSaveBtn.addEventListener("click", () => void saveSettings());
-settingsFetchModelsBtn.addEventListener("click", () => void fetchModels());
 
 // Files events
 readFilePreviewButton.addEventListener("click", readFilePreview);
@@ -368,6 +364,11 @@ knowledgeSearchQueryInput.addEventListener("input", updateKnowledgeButtonState);
 knowledgeQueryQuestionInput.addEventListener("input", updateKnowledgeButtonState);
 
 /* ---- Init ---- */
+
+// Theme (initialize early to prevent flash)
+const themeManager = createThemeManager();
+themeManager.init();
+
 renderOrbitBrand();
 resetBackendSummary();
 resetKnowledgeSummary();
@@ -381,3 +382,60 @@ initResizeHandle();
 shell.bindEvents();
 shell.restoreSidebarState();
 shell.syncAll();
+
+// Provider presets
+const providerPresets = createProviderPresets({
+  onSwitch(preset) {
+    if (preset.isDefault) return;
+    // Apply preset to settings fields
+    if (preset.apiUrl) dom.settingsApiUrl.value = preset.apiUrl;
+    if (preset.model) dom.settingsModel.value = preset.model;
+    if (preset.timeout) dom.settingsTimeout.value = preset.timeout;
+    toast.show(`已切换到 ${preset.label}`, "info");
+  },
+  onNeedApiKey(preset) {
+    // Open settings panel and pre-fill provider info
+    toggleSettings();
+    if (preset.apiUrl) dom.settingsApiUrl.value = preset.apiUrl;
+    if (preset.model) dom.settingsModel.value = preset.model;
+    if (preset.timeout) dom.settingsTimeout.value = preset.timeout;
+    dom.settingsApiKey.placeholder = "请输入 API Key";
+    dom.settingsApiKey.focus();
+    setTextStatus(dom.settingsStatus, "请先配置 API Key，然后保存。", "idle");
+  },
+  onAddClick() {
+    // Open settings panel and show add preset form
+    toggleSettings();
+    setTimeout(() => {
+      const addBtn = document.querySelector("#settings-add-preset");
+      if (addBtn) addBtn.click();
+    }, 50);
+  },
+});
+
+// Conversation manager
+const conversationManager = createConversationManager({
+  onSwitch(conv) {
+    state.chatHistory = conv.messages || [];
+    dom.chatMessages.innerHTML = "";
+    if (state.chatHistory.length === 0) {
+      resetChatResult();
+    } else {
+      clearChatEmptyState();
+      // Re-render conversation messages
+      state.chatHistory.forEach((msg) => {
+        appendChatMessage(msg.role, msg.content);
+      });
+    }
+  },
+  onNew() {
+    state.chatHistory = [];
+    resetChatResult();
+  },
+});
+
+// Re-export for use in sendChat recording
+const _origRecordSuccessfulChatTurn = state._recordTurn;
+state._onChatTurnComplete = (userMsg, assistantMsg) => {
+  conversationManager.saveCurrentMessages(state.chatHistory);
+};

@@ -93,8 +93,16 @@ class ModelListResponse(BaseModel):
 def post_model_list(payload: ModelListRequest) -> ModelListResponse:
     models_url = _derive_models_url(payload.api_url)
     headers = {"Accept": "application/json"}
-    if payload.api_key:
-        headers["Authorization"] = f"Bearer {payload.api_key}"
+
+    api_key = payload.api_key
+    # Fall back to stored config key if not provided
+    if not api_key:
+        stored = get_model_config()
+        if stored.api_key:
+            api_key = stored.api_key
+
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
 
     http_request = request.Request(models_url, headers=headers, method="GET")
 
