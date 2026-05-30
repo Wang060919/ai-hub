@@ -148,6 +148,14 @@ export function createSettingsModule(deps) {
     });
 
     dropdown.classList.remove("hidden");
+
+    const onOutsideClick = (e) => {
+      if (!dropdown.contains(e.target) && e.target !== dom.settingsFetchModelsBtn) {
+        dropdown.classList.add("hidden");
+        document.removeEventListener("click", onOutsideClick);
+      }
+    };
+    setTimeout(() => document.addEventListener("click", onOutsideClick), 0);
   }
 
   return { toggle, show, hide, loadCurrentSettings, saveSettings, fetchModels };
