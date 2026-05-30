@@ -6,16 +6,15 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
 from backend.ai_router import OllamaRouter, is_ai_router_enabled
-from backend.adapters.deepseek import (
-    DeepSeekError,
-    is_deepseek_chat_enabled,
-    stream_deepseek_reply_from_messages,
+from backend.adapters.openai_compatible import (
+    LLMError,
+    is_chat_enabled,
+    stream_reply_from_messages,
 )
 from backend.schemas import ChatMessage, ChatRequest, ChatResponse
 from backend.services.knowledge.answer_service import KnowledgeAnswerError
 from backend.services.knowledge.query_service import KnowledgeQueryService
 from backend.services.knowledge.repository import KnowledgeRepository
-from backend.skills.deepseek_chat import DeepSeekChatSkill
 from backend.skills.dify_english import DIFY_KEYWORDS, DifyEnglishSkill
 from backend.skills.echo import EchoSkill
 from backend.skills.file_analysis import FILE_ANALYSIS_KEYWORDS_LOWER, FileAnalysisSkill
@@ -86,7 +85,6 @@ KNOWLEDGE_INTENT_KEYWORDS_LOWER = (
 )
 
 ai_router = OllamaRouter()
-deepseek_chat_skill = DeepSeekChatSkill()
 dify_english_skill = DifyEnglishSkill()
 echo_skill = EchoSkill()
 file_analysis_skill = FileAnalysisSkill()
@@ -123,12 +121,12 @@ def chat(payload: ChatRequest) -> ChatResponse:
     if _should_use_knowledge(payload.message) and _has_knowledge_content():
         return _execute_knowledge_chat(payload.message)
 
-    if is_deepseek_chat_enabled():
-        deepseek_response = _execute_deepseek_with_echo_fallback(
+    if is_chat_enabled():
+        llm_response = _execute_llm_with_echo_fallback(
             payload.message,
             messages=payload.messages,
         )
-        return deepseek_response
+        return llm_response
 
     if not is_ai_router_enabled():
         return echo_skill.execute(payload.message)
@@ -159,8 +157,8 @@ def chat_stream(payload: ChatRequest) -> StreamingResponse:
             yield from _stream_knowledge_chat(payload.message)
             return
 
-        if is_deepseek_chat_enabled():
-            yield from _stream_deepseek_chat(payload.message, payload.messages)
+        if is_chat_enabled():
+            yield from _stream_llm_chat(payload.message, payload.messages)
             return
 
         if is_ai_router_enabled():
@@ -181,18 +179,18 @@ def chat_stream(payload: ChatRequest) -> StreamingResponse:
     return StreamingResponse(generate(), media_type="text/event-stream")
 
 
-def _stream_deepseek_chat(message: str, messages: list[ChatMessage] | None):
-    deepseek_messages = _build_deepseek_messages(message, messages)
-    yield _sse_event({"type": "metadata", "skill": "deepseek_chat", "status": "success"})
+def _stream_llm_chat(message: str, messages: list[ChatMessage] | None):
+    llm_messages = _build_llm_messages(message, messages)
+    yield _sse_event({"type": "metadata", "skill": "llm_chat", "status": "success"})
     try:
-        for token in stream_deepseek_reply_from_messages(deepseek_messages):
+        for token in stream_reply_from_messages(llm_messages):
             yield _sse_event({"type": "token", "content": token})
-    except DeepSeekError as exc:
+    except LLMError as exc:
         yield _sse_event({"type": "error", "message": str(exc)})
         return
-    except Exception:
-        result = echo_skill.execute(message)
-        yield _sse_event({"type": "token", "content": result.reply})
+    except Exception as exc:
+        yield _sse_event({"type": "error", "message": f"流式响应异常: {exc}"})
+        return
     yield _sse_event({"type": "done"})
 
 
@@ -202,7 +200,7 @@ def _stream_knowledge_chat(message: str):
     except KnowledgeAnswerError as exc:
         if exc.code == "KNOWLEDGE_MODEL_DISABLED":
             yield _sse_event({"type": "metadata", "skill": "knowledge", "status": "error"})
-            yield _sse_event({"type": "error", "message": "知识库问答功能未启用：后端 AI 模型尚未配置，请联系管理员开启 DeepSeek。", "code": "KNOWLEDGE_MODEL_DISABLED"})
+            yield _sse_event({"type": "error", "message": "知识库问答功能未启用：后端 AI 模型尚未配置，请在模型设置中配置 API。", "code": "KNOWLEDGE_MODEL_DISABLED"})
         else:
             yield _sse_event({"type": "metadata", "skill": "knowledge", "status": "error"})
             yield _sse_event({"type": "error", "message": str(exc)})
@@ -225,7 +223,7 @@ def _stream_knowledge_chat(message: str):
         for c in result.citations
     ]
 
-    if is_deepseek_chat_enabled() and result.answer.grounded:
+    if is_chat_enabled() and result.answer.grounded:
         yield _sse_event({
             "type": "metadata",
             "skill": "knowledge",
@@ -235,14 +233,14 @@ def _stream_knowledge_chat(message: str):
             "hits_count": len(result.hits),
             "kb_id": result.kb_id,
         })
-        deepseek_messages = _build_deepseek_messages(
+        llm_messages = _build_llm_messages(
             f"基于以下知识片段回答用户问题。\n\n知识片段：\n{result.answer.text}\n\n用户问题：{message}",
             None,
         )
         try:
-            for token in stream_deepseek_reply_from_messages(deepseek_messages):
+            for token in stream_reply_from_messages(llm_messages):
                 yield _sse_event({"type": "token", "content": token})
-        except DeepSeekError as exc:
+        except LLMError:
             yield _sse_event({"type": "token", "content": result.answer.text})
         except Exception:
             yield _sse_event({"type": "token", "content": result.answer.text})
@@ -261,22 +259,26 @@ def _stream_knowledge_chat(message: str):
     yield _sse_event({"type": "done"})
 
 
-def _execute_deepseek_with_echo_fallback(
+def _execute_llm_with_echo_fallback(
     message: str,
     messages: list[ChatMessage] | None,
 ) -> ChatResponse:
+    from backend.adapters.openai_compatible import create_reply_from_messages
+
     try:
-        deepseek_messages = _build_deepseek_messages(message, messages)
-        deepseek_response = deepseek_chat_skill.execute_messages(deepseek_messages)
+        llm_messages = _build_llm_messages(message, messages)
+        reply = create_reply_from_messages(llm_messages)
     except Exception:
         return echo_skill.execute(message)
 
-    if deepseek_response.status != "success":
-        return echo_skill.execute(message)
-    return deepseek_response
+    return ChatResponse(
+        reply=reply,
+        skill="llm_chat",
+        status="success",
+    )
 
 
-def _build_deepseek_messages(
+def _build_llm_messages(
     message: str,
     messages: list[ChatMessage] | None,
 ) -> list[ChatMessage]:
@@ -304,10 +306,10 @@ def _build_deepseek_messages(
             )
         )
 
-    return _trim_deepseek_messages(normalized_messages[-MAX_CONTEXT_MESSAGES:])
+    return _trim_llm_messages(normalized_messages[-MAX_CONTEXT_MESSAGES:])
 
 
-def _trim_deepseek_messages(messages: list[ChatMessage]) -> list[ChatMessage]:
+def _trim_llm_messages(messages: list[ChatMessage]) -> list[ChatMessage]:
     trimmed_messages: list[ChatMessage] = []
     total_chars = 0
 
@@ -443,7 +445,7 @@ def _execute_knowledge_chat(message: str) -> ChatResponse:
     except KnowledgeAnswerError as exc:
         if exc.code == "KNOWLEDGE_MODEL_DISABLED":
             return ChatResponse(
-                reply="知识库问答功能未启用：后端 AI 模型尚未配置，请联系管理员开启 DeepSeek。",
+                reply="知识库问答功能未启用：后端 AI 模型尚未配置，请在模型设置中配置 API。",
                 skill="knowledge",
                 status="error",
                 data={"error_type": "KNOWLEDGE_MODEL_DISABLED"},

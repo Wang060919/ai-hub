@@ -9,7 +9,7 @@ const publicDir = join(projectRoot, "frontend", "public");
 const distDir = join(projectRoot, "frontend", "dist");
 const preferredRoot = existsSync(distDir) ? distDir : publicDir;
 const host = process.env.AI_HUB_FRONTEND_HOST || "127.0.0.1";
-const port = Number(process.env.AI_HUB_FRONTEND_PORT || 4173);
+const port = Number(process.env.AI_HUB_FRONTEND_PORT || 4174);
 
 const mimeTypes = {
   ".css": "text/css; charset=utf-8",
@@ -626,6 +626,69 @@ async function handleKnowledgeQueryProxy(request, response) {
   }
 }
 
+async function handleGetModelSettingsProxy(request, response, requestUrl) {
+  try {
+    const baseUrl = normalizeBackendUrl(requestUrl.searchParams.get("backendUrl") || "");
+    const result = await fetchJsonWithStatus(baseUrl, "/settings/model");
+    sendJson(response, result.statusCode, result.payload);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : backendUnavailableMessage;
+    sendJson(response, 502, { error: message });
+  }
+}
+
+async function handleFetchModelsProxy(request, response, requestUrl) {
+  try {
+    const rawBody = await readRequestBody(request);
+    const payload = rawBody ? JSON.parse(rawBody) : {};
+    const queryBackendUrl = requestUrl ? requestUrl.searchParams.get("backendUrl") : null;
+    const baseUrl = normalizeBackendUrl(queryBackendUrl || payload.backendUrl || "");
+
+    const result = await postJsonWithStatus(baseUrl, "/settings/models", {
+      api_url: payload.api_url || "",
+      api_key: payload.api_key || null,
+    });
+    sendJson(response, result.statusCode, result.payload);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : backendUnavailableMessage;
+    sendJson(response, 502, { error: message });
+  }
+}
+
+async function handlePutModelSettingsProxy(request, response, requestUrl) {
+  try {
+    const rawBody = await readRequestBody(request);
+    const payload = rawBody ? JSON.parse(rawBody) : {};
+    const queryBackendUrl = requestUrl ? requestUrl.searchParams.get("backendUrl") : null;
+    const baseUrl = normalizeBackendUrl(queryBackendUrl || payload.backendUrl || "");
+
+    const backendResponse = await fetch(`${baseUrl}/settings/model`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const rawText = await backendResponse.text();
+    let jsonPayload = null;
+    if (rawText) {
+      try { jsonPayload = JSON.parse(rawText); } catch { /* ignore */ }
+    }
+
+    if (!backendResponse.ok) {
+      const message = jsonPayload?.detail || jsonPayload?.reply || `PUT /settings/model returned ${backendResponse.status}`;
+      throw new Error(String(message));
+    }
+
+    sendJson(response, 200, jsonPayload ?? {});
+  } catch (error) {
+    const message = error instanceof Error ? error.message : backendUnavailableMessage;
+    sendJson(response, 502, { error: message });
+  }
+}
+
 function serveStaticFile(requestPath, response) {
   const safePath = requestPath === "/" ? "/index.html" : requestPath;
   const resolvedPath = resolve(preferredRoot, `.${normalize(safePath)}`);
@@ -694,6 +757,21 @@ const server = http.createServer(async (request, response) => {
 
   if (request.method === "POST" && requestUrl.pathname === "/api/knowledge/query") {
     await handleKnowledgeQueryProxy(request, response);
+    return;
+  }
+
+  if (request.method === "GET" && requestUrl.pathname === "/api/settings/model") {
+    await handleGetModelSettingsProxy(request, response, requestUrl);
+    return;
+  }
+
+  if (request.method === "POST" && requestUrl.pathname === "/api/settings/model") {
+    await handlePutModelSettingsProxy(request, response, requestUrl);
+    return;
+  }
+
+  if (request.method === "POST" && requestUrl.pathname === "/api/settings/models") {
+    await handleFetchModelsProxy(request, response, requestUrl);
     return;
   }
 

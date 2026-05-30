@@ -535,6 +535,7 @@ export function createChatModule(deps) {
 
     function finishStreaming() {
       if (!bubble) return;
+      bubble.textContent = "";
       bubble.classList.add("markdown-content");
       renderAssistantMessageContent(bubble, accumulated || "-");
     }

@@ -3,13 +3,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
-from backend.adapters.deepseek import (
-    DeepSeekConfigError,
-    DeepSeekError,
-    DeepSeekResponseError,
-    create_deepseek_reply_from_messages,
+from backend.adapters.openai_compatible import (
+    LLMConfigError,
+    LLMError,
+    LLMResponseError,
+    create_reply_from_messages,
+    is_chat_enabled,
 )
 from backend.core.config import get_settings
+from backend.core.model_config import get_model_config
 from backend.services.file.text_file_service import SafeFileInfo, TextFileService
 
 FileSummaryErrorCode = Literal[
@@ -47,7 +49,7 @@ class FileSummaryService:
 
     def summarize_file(self, requested_path: str, max_input_chars: int | None = None) -> FileSummaryResult:
         settings = get_settings()
-        self._ensure_summary_enabled(settings.enable_file_summary, settings.enable_deepseek_chat, settings.deepseek_api_key)
+        self._ensure_summary_enabled(settings.enable_file_summary)
 
         text_file = self.text_file_service.read_text_file(requested_path)
         safe_max_input_chars = self._normalize_max_input_chars(
@@ -64,19 +66,20 @@ class FileSummaryService:
             truncated=is_truncated,
         )
 
+        config = get_model_config()
         try:
-            summary_text = create_deepseek_reply_from_messages(messages)
-        except DeepSeekConfigError as exc:
+            summary_text = create_reply_from_messages(messages)
+        except LLMConfigError as exc:
             raise FileSummaryError(
                 "SUMMARY_MODEL_DISABLED",
                 f"File summary is disabled: {exc}",
             ) from exc
-        except DeepSeekResponseError as exc:
+        except LLMResponseError as exc:
             raise FileSummaryError(
                 "SUMMARY_RESPONSE_INVALID",
                 f"File summary response is invalid: {exc}",
             ) from exc
-        except DeepSeekError as exc:
+        except LLMError as exc:
             raise FileSummaryError(
                 "SUMMARY_PROVIDER_ERROR",
                 f"File summary provider request failed: {exc}",
@@ -86,7 +89,7 @@ class FileSummaryService:
             file=text_file.file,
             summary=FileSummary(
                 text=summary_text,
-                model=settings.deepseek_model,
+                model=config.model,
                 input_chars=len(truncated_text),
                 source_chars=text_file.chars,
                 truncated=is_truncated,
@@ -96,13 +99,16 @@ class FileSummaryService:
     @staticmethod
     def _ensure_summary_enabled(
         enable_file_summary: bool,
-        enable_deepseek_chat: bool,
-        deepseek_api_key: str,
     ) -> None:
-        if not enable_file_summary or not enable_deepseek_chat or not deepseek_api_key:
+        if not enable_file_summary:
             raise FileSummaryError(
                 "SUMMARY_MODEL_DISABLED",
-                "File summary is disabled or DeepSeek API key is missing.",
+                "File summary is disabled.",
+            )
+        if not is_chat_enabled():
+            raise FileSummaryError(
+                "SUMMARY_MODEL_DISABLED",
+                "File summary is disabled: API key is not configured.",
             )
 
     @staticmethod

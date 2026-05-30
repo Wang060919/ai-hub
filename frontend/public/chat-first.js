@@ -6,6 +6,7 @@ import { createChatModule } from "./js/chat/chat.js";
 import { createPanelModule } from "./js/panel/panel.js";
 import { createFilesModule } from "./js/files/files.js";
 import { createKnowledgeModule } from "./js/knowledge/knowledge.js";
+import { createSettingsModule } from "./js/settings/settings.js";
 import { createDesktopShell } from "./js/layout/chat-first-shell.js";
 import { renderOrbitIcon } from "./js/components/orbit-icon.js";
 import { setTextStatus } from "./js/ui/status.js";
@@ -27,6 +28,17 @@ const chatModeKnowledgeButton = document.querySelector("#chat-mode-knowledge");
 const chatKbIdInput = document.querySelector("#chat-kb-id");
 const chatTopKInput = document.querySelector("#chat-top-k");
 const chatKnowledgeParams = document.querySelector("#chat-knowledge-params");
+const chatSettingsToggleBtn = document.querySelector("#chat-settings-toggle");
+
+/* ---- Settings panel DOM ---- */
+const settingsPanel = document.querySelector("#chat-settings-panel");
+const settingsApiUrl = document.querySelector("#settings-api-url");
+const settingsApiKey = document.querySelector("#settings-api-key");
+const settingsModel = document.querySelector("#settings-model");
+const settingsTimeout = document.querySelector("#settings-timeout");
+const settingsSaveBtn = document.querySelector("#settings-save");
+const settingsFetchModelsBtn = document.querySelector("#settings-fetch-models");
+const settingsStatus = document.querySelector("#settings-status");
 
 /* ---- Files page DOM ---- */
 const filePreviewPathInput = document.querySelector("#file-preview-path");
@@ -204,6 +216,26 @@ const {
   state,
 });
 
+/* ---- Settings module ---- */
+const {
+  toggle: toggleSettings,
+  saveSettings,
+  fetchModels,
+} = createSettingsModule({
+  dom: {
+    backendUrlInput,
+    settingsPanel,
+    settingsApiUrl,
+    settingsApiKey,
+    settingsModel,
+    settingsTimeout,
+    settingsSaveBtn,
+    settingsFetchModelsBtn,
+    settingsStatus,
+    settingsToggleBtn: chatSettingsToggleBtn,
+  },
+});
+
 /* ---- Shell ---- */
 const shell = createDesktopShell({ dom: {}, state, actions: {} });
 
@@ -312,6 +344,9 @@ chatMessageInput.addEventListener("input", autoResizeTextarea);
 chatMessageInput.addEventListener("keydown", handleChatInputKeydown);
 chatModeNormalButton.addEventListener("click", () => setChatMode("chat"));
 chatModeKnowledgeButton.addEventListener("click", () => setChatMode("knowledge"));
+chatSettingsToggleBtn.addEventListener("click", toggleSettings);
+settingsSaveBtn.addEventListener("click", () => void saveSettings());
+settingsFetchModelsBtn.addEventListener("click", () => void fetchModels());
 
 // Files events
 readFilePreviewButton.addEventListener("click", readFilePreview);

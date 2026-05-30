@@ -66,11 +66,42 @@
           <div class="page-chat-shell">
             <header class="chat-page-header">
               <h2 class="chat-page-title">聊天</h2>
-              <div class="chat-mode-toggle" role="radiogroup" aria-label="聊天模式">
-                <button id="chat-mode-normal" class="chat-mode-btn active" type="button" role="radio" aria-checked="true">聊天</button>
-                <button id="chat-mode-knowledge" class="chat-mode-btn" type="button" role="radio" aria-checked="false">知识库</button>
+              <div class="chat-header-actions">
+                <div class="chat-mode-toggle" role="radiogroup" aria-label="聊天模式">
+                  <button id="chat-mode-normal" class="chat-mode-btn active" type="button" role="radio" aria-checked="true">聊天</button>
+                  <button id="chat-mode-knowledge" class="chat-mode-btn" type="button" role="radio" aria-checked="false">知识库</button>
+                </div>
+                <button id="chat-settings-toggle" class="chat-settings-btn" type="button" aria-label="模型设置">⚙ 模型</button>
               </div>
             </header>
+
+            <div id="chat-settings-panel" class="chat-settings-panel hidden">
+              <div class="chat-settings-form">
+                <label class="form-field">
+                  <span class="form-label">API URL</span>
+                  <input id="settings-api-url" class="form-input" type="url" placeholder="例如：https://api.deepseek.com/chat/completions" autocomplete="off" />
+                </label>
+                <label class="form-field">
+                  <span class="form-label">API Key</span>
+                  <input id="settings-api-key" class="form-input" type="password" placeholder="sk-..." autocomplete="off" />
+                </label>
+                <label class="form-field">
+                  <span class="form-label">模型名称</span>
+                  <div class="settings-model-row">
+                    <input id="settings-model" class="form-input settings-model-input" type="text" placeholder="例如：deepseek-chat" autocomplete="off" />
+                    <button id="settings-fetch-models" class="btn btn-sm" type="button">获取模型列表</button>
+                  </div>
+                </label>
+                <label class="form-field">
+                  <span class="form-label">超时（秒）</span>
+                  <input id="settings-timeout" class="form-input" type="number" min="1" max="120" value="30" autocomplete="off" />
+                </label>
+                <div class="form-actions">
+                  <button id="settings-save" class="btn btn-primary" type="button">保存配置</button>
+                </div>
+                <p id="settings-status" class="status-text idle">加载中...</p>
+              </div>
+            </div>
 
             <div id="chat-messages" class="chat-messages-area" role="log" aria-live="polite" aria-label="聊天消息">
               <div class="chat-empty-state">发送消息开始对话。</div>

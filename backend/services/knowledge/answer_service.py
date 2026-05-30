@@ -3,13 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
-from backend.adapters.deepseek import (
-    DeepSeekConfigError,
-    DeepSeekError,
-    DeepSeekResponseError,
-    create_deepseek_reply_from_messages,
+from backend.adapters.openai_compatible import (
+    LLMConfigError,
+    LLMError,
+    LLMResponseError,
+    create_reply_from_messages,
 )
-from backend.core.config import get_settings
+from backend.core.model_config import get_model_config
 from backend.services.knowledge.models import (
     KnowledgeAnswer,
     KnowledgeCitation,
@@ -55,22 +55,22 @@ class KnowledgeAnswerService:
                 citations,
             )
 
-        settings = get_settings()
+        config = get_model_config()
         messages = self._build_messages(question=question, hits=hits)
 
         try:
-            answer_text = create_deepseek_reply_from_messages(messages)
-        except DeepSeekConfigError as exc:
+            answer_text = create_reply_from_messages(messages)
+        except LLMConfigError as exc:
             raise KnowledgeAnswerError(
                 "KNOWLEDGE_MODEL_DISABLED",
                 f"Knowledge query model is disabled: {exc}",
             ) from exc
-        except DeepSeekResponseError as exc:
+        except LLMResponseError as exc:
             raise KnowledgeAnswerError(
                 "KNOWLEDGE_RESPONSE_INVALID",
                 f"Knowledge query response is invalid: {exc}",
             ) from exc
-        except DeepSeekError as exc:
+        except LLMError as exc:
             raise KnowledgeAnswerError(
                 "KNOWLEDGE_PROVIDER_ERROR",
                 f"Knowledge query provider request failed: {exc}",
@@ -79,7 +79,7 @@ class KnowledgeAnswerService:
         return (
             KnowledgeAnswer(
                 text=answer_text,
-                model=settings.deepseek_model,
+                model=config.model,
                 grounded=True,
             ),
             citations,

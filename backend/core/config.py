@@ -15,13 +15,12 @@ class Settings:
     debug: bool = False
     backend_host: str = "127.0.0.1"
     backend_port: int = 8000
-    enable_deepseek_chat: bool = False
     enable_file_summary: bool = False
     file_summary_max_input_chars: int = 8000
-    deepseek_api_key: str = field(default="", repr=False)
-    deepseek_api_url: str = "https://api.deepseek.com/chat/completions"
-    deepseek_model: str = "deepseek-v4-flash"
-    deepseek_timeout_seconds: int = 20
+    model_api_url: str = ""
+    model_api_key: str = field(default="", repr=False)
+    model_name: str = ""
+    model_timeout: int = 30
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -32,10 +31,6 @@ class Settings:
             debug=_parse_bool(os.getenv("AI_HUB_DEBUG"), cls.debug),
             backend_host=os.getenv("AI_HUB_BACKEND_HOST", cls.backend_host),
             backend_port=_parse_int(os.getenv("AI_HUB_BACKEND_PORT"), cls.backend_port),
-            enable_deepseek_chat=_parse_bool(
-                os.getenv("ENABLE_DEEPSEEK_CHAT"),
-                cls.enable_deepseek_chat,
-            ),
             enable_file_summary=_parse_bool(
                 os.getenv("ENABLE_FILE_SUMMARY"),
                 cls.enable_file_summary,
@@ -44,21 +39,21 @@ class Settings:
                 os.getenv("FILE_SUMMARY_MAX_INPUT_CHARS"),
                 cls.file_summary_max_input_chars,
             ),
-            deepseek_api_key=_parse_str(
-                os.getenv("DEEPSEEK_API_KEY"),
-                cls.deepseek_api_key,
+            model_api_url=_parse_str(
+                os.getenv("MODEL_API_URL"),
+                cls.model_api_url,
             ),
-            deepseek_api_url=_parse_str(
-                os.getenv("DEEPSEEK_API_URL"),
-                cls.deepseek_api_url,
+            model_api_key=_parse_str(
+                os.getenv("MODEL_API_KEY"),
+                cls.model_api_key,
             ),
-            deepseek_model=_parse_str(
-                os.getenv("DEEPSEEK_MODEL"),
-                cls.deepseek_model,
+            model_name=_parse_str(
+                os.getenv("MODEL_NAME"),
+                cls.model_name,
             ),
-            deepseek_timeout_seconds=_parse_int(
-                os.getenv("DEEPSEEK_TIMEOUT_SECONDS"),
-                cls.deepseek_timeout_seconds,
+            model_timeout=_parse_int(
+                os.getenv("MODEL_TIMEOUT"),
+                cls.model_timeout,
             ),
         )
 
